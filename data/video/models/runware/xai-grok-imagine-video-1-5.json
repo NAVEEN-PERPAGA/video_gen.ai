@@ -1,0 +1,733 @@
+{
+  "name": "Grok Imagine Video 1.5",
+  "organisation": "xAI",
+  "provider": "runware",
+  "value": "xai:grok-imagine@video-1.5",
+  "air_id": "xai:grok-imagine@video-1.5",
+  "href": "/models/video/xai/xai-grok-imagine-video-1-5",
+  "paid": true,
+  "type": "video",
+  "capabilities": [
+    "image-to-video"
+  ],
+  "description": "Grok Imagine Video 1.5 is xAI's newer image-to-video model. It is positioned above the earlier Grok Imagine Video release with higher per-second pricing, supports durations up to 15 seconds, and generates 480p or 720p video from a single still-image starting frame for cinematic clips, animated visuals, and prompt-guided short-form video creation.",
+  "schema": "https://runware.ai/docs/models/xai-grok-imagine-video-1-5",
+  "resolutions": [
+    {
+      "label": "480p (1:1)",
+      "width": 480,
+      "height": 480
+    },
+    {
+      "label": "480p (16:9)",
+      "width": 848,
+      "height": 480
+    },
+    {
+      "label": "480p (9:16)",
+      "width": 480,
+      "height": 848
+    },
+    {
+      "label": "480p (4:3)",
+      "width": 640,
+      "height": 480
+    },
+    {
+      "label": "480p (3:4)",
+      "width": 480,
+      "height": 640
+    },
+    {
+      "label": "480p (3:2)",
+      "width": 720,
+      "height": 480
+    },
+    {
+      "label": "480p (2:3)",
+      "width": 480,
+      "height": 720
+    },
+    {
+      "label": "720p (1:1)",
+      "width": 720,
+      "height": 720
+    },
+    {
+      "label": "720p (16:9)",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "label": "720p (9:16)",
+      "width": 720,
+      "height": 1280
+    },
+    {
+      "label": "720p (4:3)",
+      "width": 960,
+      "height": 720
+    },
+    {
+      "label": "720p (3:4)",
+      "width": 720,
+      "height": 960
+    },
+    {
+      "label": "720p (3:2)",
+      "width": 1088,
+      "height": 720
+    },
+    {
+      "label": "720p (2:3)",
+      "width": 720,
+      "height": 1088
+    },
+    {
+      "label": "1080p (1:1)",
+      "width": 1424,
+      "height": 1424
+    },
+    {
+      "label": "1080p (16:9)",
+      "width": 1904,
+      "height": 1072
+    },
+    {
+      "label": "1080p (9:16)",
+      "width": 1072,
+      "height": 1904
+    },
+    {
+      "label": "1080p (4:3)",
+      "width": 1648,
+      "height": 1232
+    },
+    {
+      "label": "1080p (3:4)",
+      "width": 1232,
+      "height": 1648
+    },
+    {
+      "label": "1080p (3:2)",
+      "width": 1744,
+      "height": 1152
+    },
+    {
+      "label": "1080p (2:3)",
+      "width": 1152,
+      "height": 1744
+    }
+  ],
+  "pricing": {
+    "perSecond": {
+      "480p": 0.08,
+      "720p": 0.14,
+      "1080p": 0.25
+    },
+    "perInputImage": {
+      "price": 0.01,
+      "free": 0,
+      "kinds": [
+        "frameImages",
+        "referenceImages"
+      ]
+    },
+    "source": "https://runware.ai/docs/models/xai-grok-imagine-video-1-5",
+    "checked": "2026-09-24"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Without a first frame, pick an exact size.",
+    "A first frame and reference images can't be used together.",
+    "Choose either a resolution preset or an exact size, not both.",
+    "Width × height must be one of the supported sizes.",
+    "A resolution preset needs a first frame."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "inputs": {
+              "properties": {
+                "frameImages": {
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "frameImages"
+              ]
+            }
+          },
+          "required": [
+            "inputs"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "width",
+          "height"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "frameImages"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          },
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "referenceImages"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "required": [
+              "resolution"
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "width"
+                ]
+              },
+              {
+                "required": [
+                  "height"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "required": [
+          "width",
+          "height"
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 480
+              },
+              "height": {
+                "const": 480
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 848
+              },
+              "height": {
+                "const": 480
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 480
+              },
+              "height": {
+                "const": 848
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 640
+              },
+              "height": {
+                "const": 480
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 480
+              },
+              "height": {
+                "const": 640
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 480
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 480
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1280
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 1280
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 960
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 960
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1088
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 1088
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1424
+              },
+              "height": {
+                "const": 1424
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1904
+              },
+              "height": {
+                "const": 1072
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1072
+              },
+              "height": {
+                "const": 1904
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1648
+              },
+              "height": {
+                "const": 1232
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1232
+              },
+              "height": {
+                "const": 1648
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1744
+              },
+              "height": {
+                "const": 1152
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1152
+              },
+              "height": {
+                "const": 1744
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "frameImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "xai:grok-imagine@video-1.5",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "videoInference",
+      "description": "Identifier for the type of task being performed"
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "description": "Height of the generated media in pixels."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "default": "480p",
+      "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+    },
+    "duration": {
+      "type": "integer",
+      "default": 6,
+      "minimum": 1,
+      "maximum": 15,
+      "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "speech": {
+      "type": "object",
+      "description": "Settings for speech generation.",
+      "properties": {
+        "voices": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "description": "Preset voices the generated speech is performed with. Reference each one in `positivePrompt` as `<AUDIO_0>`, `<AUDIO_1>`, and `<AUDIO_2>`, matching the array index.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ara",
+              "eve",
+              "leo",
+              "rex",
+              "sal",
+              "carina",
+              "zagan",
+              "helix",
+              "orion",
+              "luna",
+              "iris",
+              "altair",
+              "zenith",
+              "perseus",
+              "helios",
+              "lux",
+              "kepler",
+              "rigel",
+              "cosmo",
+              "celeste",
+              "ursa",
+              "sirius",
+              "lumen",
+              "castor",
+              "naksh",
+              "atlas"
+            ],
+            "description": "Voice identifier to use for speech generation."
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "The unified payload wrapper for complex media assets dictating image, video or audio inference constraints.",
+      "properties": {
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        },
+        "frameImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "description": "An array of frame-specific image inputs to guide video generation. Each item can be either a plain image input (UUID, URL, Data URI, or Base64) or an object that pairs an image with a target position in the video. Must include at least one image that is not the last frame.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Image input (UUID, URL, Data URI, or Base64)."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "Image input (UUID, URL, Data URI, or Base64)."
+                  },
+                  "frame": {
+                    "oneOf": [
+                      {
+                        "const": "first",
+                        "description": "First frame of the video."
+                      },
+                      {
+                        "const": 0,
+                        "description": "Frame index 0 (first frame)."
+                      }
+                    ],
+                    "description": "Target frame position for the image. This model only supports the first frame."
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for video generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        },
+        "mode": {
+          "type": "string",
+          "default": "fast",
+          "oneOf": [
+            {
+              "const": "fast",
+              "description": "Checks key frames."
+            },
+            {
+              "const": "full",
+              "description": "Checks all frames."
+            }
+          ],
+          "description": "Safety checking mode for video generation."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a webhook URL where JSON responses will be sent via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL"
+      ],
+      "default": "URL",
+      "description": "Video output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "MP4",
+        "WEBM",
+        "MOV"
+      ],
+      "default": "MP4",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "async",
+      "oneOf": [
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    }
+  }
+}

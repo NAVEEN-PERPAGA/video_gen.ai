@@ -3,6 +3,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --scrollbar-thumb: rgb(0 0 0 / 0.18);
+  --scrollbar-thumb-hover: rgb(124 58 237 / 0.55);
+  /* Native controls (select menus, date pickers, scrollbars) follow the theme. */
+  color-scheme: light;
 }
 
 @theme inline {
@@ -16,6 +20,9 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --scrollbar-thumb: rgb(255 255 255 / 0.16);
+    --scrollbar-thumb-hover: rgb(167 139 250 / 0.6);
+    color-scheme: dark;
   }
 }
 
@@ -23,4 +30,54 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Native <select> menus: keep options readable in both themes. */
+option,
+optgroup {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/*
+ * Thin, rounded scrollbars that blend with the theme, in every scroll area
+ * (page, menus, panels). Chromium ignores the ::-webkit-scrollbar styles once
+ * `scrollbar-color` is set, so the standard properties are only used where
+ * the pseudo-elements aren't supported (Firefox).
+ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background-color: var(--scrollbar-thumb);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+
+/* Scroll areas with rounded corners: keep the thumb clear of the curve. */
+.scroll-inset::-webkit-scrollbar-track {
+  margin-block: 12px;
 }

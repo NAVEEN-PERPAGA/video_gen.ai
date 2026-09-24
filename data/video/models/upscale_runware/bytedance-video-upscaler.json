@@ -1,0 +1,97 @@
+{
+  "name": "ByteDance Video Upscaler",
+  "organisation": "ByteDance",
+  "provider": "runware",
+  "value": "bytedance:50@1",
+  "air_id": "bytedance:50@1",
+  "href": "/models/video/bytedance/bytedance-video-upscaler",
+  "paid": true,
+  "type": "video-upscale",
+  "description": "ByteDance Video Upscaler boosts video resolution to 1080p, 2K, or 4K with advanced denoising and motion enhancement. It restores color, reduces compression artifacts, and improves clarity for legacy films, UGC clips, and short narrative content through a simple API.",
+  "schema": "https://runware.ai/docs/models/bytedance-video-upscaler",
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "bytedance:50@1",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "upscale",
+      "description": "Identifier for the type of task being performed."
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when outputType is URL."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "outputType": {
+      "type": "string",
+      "default": "URL",
+      "enum": [
+        "URL"
+      ],
+      "description": "Video output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "default": "MP4",
+      "enum": [
+        "MP4",
+        "WEBM",
+        "MOV"
+      ],
+      "description": "Specifies the file format of the generated output."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "async",
+      "oneOf": [
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input assets for the task.",
+      "properties": {
+        "video": {
+          "type": "string",
+          "description": "Video input (UUID or URL)."
+        }
+      },
+      "required": [
+        "video"
+      ]
+    }
+  }
+}

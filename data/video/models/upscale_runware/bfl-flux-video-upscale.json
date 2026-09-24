@@ -1,0 +1,183 @@
+{
+  "name": "FLUX Video Upscale",
+  "organisation": "Black Forest Labs",
+  "provider": "runware",
+  "value": "bfl:flux@video-upscale",
+  "air_id": "bfl:flux@video-upscale",
+  "href": "/models/video/black-forest-labs/bfl-flux-video-upscale",
+  "paid": true,
+  "type": "video-upscale",
+  "description": "FLUX Video Upscale is a dedicated video enhancement model from Black Forest Labs for increasing source footage to 1080p, 2K, or 4K while preserving motion and the original audio track. It supports a source-faithful precise mode for faces, products, and brand-sensitive footage, plus a more creative enhancement mode that restores and invents finer detail for generated clips, scenery, textures, and crowd shots. The endpoint accepts clips up to 20 seconds long and can optionally use a prompt to steer the type of detail it enhances.",
+  "schema": "https://runware.ai/docs/models/bfl-flux-video-upscale",
+  "upscaleFactor": {
+    "type": "number",
+    "default": 2,
+    "minimum": 1.5,
+    "maximum": 3,
+    "multipleOf": 0.1,
+    "options": [
+      1.5,
+      2,
+      2.5,
+      3
+    ],
+    "description": "Factor by which to upscale the generated image. A value of 2 doubles width and height. Output frames are capped at about 14.4 megapixels, so a high-resolution source may be upscaled by less than the requested factor."
+  },
+  "settings": {
+    "creativity": {
+      "type": "integer",
+      "default": 1,
+      "description": "Level of fine detail the model restores or invents.",
+      "enum": [
+        0,
+        1
+      ],
+      "options": [
+        {
+          "value": 0,
+          "label": "Precise",
+          "description": "Preserves the source and sharpens it."
+        },
+        {
+          "value": 1,
+          "label": "Creative",
+          "description": "Restores and invents detail more aggressively, without strictly preserving identity."
+        }
+      ]
+    },
+    "safetyTolerance": {
+      "type": "integer",
+      "default": 2,
+      "minimum": 0,
+      "maximum": 4,
+      "description": "Tolerance level for content moderation. Lower values are stricter; higher values are more permissive."
+    }
+  },
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "bfl:flux@video-upscale",
+      "description": "Identifier of the model to use for generation."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 12000,
+      "description": "Text prompt describing elements to include in the generated output. Steers which detail is enhanced."
+    },
+    "upscaleFactor": {
+      "type": "number",
+      "default": 2,
+      "minimum": 1.5,
+      "maximum": 3,
+      "multipleOf": 0.1,
+      "description": "Factor by which to upscale the generated image. A value of 2 doubles width and height. Output frames are capped at about 14.4 megapixels, so a high-resolution source may be upscaled by less than the requested factor."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Global inference settings.",
+      "properties": {
+        "creativity": {
+          "type": "integer",
+          "default": 1,
+          "description": "Level of fine detail the model restores or invents.",
+          "oneOf": [
+            {
+              "const": 0,
+              "description": "Preserves the source and sharpens it."
+            },
+            {
+              "const": 1,
+              "description": "Restores and invents detail more aggressively, without strictly preserving identity."
+            }
+          ]
+        },
+        "safetyTolerance": {
+          "type": "integer",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 4,
+          "description": "Tolerance level for content moderation. Lower values are stricter; higher values are more permissive."
+        }
+      }
+    },
+    "taskType": {
+      "type": "string",
+      "const": "upscale",
+      "description": "Identifier for the type of task being performed."
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when outputType is URL."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "outputType": {
+      "type": "string",
+      "default": "URL",
+      "enum": [
+        "URL"
+      ],
+      "description": "Video output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "default": "MP4",
+      "enum": [
+        "MP4",
+        "WEBM",
+        "MOV"
+      ],
+      "description": "Specifies the file format of the generated output."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "async",
+      "oneOf": [
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input assets for the task.",
+      "properties": {
+        "video": {
+          "type": "string",
+          "description": "Video input (UUID or URL)."
+        }
+      },
+      "required": [
+        "video"
+      ]
+    }
+  }
+}

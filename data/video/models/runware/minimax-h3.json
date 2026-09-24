@@ -1,0 +1,656 @@
+{
+  "name": "MiniMax H3",
+  "organisation": "MiniMax",
+  "provider": "runware",
+  "value": "minimax:h3@0",
+  "air_id": "minimax:h3@0",
+  "href": "/models/video/minimax/minimax-h3",
+  "paid": true,
+  "type": "video",
+  "capabilities": [
+    "text-to-video",
+    "image-to-video",
+    "video-to-video",
+    "audio-to-video",
+    "edit"
+  ],
+  "description": "MiniMax H3 is a multimodal video generation model that supports text-to-video, first-frame and keyframe-guided generation, multi-reference conditioning, and audio-video continuation in a single workflow. It accepts text together with images, videos, and audio references to keep subjects, voice, motion, and scene identity more consistent across shots, while generating synchronized sound natively rather than as a separate dubbing pass. It is well suited to cinematic multi-shot generation, reference-driven character performance, instruction-based video editing, and continuation workflows that extend an existing clip or audio segment into a seamless new video.",
+  "schema": "https://runware.ai/docs/models/minimax-h3",
+  "resolutions": [
+    {
+      "label": "768p (~16:9)",
+      "width": 1344,
+      "height": 768
+    },
+    {
+      "label": "768p (4:3)",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "label": "768p (1:1)",
+      "width": 768,
+      "height": 768
+    },
+    {
+      "label": "768p (3:4)",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "label": "768p (~9:16)",
+      "width": 768,
+      "height": 1344
+    },
+    {
+      "label": "768p (~21:9)",
+      "width": 1536,
+      "height": 672
+    },
+    {
+      "label": "1440p (16:9)",
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "label": "1440p (4:3)",
+      "width": 1920,
+      "height": 1440
+    },
+    {
+      "label": "1440p (1:1)",
+      "width": 1440,
+      "height": 1440
+    },
+    {
+      "label": "1440p (3:4)",
+      "width": 1440,
+      "height": 1920
+    },
+    {
+      "label": "1440p (9:16)",
+      "width": 1440,
+      "height": 2560
+    },
+    {
+      "label": "1440p (~21:9)",
+      "width": 2944,
+      "height": 1248
+    }
+  ],
+  "pricing": {
+    "perSecond": {
+      "768p": 0.08,
+      "1440p": 0.13
+    },
+    "perInputImage": {
+      "price": 0.04,
+      "free": 5,
+      "kinds": [
+        "referenceImages"
+      ]
+    },
+    "inputVideoPerSecond": 0.13,
+    "source": "https://runware.ai/docs/models/minimax-h3",
+    "checked": "2026-09-24"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Frame images can't be combined with reference images, videos or audios.",
+    "Choose either a resolution preset or an exact size, not both.",
+    "With frame images, use a resolution preset instead of an exact size.",
+    "A resolution preset needs a frame image, reference image or reference video.",
+    "Width × height must be one of the supported sizes.",
+    "Reference audio needs a reference image or reference video."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "frameImages"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          },
+          {
+            "properties": {
+              "inputs": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "referenceImages"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "referenceVideos"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "referenceAudios"
+                    ]
+                  }
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "required": [
+              "resolution"
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "width"
+                ]
+              },
+              {
+                "required": [
+                  "height"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "frameImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "width"
+              ]
+            },
+            {
+              "required": [
+                "height"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "anyOf": [
+              {
+                "required": [
+                  "frameImages"
+                ]
+              },
+              {
+                "required": [
+                  "referenceImages"
+                ]
+              },
+              {
+                "required": [
+                  "referenceVideos"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "required": [
+          "width",
+          "height"
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 1344
+              },
+              "height": {
+                "const": 768
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1024
+              },
+              "height": {
+                "const": 768
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 768
+              },
+              "height": {
+                "const": 768
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 768
+              },
+              "height": {
+                "const": 1024
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 768
+              },
+              "height": {
+                "const": 1344
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1536
+              },
+              "height": {
+                "const": 672
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2560
+              },
+              "height": {
+                "const": 1440
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1920
+              },
+              "height": {
+                "const": 1440
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1440
+              },
+              "height": {
+                "const": 1440
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1440
+              },
+              "height": {
+                "const": 1920
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1440
+              },
+              "height": {
+                "const": 2560
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2944
+              },
+              "height": {
+                "const": 1248
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceAudios"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "anyOf": [
+              {
+                "required": [
+                  "referenceImages"
+                ]
+              },
+              {
+                "required": [
+                  "referenceVideos"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "minimax:h3@0",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "videoInference",
+      "description": "Identifier for the type of task being performed"
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 7000,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "default": 2560,
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "default": 1440,
+      "description": "Height of the generated media in pixels."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": [
+        "768p",
+        "1440p"
+      ],
+      "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+    },
+    "duration": {
+      "type": "integer",
+      "default": 5,
+      "minimum": 5,
+      "maximum": 15,
+      "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "description": "Random seed for reproducible generation. When not provided, a random seed is generated in the unsigned 32-bit range."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "The unified payload wrapper for complex media assets dictating image, video or audio inference constraints.",
+      "properties": {
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 9,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        },
+        "frameImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "description": "An array of frame-specific image inputs to guide video generation. Each item can be either a plain image input (UUID, URL, Data URI, or Base64) or an object that pairs an image with a target position in the video. Must include at least one image that is not the last frame.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Image input (UUID, URL, Data URI, or Base64)."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "Image input (UUID, URL, Data URI, or Base64)."
+                  },
+                  "frame": {
+                    "oneOf": [
+                      {
+                        "const": "first",
+                        "description": "First frame of the video."
+                      },
+                      {
+                        "const": "last",
+                        "description": "Last frame of the video."
+                      },
+                      {
+                        "const": 0,
+                        "description": "Frame index 0 (first frame)."
+                      },
+                      {
+                        "const": -1,
+                        "description": "Frame index -1 (last frame)."
+                      }
+                    ],
+                    "description": "Target frame position for the image. Supports first and last frame."
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            ]
+          }
+        },
+        "referenceVideos": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "description": "List of reference videos (UUID, URL).",
+          "items": {
+            "type": "string",
+            "description": "Video input (UUID or URL)."
+          }
+        },
+        "referenceAudios": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "description": "List of reference audios (UUID, URL).",
+          "items": {
+            "type": "string",
+            "description": "Audio input (UUID or URL)."
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for video generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        },
+        "mode": {
+          "type": "string",
+          "default": "fast",
+          "oneOf": [
+            {
+              "const": "fast",
+              "description": "Checks key frames."
+            },
+            {
+              "const": "full",
+              "description": "Checks all frames."
+            }
+          ],
+          "description": "Safety checking mode for video generation."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a webhook URL where JSON responses will be sent via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL"
+      ],
+      "default": "URL",
+      "description": "Video output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "MP4",
+        "WEBM",
+        "MOV"
+      ],
+      "default": "MP4",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "async",
+      "oneOf": [
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    }
+  }
+}

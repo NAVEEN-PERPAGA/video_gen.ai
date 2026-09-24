@@ -1,0 +1,518 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Runware API - FLUX Video Upscale",
+        "summary": "FLUX-powered video upscaling with precise and creative enhancement modes",
+        "description": "FLUX Video Upscale is a dedicated video enhancement model from Black Forest Labs for increasing source footage to 1080p, 2K, or 4K while preserving motion and the original audio track. It supports a source-faithful precise mode for faces, products, and brand-sensitive footage, plus a more creative enhancement mode that restores and invents finer detail for generated clips, scenery, textures, and crowd shots. The endpoint accepts clips up to 20 seconds long and can optionally use a prompt to steer the type of detail it enhances.",
+        "version": "1.0.0",
+        "x-model-id": "bfl-flux-video-upscale",
+        "x-air-id": "bfl:flux@video-upscale",
+        "x-status": "live",
+        "x-creator": {
+            "id": "black-forest-labs",
+            "name": "Black Forest Labs",
+            "logo": "https://assets.runware.ai/07bfd96d-d2df-4d52-aba5-636fb27874be.png"
+        },
+        "x-capabilities": [
+            "video-to-video",
+            "upscale",
+            "checkpoint"
+        ],
+        "x-modes": [
+            {
+                "id": "video",
+                "inputs": [
+                    "video"
+                ]
+            }
+        ],
+        "x-released-at": "2026-08-20T00:00:00Z",
+        "x-cover-image": "https://assets.runware.ai/covers/bfl-flux-video-upscale.jpg",
+        "x-pricing": {
+            "overview": "Precise: $0.075/Megapixel-second\nCreative: $0.105/Megapixel-second",
+            "examples": [
+                {
+                    "configuration": "upscale",
+                    "price": "$2.23",
+                    "latencyMs": 192690,
+                    "exampleId": "marquetry-workshop-archive-restoration"
+                },
+                {
+                    "configuration": "upscale",
+                    "price": "$2.23",
+                    "latencyMs": 110844,
+                    "exampleId": "bunraku-puppeteer-editorial-portrait"
+                },
+                {
+                    "configuration": "upscale",
+                    "price": "$2.23",
+                    "latencyMs": 187539,
+                    "exampleId": "mycelium-leather-lab-b-roll"
+                },
+                {
+                    "configuration": "upscale",
+                    "price": "$2.23",
+                    "latencyMs": 113288,
+                    "exampleId": "subsea-cable-docuseries-titles"
+                }
+            ]
+        }
+    },
+    "servers": [
+        {
+            "url": "https://api.runware.ai/v1",
+            "description": "Runware REST API"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "apiKeyAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "description": "Runware API Key (e.g., Bearer <your-key>)"
+            }
+        },
+        "schemas": {
+            "AuthenticationTask": {
+                "title": "Authentication",
+                "description": "Authenticates a connection using an API key. Can be sent as the first element of the request array as an alternative to using the Authorization header.",
+                "type": "object",
+                "x-response-schema": "https://schemas.runware.ai/responses/utilities/authentication.json",
+                "properties": {
+                    "taskType": {
+                        "$id": "https://schemas.runware.ai/requests/parameters/api/task-type.json",
+                        "title": "Task Type",
+                        "description": "Identifier for the type of task being performed.",
+                        "type": "string",
+                        "const": "authentication"
+                    },
+                    "apiKey": {
+                        "$id": "https://schemas.runware.ai/requests/parameters/authentication/api-key.json",
+                        "title": "API Key",
+                        "description": "Your Runware API key.",
+                        "type": "string"
+                    },
+                    "connectionSessionUUID": {
+                        "$id": "https://schemas.runware.ai/requests/parameters/authentication/connection-session-uuid.json",
+                        "title": "Connection Session UUID",
+                        "description": "Optional session UUID to resume a previous connection and receive any buffered results.",
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "taskType",
+                    "apiKey"
+                ],
+                "additionalProperties": false
+            },
+            "RequestBody": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "x-constraints": [
+                        {
+                            "operation": "fileSize",
+                            "parameters": [
+                                "inputs.video"
+                            ],
+                            "maximum": 52428800
+                        },
+                        {
+                            "operation": "duration",
+                            "parameters": [
+                                "inputs.video"
+                            ],
+                            "maximum": 20
+                        },
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "inputs.video"
+                            ],
+                            "maximum": 3686400,
+                            "scope": "each"
+                        }
+                    ],
+                    "properties": {
+                        "model": {
+                            "title": "Model",
+                            "description": "Identifier of the model to use for generation.",
+                            "type": "string",
+                            "const": "bfl:flux@video-upscale"
+                        },
+                        "positivePrompt": {
+                            "title": "Positive Prompt",
+                            "description": "Text prompt describing elements to include in the generated output. Steers which detail is enhanced.",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 12000
+                        },
+                        "upscaleFactor": {
+                            "title": "Upscale Factor",
+                            "description": "Factor by which to upscale the generated image. A value of 2 doubles width and height. Output frames are capped at about 14.4 megapixels, so a high-resolution source may be upscaled by less than the requested factor.",
+                            "type": "number",
+                            "default": 2,
+                            "minimum": 1.5,
+                            "maximum": 3,
+                            "multipleOf": 0.1
+                        },
+                        "settings": {
+                            "title": "Settings",
+                            "description": "Global inference settings.",
+                            "type": "object",
+                            "properties": {
+                                "creativity": {
+                                    "type": "integer",
+                                    "title": "Creativity",
+                                    "description": "Level of fine detail the model restores or invents.",
+                                    "default": 1,
+                                    "oneOf": [
+                                        {
+                                            "description": "Preserves the source and sharpens it.",
+                                            "const": 0
+                                        },
+                                        {
+                                            "description": "Restores and invents detail more aggressively, without strictly preserving identity.",
+                                            "const": 1
+                                        }
+                                    ]
+                                },
+                                "safetyTolerance": {
+                                    "title": "Safety Tolerance",
+                                    "description": "Tolerance level for content moderation. Lower values are stricter; higher values are more permissive.",
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 4,
+                                    "default": 2
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "taskType": {
+                            "title": "Task Type",
+                            "description": "Identifier for the type of task being performed.",
+                            "type": "string",
+                            "const": "upscale"
+                        },
+                        "taskUUID": {
+                            "title": "Task UUID",
+                            "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task.",
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "webhookURL": {
+                            "title": "Webhook URL",
+                            "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available.",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "includeCost": {
+                            "title": "Include Cost",
+                            "description": "Include task cost in the response.",
+                            "type": "boolean"
+                        },
+                        "uploadEndpoint": {
+                            "title": "Upload Endpoint",
+                            "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials.\n\n**Common use cases:**\n\n- **Cloud storage**: Upload directly to S3 buckets, Google Cloud Storage, or Azure Blob Storage using presigned URLs.\n- **CDN integration**: Upload to content delivery networks for immediate distribution.\n\n```text\n// S3 presigned URL for secure upload\nhttps://your-bucket.s3.amazonaws.com/generated/content.mp4?X-Amz-Signature=abc123&X-Amz-Expires=3600\n\n// Google Cloud Storage presigned URL\nhttps://storage.googleapis.com/your-bucket/content.jpg?X-Goog-Signature=xyz789\n\n// Custom storage endpoint\nhttps://storage.example.com/uploads/generated-image.jpg\n```\n\nThe content data will be sent as the request body to the specified URL when generation is complete.\n\n[Read full documentation](https://runware.ai/docs/models/bfl-flux-video-upscale#uploadEndpoint)",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "ttl": {
+                            "title": "TTL",
+                            "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`.",
+                            "type": "integer",
+                            "minimum": 60
+                        },
+                        "outputQuality": {
+                            "title": "Output Quality",
+                            "description": "Compression quality of the output. Higher values preserve quality but increase file size.",
+                            "type": "integer",
+                            "minimum": 20,
+                            "maximum": 99,
+                            "default": 95
+                        },
+                        "outputType": {
+                            "title": "Output Type",
+                            "description": "Video output type.",
+                            "type": "string",
+                            "enum": [
+                                "URL"
+                            ],
+                            "default": "URL"
+                        },
+                        "outputFormat": {
+                            "title": "Output Format",
+                            "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities.\n\n- \\`JPG\\`: Best for photorealistic images with smaller file sizes (no transparency).\n- \\`PNG\\`: Lossless compression, supports high quality and transparency (alpha channel).\n- \\`WEBP\\`: Modern format providing superior compression and transparency support.\n- \\`MP4\\`: Widely supported video container (H.264), recommended for general use.\n- \\`WEBM\\`: Optimized for web delivery.\n- \\`MOV\\`: QuickTime format, common in professional workflows (Apple ecosystem).\n- \\`GIF\\`: Animated image format (no audio), suitable for short loops or previews.\n- \\`MP3\\`: Compressed audio, smaller file size.\n- \\`WAV\\`: Uncompressed, high-quality audio.\n- \\`FLAC\\`: Lossless compression.\n- \\`OGG\\`: Open-source compressed audio format (Vorbis codec).\n- \\`SVG\\`: Scalable Vector Graphics.\n- \\`TIFF\\`: High-quality output supporting layers.\n- \\`GLB\\`: Binary glTF format for 3D models, including geometry, textures, and PBR materials.\n\n> [!NOTE]\n> \\*\\*Transparency\\*\\*: If you are using features like background removal or LayerDiffuse that require transparency, you must select a format that supports an alpha channel (e.g., \\`PNG\\`, \\`WEBP\\`, \\`TIFF\\`). \\`JPG\\` does not support transparency.\n\n[Read full documentation](https://runware.ai/docs/models/bfl-flux-video-upscale#outputFormat)",
+                            "type": "string",
+                            "enum": [
+                                "MP4",
+                                "WEBM",
+                                "MOV"
+                            ],
+                            "default": "MP4"
+                        },
+                        "deliveryMethod": {
+                            "title": "Delivery Method",
+                            "description": "Determines how the API delivers task results.",
+                            "type": "string",
+                            "oneOf": [
+                                {
+                                    "const": "async",
+                                    "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+                                }
+                            ],
+                            "default": "async"
+                        },
+                        "inputs": {
+                            "title": "Inputs",
+                            "description": "Input assets for the task.",
+                            "type": "object",
+                            "properties": {
+                                "video": {
+                                    "title": "Video",
+                                    "description": "Video input (UUID or URL).",
+                                    "type": "string",
+                                    "anyOf": [
+                                        {
+                                            "format": "uuid"
+                                        },
+                                        {
+                                            "format": "uri"
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "video"
+                            ],
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "taskType",
+                        "taskUUID",
+                        "model",
+                        "inputs"
+                    ]
+                },
+                "description": "You must always POST an array of task objects."
+            },
+            "ResponseBody": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "title": "Upscale Video Response",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "taskType": {
+                                    "title": "Task Type",
+                                    "description": "Identifier for the type of task this response belongs to.",
+                                    "type": "string",
+                                    "const": "upscale"
+                                },
+                                "taskUUID": {
+                                    "title": "Task UUID",
+                                    "description": "UUID v4 identifier echoed from the original request, used to match async responses to their tasks.",
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "cost": {
+                                    "title": "Cost",
+                                    "description": "Task cost in USD. Present when `includeCost` is set to `true` in the request.",
+                                    "type": "number"
+                                },
+                                "videoUUID": {
+                                    "title": "Video UUID",
+                                    "description": "UUID of the output video.",
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "videoURL": {
+                                    "title": "Video URL",
+                                    "description": "URL of the output video.",
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "videoBase64Data": {
+                                    "title": "Video Base64 Data",
+                                    "description": "Base64-encoded video data.",
+                                    "type": "string"
+                                },
+                                "videoDataURI": {
+                                    "title": "Video Data URI",
+                                    "description": "Data URI of the output video.",
+                                    "type": "string",
+                                    "format": "uri"
+                                }
+                            },
+                            "required": [
+                                "taskType",
+                                "taskUUID",
+                                "videoUUID"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "title": "Error Response",
+                "description": "Standard error response returned by the Runware API.",
+                "type": "object",
+                "properties": {
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "code",
+                                "message"
+                            ],
+                            "additionalProperties": true,
+                            "properties": {
+                                "code": {
+                                    "type": "string",
+                                    "description": "A short identifier for the error (e.g., invalidApiKey, timeoutProvider)."
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "description": "A human-readable explanation of what went wrong."
+                                },
+                                "parameter": {
+                                    "type": "string",
+                                    "description": "The request parameter related to the error, if applicable."
+                                },
+                                "taskType": {
+                                    "type": "string",
+                                    "description": "The task type of the request that failed."
+                                },
+                                "taskUUID": {
+                                    "type": "string",
+                                    "description": "The unique identifier of the failed request."
+                                },
+                                "documentation": {
+                                    "type": "string",
+                                    "description": "A link to relevant documentation."
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "errors"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "paths": {
+        "/": {
+            "post": {
+                "summary": "Run FLUX Video Upscale",
+                "description": "FLUX Video Upscale is a dedicated video enhancement model from Black Forest Labs for increasing source footage to 1080p, 2K, or 4K while preserving motion and the original audio track. It supports a source-faithful precise mode for faces, products, and brand-sensitive footage, plus a more creative enhancement mode that restores and invents finer detail for generated clips, scenery, textures, and crowd shots. The endpoint accepts clips up to 20 seconds long and can optionally use a prompt to steer the type of detail it enhances.",
+                "operationId": "run_bfl_flux_video_upscale",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequestBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — Missing or invalid parameters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — No valid API key provided.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required — Insufficient account balance.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — The API key lacks permissions for this request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests — Rate limit exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error — Something went wrong on Runware's end.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable — Temporarily unavailable (maintenance or capacity).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKeyAuth": []
+        }
+    ]
+}

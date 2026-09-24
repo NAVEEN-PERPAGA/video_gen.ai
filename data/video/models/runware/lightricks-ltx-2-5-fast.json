@@ -1,0 +1,688 @@
+{
+  "name": "LTX-2.5 Fast",
+  "organisation": "Lightricks",
+  "provider": "runware",
+  "value": "lightricks:ltx@2.5-fast",
+  "air_id": "lightricks:ltx@2.5-fast",
+  "href": "/models/video/lightricks/lightricks-ltx-2-5-fast",
+  "paid": true,
+  "type": "video",
+  "capabilities": [
+    "text-to-video",
+    "image-to-video"
+  ],
+  "description": "LTX-2.5 Fast is the speed-focused variant in the LTX 2.5 video family, built for high-throughput text-to-video and image-to-video generation. It supports output from 720p through 4K, longer durations at HD resolutions, optional native audio generation, and first-to-last-frame image guidance for more directed motion and shot planning. It is well suited to rapid creative iteration, storyboard development, social and advertising content, and other video workflows that need faster turnaround without dropping to low-end resolutions.",
+  "schema": "https://runware.ai/docs/models/lightricks-ltx-2-5-fast",
+  "resolutions": [
+    {
+      "label": "720p (16:9)",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "label": "720p (9:16)",
+      "width": 720,
+      "height": 1280
+    },
+    {
+      "label": "1080p (16:9)",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "label": "1080p (9:16)",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "label": "2K (16:9)",
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "label": "2K (9:16)",
+      "width": 1440,
+      "height": 2560
+    },
+    {
+      "label": "4K (16:9)",
+      "width": 3840,
+      "height": 2160
+    },
+    {
+      "label": "4K (9:16)",
+      "width": 2160,
+      "height": 3840
+    }
+  ],
+  "pricing": {
+    "perSecond": {
+      "720p": 0.09,
+      "1080p": 0.13,
+      "2K": 0.19,
+      "4K": 0.3
+    },
+    "source": "https://runware.ai/docs/models/lightricks-ltx-2-5-fast",
+    "checked": "2026-09-24"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Frame images and audio can't be used together.",
+    "With audio, don't set duration or camera movement: the video follows the audio's length.",
+    "Audio needs a reference image.",
+    "A reference image is only used together with audio.",
+    "With audio, the size must be 1080p (1920×1080 or 1080×1920).",
+    "At 48 or 50 fps, duration is at most 10s.",
+    "At 2K or 4K, duration is at most 10s.",
+    "Width × height must be one of the supported sizes."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "frameImages"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          },
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "audio"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "audio"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "duration"
+              ]
+            },
+            {
+              "properties": {
+                "settings": {
+                  "required": [
+                    "cameraMovement"
+                  ]
+                }
+              },
+              "required": [
+                "settings"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "audio"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "audio"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "audio"
+            ]
+          }
+        },
+        "required": [
+          "inputs",
+          "width"
+        ]
+      },
+      "then": {
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 1920
+              },
+              "height": {
+                "const": 1080
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1080
+              },
+              "height": {
+                "const": 1920
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "fps": {
+            "enum": [
+              48,
+              50
+            ]
+          }
+        },
+        "required": [
+          "fps"
+        ]
+      },
+      "then": {
+        "properties": {
+          "duration": {
+            "maximum": 10
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "width": {
+                "enum": [
+                  2560,
+                  1440,
+                  3840,
+                  2160
+                ]
+              }
+            },
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "properties": {
+              "height": {
+                "enum": [
+                  2560,
+                  1440,
+                  3840,
+                  2160
+                ]
+              }
+            },
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "duration": {
+            "maximum": 10
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "required": [
+          "width",
+          "height"
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 1280
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 1280
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1920
+              },
+              "height": {
+                "const": 1080
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1080
+              },
+              "height": {
+                "const": 1920
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2560
+              },
+              "height": {
+                "const": 1440
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1440
+              },
+              "height": {
+                "const": 2560
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3840
+              },
+              "height": {
+                "const": 2160
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2160
+              },
+              "height": {
+                "const": 3840
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "lightricks:ltx@2.5-fast",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "videoInference",
+      "description": "Identifier for the type of task being performed"
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 5000,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "default": 1920,
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "default": 1080,
+      "description": "Height of the generated media in pixels."
+    },
+    "duration": {
+      "type": [
+        "integer",
+        "string"
+      ],
+      "default": 6,
+      "enum": [
+        6,
+        8,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20,
+        "auto"
+      ],
+      "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+    },
+    "fps": {
+      "type": "integer",
+      "enum": [
+        24,
+        25,
+        48,
+        50
+      ],
+      "description": "Frames per second for video generation. Higher values create smoother motion but require more processing time."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Global inference settings.",
+      "properties": {
+        "audio": {
+          "type": "boolean",
+          "description": "Generate synchronized audio."
+        },
+        "cameraMovement": {
+          "type": "string",
+          "oneOf": [
+            {
+              "const": "dolly_in",
+              "description": "Camera moves toward the subject."
+            },
+            {
+              "const": "dolly_out",
+              "description": "Camera moves away from the subject."
+            },
+            {
+              "const": "dolly_left",
+              "description": "Camera tracks to the left."
+            },
+            {
+              "const": "dolly_right",
+              "description": "Camera tracks to the right."
+            },
+            {
+              "const": "jib_up",
+              "description": "Camera rises on a jib."
+            },
+            {
+              "const": "jib_down",
+              "description": "Camera lowers on a jib."
+            },
+            {
+              "const": "static",
+              "description": "Fixed camera with no movement."
+            },
+            {
+              "const": "focus_shift",
+              "description": "Focus racks between subjects."
+            }
+          ],
+          "description": "Cinematic camera movement."
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "The unified payload wrapper for complex media assets dictating image, video or audio inference constraints.",
+      "properties": {
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        },
+        "frameImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "description": "An array of frame-specific image inputs to guide video generation. Each item can be either a plain image input (UUID, URL, Data URI, or Base64) or an object that pairs an image with a target position in the video. Must include at least one image that is not the last frame.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Image input (UUID, URL, Data URI, or Base64)."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "Image input (UUID, URL, Data URI, or Base64)."
+                  },
+                  "frame": {
+                    "oneOf": [
+                      {
+                        "const": "first",
+                        "description": "First frame of the video."
+                      },
+                      {
+                        "const": "last",
+                        "description": "Last frame of the video."
+                      },
+                      {
+                        "const": 0,
+                        "description": "Frame index 0 (first frame)."
+                      },
+                      {
+                        "const": -1,
+                        "description": "Frame index -1 (last frame)."
+                      }
+                    ],
+                    "description": "Target frame position for the image. Supports first and last frame."
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            ]
+          }
+        },
+        "audio": {
+          "type": "string",
+          "description": "Audio input (UUID or URL). Drives the generated video, whose length follows the audio."
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for video generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        },
+        "mode": {
+          "type": "string",
+          "default": "fast",
+          "oneOf": [
+            {
+              "const": "fast",
+              "description": "Checks key frames."
+            },
+            {
+              "const": "full",
+              "description": "Checks all frames."
+            }
+          ],
+          "description": "Safety checking mode for video generation."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a webhook URL where JSON responses will be sent via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL"
+      ],
+      "default": "URL",
+      "description": "Video output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "MP4",
+        "WEBM",
+        "MOV"
+      ],
+      "default": "MP4",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "async",
+      "oneOf": [
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    }
+  }
+}

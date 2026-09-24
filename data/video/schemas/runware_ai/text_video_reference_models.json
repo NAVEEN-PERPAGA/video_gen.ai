@@ -1,0 +1,2618 @@
+[
+  {
+    "name": "Seedance 2.5",
+    "organisation": "ByteDance",
+    "provider": "runware",
+    "value": "bytedance:seedance@2.5",
+    "air_id": "bytedance:seedance@2.5",
+    "href": "/models/video/bytedance/seedance-2.5",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Seedance 2.5 is ByteDance's higher-end multimodal video generation model for production-oriented creative work. It supports native 30-second video generation, larger reference sets across image, video, and audio inputs, and stronger instruction following for complex shots, multilingual prompts, and reference-heavy creative direction.",
+    "schema": "https://runware.ai/docs/models/bytedance-seedance-2-5/schema.json",
+    "supportedResolutions": [
+      "16:9_854_480_480p",
+      "4:3_752_560_480p",
+      "1:1_640_640_480p",
+      "3:4_560_752_480p",
+      "9:16_480_854_480p",
+      "21:9_992_432_480p",
+      "16:9_1280_720_720p",
+      "4:3_1112_834_720p",
+      "1:1_960_960_720p",
+      "3:4_834_1112_720p",
+      "9:16_720_1280_720p",
+      "21:9_1470_630_720p",
+      "16:9_1920_1080_1080p",
+      "4:3_1664_1248_1080p",
+      "1:1_1440_1440_1080p",
+      "3:4_1248_1664_1080p",
+      "9:16_1080_1920_1080p",
+      "21:9_2206_946_1080p"
+    ],
+    "supportedDurations": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "cost": [
+      {
+        "resolution": "480p",
+        "cost": 0.12
+      },
+      {
+        "resolution": "720p",
+        "cost": 0.23
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.40
+      }
+    ],
+    "max_frame_image_Attachments": 2,
+    "max_reference_image_Attachments": 30,
+    "max_reference_video_Attachments": 10,
+    "max_reference_audio_Attachments": 10,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 4,
+        "maximum": 30,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "List of frame-specific image inputs (first/last frames)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 30,
+          "description": "List of reference images to guide generation."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 10,
+          "description": "List of reference videos for visual guidance."
+        },
+        "referenceAudios": {
+          "type": "array",
+          "maxItems": 10,
+          "description": "List of reference audios."
+        },
+        "video": {
+          "type": "string",
+          "description": "Video input to edit or extend."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio."
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "edit",
+            "extend"
+          ],
+          "description": "The operation to perform on the source video (edit or extend)."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Gemini Omni Flash 1.1",
+    "organisation": "Google",
+    "provider": "runware",
+    "value": "google:gemini@omni-flash-1.1",
+    "air_id": "google:gemini@omni-flash-1.1",
+    "href": "/models/video/google/gemini-omni-flash-1.1",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Gemini Omni Flash 1.1 is Google's updated multimodal video generation and editing model in the Gemini Omni family. It expands the original Omni Flash workflow with additional 1080p and 4K output modes, a 360p draft mode, scene extension in 3 to 10 second increments up to 30 seconds total, start-to-end frame interpolation for fluid transitions, and reference-to-video generation guided by both images and short video clips. It is built for teams that need stronger continuity, higher-resolution delivery, and more controllable multi-input video creation than the first Omni Flash release.",
+    "schema": "https://runware.ai/docs/models/google-gemini-omni-flash-1-1/schema.json",
+    "supportedResolutions": [
+      "16:9_640_360_360p",
+      "9:16_360_640_360p",
+      "16:9_1280_720_720p",
+      "9:16_720_1280_720p",
+      "16:9_1920_1080_1080p",
+      "9:16_1080_1920_1080p",
+      "16:9_3840_2160_4K",
+      "9:16_2160_3840_4K"
+    ],
+    "supportedDurations": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "cost": [
+      {
+        "resolution": "360p",
+        "cost": 0.036
+      },
+      {
+        "resolution": "720p",
+        "cost": 0.10
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.16
+      },
+      {
+        "resolution": "4K",
+        "cost": 0.32
+      }
+    ],
+    "max_frame_image_Attachments": 2,
+    "max_reference_image_Attachments": 7,
+    "max_reference_video_Attachments": 3,
+    "max_video_Attachments": 1,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "minLength": 1,
+        "maxLength": 40000,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 6,
+        "minimum": 3,
+        "maximum": 10,
+        "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "360p",
+          "720p",
+          "1080p",
+          "4K"
+        ],
+        "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "An array of frame-specific image inputs to guide video generation (supports first and last frame)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 7,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64)."
+        },
+        "video": {
+          "type": "string",
+          "description": "Video input (UUID or URL). Source video to edit or extend."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference videos (UUID, URL)."
+        }
+      },
+      "settings": {
+        "temperature": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 2,
+          "multipleOf": 0.01,
+          "description": "Controls randomness in generation. Lower values produce more deterministic outputs, higher values increase variation and creativity."
+        },
+        "topP": {
+          "type": "number",
+          "default": 0.95,
+          "minimum": 0,
+          "maximum": 1,
+          "multipleOf": 0.01,
+          "description": "Nucleus sampling parameter that controls diversity by limiting the probability mass. Lower values make outputs more focused, higher values increase diversity."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+      },
+      "deliveryMethod": {
+        "type": "string",
+        "default": "async",
+        "enum": [
+          "async"
+        ],
+        "description": "Determines how the API delivers task results."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking. Increases total generation time."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "FLUX 3 Video",
+    "organisation": "Black Forest Labs",
+    "provider": "runware",
+    "value": "bfl:flux@3-video",
+    "air_id": "bfl:flux@3-video",
+    "href": "/models/video/blackForestLabs/flux-3",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "FLUX 3 Video is Black Forest Labs' multimodal foundation model for video generation with synchronized audio. It generates clips from 5 to 20 seconds across text-to-video, image-to-video, and video-to-video modes on one architecture, with keyframe control, chained continuations, multi-shot sequences, and native multilingual dialogue.",
+    "schema": "https://runware.ai/docs/models/bfl-flux-3-video/schema.json",
+    "supportedResolutions": [
+      "21:9_1440_608_720p",
+      "2:1_1344_672_720p",
+      "16:9_1280_704_720p",
+      "4:3_1088_800_720p",
+      "1:1_960_960_720p",
+      "3:4_800_1088_720p",
+      "9:16_704_1280_720p",
+      "21:9_2176_928_1080p",
+      "2:1_2016_1024_1080p",
+      "16:9_1920_1088_1080p",
+      "4:3_1632_1216_1080p",
+      "1:1_1440_1440_1080p",
+      "3:4_1216_1632_1080p",
+      "9:16_1088_1920_1080p"
+    ],
+    "supportedDurations": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "cost": [
+      {
+        "resolution": "720p",
+        "cost": 0.17
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.29
+      }
+    ],
+    "max_frame_image_Attachments": 3,
+    "max_video_Attachments": 1,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 5,
+        "maximum": 20,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "720p",
+          "1080p"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of frame images to condition on (UUID, URL, data URI)."
+        },
+        "video": {
+          "type": "string",
+          "description": "Input video for video-to-video or extension tasks (UUID, URL, data URI)."
+        },
+        "draftCache": {
+          "type": "string",
+          "description": "Draft cache UUID returned from a previous draft-mode generation."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio alongside the video."
+        },
+        "draft": {
+          "type": "boolean",
+          "default": false,
+          "description": "Generate a fast, low-resolution draft video."
+        },
+        "safetyTolerance": {
+          "type": "integer",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 4,
+          "description": "Safety tolerance level for content moderation (0-4, max 2 if inputs provided)."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "MiniMax H3",
+    "organisation": "MiniMax",
+    "provider": "runware",
+    "value": "minimax:h3@0",
+    "air_id": "minimax:h3@0",
+    "href": "/models/video/minimax/h3",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "MiniMax H3 (Hailuo 3) is a multimodal video generation model that supports text-to-video, first-frame and keyframe-guided generation, multi-reference conditioning, and audio-video continuation in a single workflow with synchronized audio.",
+    "schema": "https://runware.ai/docs/models/minimax-h3/schema.json",
+    "supportedResolutions": [
+      "16:9_1344_768_768p",
+      "4:3_1024_768_768p",
+      "1:1_768_768_768p",
+      "3:4_768_1024_768p",
+      "9:16_768_1344_768p",
+      "21:9_1536_672_768p",
+      "16:9_2560_1440_2K",
+      "4:3_1920_1440_2K",
+      "1:1_1440_1440_2K",
+      "3:4_1440_1920_2K",
+      "9:16_1440_2560_2K",
+      "21:9_2944_1248_2K"
+    ],
+    "supportedDurations": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cost": [
+      {
+        "resolution": "768p",
+        "cost": 0.08
+      },
+      {
+        "resolution": "2K",
+        "cost": 0.13
+      }
+    ],
+    "max_frame_image_Attachments": 2,
+    "max_reference_image_Attachments": 9,
+    "max_reference_video_Attachments": 3,
+    "max_reference_audio_Attachments": 3,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 5,
+        "maximum": 15,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "768p",
+        "enum": [
+          "768p",
+          "2K"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "List of frame-specific image inputs (first/last frames)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 9,
+          "description": "List of reference images to guide generation."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference videos for visual guidance."
+        },
+        "referenceAudios": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference audios."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Wan 3.0",
+    "organisation": "Alibaba",
+    "provider": "runware",
+    "value": "alibaba:wan@3.0",
+    "air_id": "alibaba:wan@3.0",
+    "href": "/models/video/alibaba/wan-3.0",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Wan3.0 is Alibaba's higher-end all-in-one multimodal video model for longer, reference-heavy, production-oriented creation. It combines text-to-video, first- and last-frame image-to-video, reference-driven video generation, localized video editing, and temporal extension in one model, with support for image, video, audio, document, and webpage inputs.",
+    "schema": "https://runware.ai/docs/models/alibaba-wan3-0/schema.json",
+    "supportedResolutions": [
+      "16:9_832_480_480p",
+      "9:16_480_832_480p",
+      "1:1_624_624_480p",
+      "4:3_720_544_480p",
+      "3:4_544_720_480p",
+      "16:9_1280_720_720p",
+      "9:16_720_1280_720p",
+      "1:1_960_960_720p",
+      "4:3_1104_832_720p",
+      "3:4_832_1104_720p",
+      "16:9_1920_1080_1080p",
+      "9:16_1080_1920_1080p",
+      "1:1_1440_1440_1080p",
+      "4:3_1648_1248_1080p",
+      "3:4_1248_1648_1080p"
+    ],
+    "supportedDurations": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "cost": [
+      {
+        "resolution": "480p",
+        "cost": 0.12
+      },
+      {
+        "resolution": "720p",
+        "cost": 0.23
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.40
+      }
+    ],
+    "max_frame_image_Attachments": 2,
+    "max_reference_image_Attachments": 10,
+    "max_reference_video_Attachments": 5,
+    "max_reference_audio_Attachments": 5,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output. Reference assets in array order as Image 1, Video 1, and Audio 1, numbered from one."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 2,
+        "maximum": 30,
+        "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "1080p",
+        "enum": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "seed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2147483647,
+        "description": "Random seed for reproducible generation. When not provided, a random seed is generated in the unsigned 32-bit range."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "List of frame-specific image inputs (first/last frames)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 10,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64)."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 5,
+          "description": "List of reference videos (UUID, URL)."
+        },
+        "referenceAudios": {
+          "type": "array",
+          "maxItems": 5,
+          "description": "List of reference audios (UUID, URL)."
+        },
+        "documents": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "Array of document inputs (UUID, URL, or Base64)."
+        },
+        "urls": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "Array of public webpage URLs."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate native audio aligned with visual content."
+        },
+        "promptExtend": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable LLM-based prompt rewriting to expand and clarify inputs. Affects reproducibility."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety chec king. Increases total generation time."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Grok Imagine Video 1.5",
+    "organisation": "xAI",
+    "provider": "runware",
+    "value": "xai:grok-imagine@video-1.5",
+    "air_id": "xai:grok-imagine@video-1.5",
+    "href": "/models/video/SpaceXAI/grok-imagine-video-1.5",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Grok Imagine Video 1.5 is xAI's image-to-video and text-to-video model with support for durations up to 15 seconds, and generating 480p, 720p, or 1080p video from text, reference images, or starting frame images.",
+    "schema": "https://runware.ai/docs/models/xai-grok-imagine-video-1-5/schema.json",
+    "supportedResolutions": [
+      "1:1_480_480_480p",
+      "16:9_848_480_480p",
+      "9:16_480_848_480p",
+      "4:3_640_480_480p",
+      "3:4_480_640_480p",
+      "3:2_720_480_480p",
+      "2:3_480_720_480p",
+      "1:1_720_720_720p",
+      "16:9_1280_720_720p",
+      "9:16_720_1280_720p",
+      "4:3_960_720_720p",
+      "3:4_720_960_720p",
+      "3:2_1088_720_720p",
+      "2:3_720_1088_720p",
+      "1:1_1424_1424_1080p",
+      "16:9_1904_1072_1080p",
+      "9:16_1072_1904_1080p",
+      "4:3_1648_1232_1080p",
+      "3:4_1232_1648_1080p",
+      "3:2_1744_1152_1080p",
+      "2:3_1152_1744_1080p"
+    ],
+    "supportedDurations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cost": [
+      {
+        "resolution": "480p",
+        "cost": 0.08
+      },
+      {
+        "resolution": "720p",
+        "cost": 0.14
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.25
+      }
+    ],
+    "max_frame_image_Attachments": 1,
+    "max_reference_image_Attachments": 7,
+    "max_reference_audio_Attachments": 1,
+    "input": {
+      "model": {
+        "type": "string",
+        "default": "xai:grok-imagine@video-1.5",
+        "description": "Model air_id identifier."
+      },
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "minLength": 1,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 6,
+        "minimum": 1,
+        "maximum": 15,
+        "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "480p",
+        "enum": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "An array of frame-specific image inputs to guide video generation (supports first frame)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 7,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64)."
+        },
+        "referenceAudios": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "List of reference audios (UUID, URL)."
+        }
+      },
+      "taskType": {
+        "type": "string",
+        "default": "videoInference",
+        "description": "Identifier for the type of task being performed."
+      },
+      "taskUUID": {
+        "type": "string",
+        "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+      },
+      "webhookURL": {
+        "type": "string",
+        "description": "Specifies a webhook URL where JSON responses will be sent via HTTP POST when generation tasks complete."
+      },
+      "includeCost": {
+        "type": "boolean",
+        "description": "Include task cost in the response."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+      },
+      "uploadEndpoint": {
+        "type": "string",
+        "description": "Specifies a URL where the generated content will be automatically uploaded using HTTP PUT."
+      },
+      "ttl": {
+        "type": "integer",
+        "minimum": 60,
+        "description": "Time-to-live (TTL) in seconds for generated content. Only applies when outputType is URL."
+      },
+      "outputType": {
+        "type": "string",
+        "default": "URL",
+        "enum": [
+          "URL"
+        ],
+        "description": "Video output type."
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "deliveryMethod": {
+        "type": "string",
+        "default": "async",
+        "enum": [
+          "async"
+        ],
+        "description": "Determines how the API delivers task results."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking. Increases total generation time."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "LTX-2.5 Fast",
+    "organisation": "Lightricks",
+    "provider": "runware",
+    "value": "lightricks:ltx@2.5-fast",
+    "air_id": "lightricks:ltx@2.5-fast",
+    "href": "/models/video/lightricks/ltx-2.5-fast",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "LTX-2.5 Fast is the speed-focused variant in the LTX 2.5 video family, built for high-throughput text-to-video and image-to-video generation. It supports output from 720p through 4K, longer durations at HD resolutions, optional native audio generation, and first-to-last-frame image guidance.",
+    "schema": "https://runware.ai/docs/models/lightricks-ltx-2-5-fast/schema.json",
+    "supportedResolutions": [
+      "16:9_1280_720_720p",
+      "9:16_720_1280_720p",
+      "16:9_1920_1080_1080p",
+      "9:16_1080_1920_1080p",
+      "16:9_2560_1440_2k",
+      "9:16_1440_2560_2k",
+      "16:9_3840_2160_4k",
+      "9:16_2160_3840_4k"
+    ],
+    "supportedDurations": [
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20
+    ],
+    "cost": [
+      {
+        "resolution": "720p",
+        "cost": 0.09
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.13
+      },
+      {
+        "resolution": "2k",
+        "cost": 0.19
+      },
+      {
+        "resolution": "4k",
+        "cost": 0.30
+      }
+    ],
+    "max_frame_image_Attachments": 2,
+    "max_reference_image_Attachments": 1,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 6,
+        "enum": [
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "1080p",
+        "enum": [
+          "720p",
+          "1080p",
+          "2k",
+          "4k"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "List of frame-specific image inputs (first/last frames)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "List of reference images to guide generation."
+        },
+        "audio": {
+          "type": "string",
+          "description": "Audio input driving the generated video length and motion."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio."
+        },
+        "cameraMovement": {
+          "type": "string",
+          "enum": [
+            "dolly_in",
+            "dolly_out",
+            "dolly_left",
+            "dolly_right",
+            "jib_up",
+            "jib_down",
+            "static",
+            "focus_shift"
+          ],
+          "description": "Cinematic camera movement."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "LTX-2.5 Pro",
+    "organisation": "Lightricks",
+    "provider": "runware",
+    "value": "lightricks:ltx@2.5-pro",
+    "air_id": "lightricks:ltx@2.5-pro",
+    "href": "/models/video/lightricks/ltx-2.5-pro",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "LTX-2.5 Pro is the higher-capability model in the LTX 2.5 video family, built for production-quality multimodal video creation and transformation. It supports text-to-video, image-to-video, and audio-to-video workflows with synchronized audio generation.",
+    "schema": "https://runware.ai/docs/models/lightricks-ltx-2-5-pro/schema.json",
+    "supportedResolutions": [
+      "16:9_1920_1080_1080p",
+      "9:16_1080_1920_1080p"
+    ],
+    "supportedDurations": [
+      6,
+      8,
+      10
+    ],
+    "cost": [
+      {
+        "resolution": "1080p",
+        "cost": 0.12
+      }
+    ],
+    "max_frame_image_Attachments": 2,
+    "max_reference_image_Attachments": 1,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 6,
+        "enum": [
+          6,
+          8,
+          10
+        ],
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "1080p",
+        "enum": [
+          "1080p"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "List of frame-specific image inputs (first/last frames)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "List of reference images to guide generation."
+        },
+        "audio": {
+          "type": "string",
+          "description": "Audio input driving the generated video length and motion."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio."
+        },
+        "cameraMovement": {
+          "type": "string",
+          "enum": [
+            "dolly_in",
+            "dolly_out",
+            "dolly_left",
+            "dolly_right",
+            "jib_up",
+            "jib_down",
+            "static",
+            "focus_shift"
+          ],
+          "description": "Cinematic camera movement."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Gemini Omni Flash",
+    "organisation": "Google",
+    "provider": "runware",
+    "value": "google:gemini@omni-flash",
+    "air_id": "google:gemini@omni-flash",
+    "href": "/models/video/google/gemini-omni-flash",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Gemini Omni Flash is Google's fast multimodal model for conversational video generation and video-to-video editing. It generates and edits 720p clips up to 10 seconds from text, images, or source video with strong instruction following and multi-turn iterative editing support.",
+    "schema": "https://runware.ai/docs/models/google-gemini-omni-flash/schema.json",
+    "supportedResolutions": [
+      "16:9_1280_720_720p",
+      "9:16_720_1280_720p"
+    ],
+    "supportedDurations": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "cost": [
+      {
+        "resolution": "720p",
+        "cost": 0.10
+      }
+    ],
+    "max_frame_image_Attachments": 1,
+    "max_reference_image_Attachments": 7,
+    "max_video_Attachments": 1,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 3,
+        "maximum": 10,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "720p"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "Starting frame image input."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 7,
+          "description": "List of reference images to guide generation."
+        },
+        "video": {
+          "type": "string",
+          "description": "Source video to be edited."
+        },
+        "videoId": {
+          "type": "string",
+          "description": "ID of a previously generated video to iterate on in follow-up turns."
+        }
+      },
+      "settings": {
+        "temperature": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Controls randomness in generation."
+        },
+        "topP": {
+          "type": "number",
+          "default": 0.95,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Nucleus sampling parameter for output diversity."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Happy Horse 1.1",
+    "organisation": "Alibaba",
+    "provider": "runware",
+    "value": "alibaba:happyhorse@1.1",
+    "air_id": "alibaba:happyhorse@1.1",
+    "href": "/models/video/alibaba/happyhorse-1.1",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Happy Horse 1.1 is Alibaba's multimodal video generation model optimized for high-quality storytelling, multi-character scenes, and cinematic video creation with native audio and reference guidance.",
+    "schema": "https://runware.ai/docs/models/alibaba-happyhorse-1-1/schema.json",
+    "supportedResolutions": [
+      "16:9_1280_720_720p",
+      "9:16_720_1280_720p",
+      "1:1_960_960_720p",
+      "4:3_1088_832_720p",
+      "3:4_832_1088_720p",
+      "16:9_1920_1080_1080p",
+      "9:16_1080_1920_1080p",
+      "1:1_1440_1440_1080p",
+      "4:3_1632_1248_1080p",
+      "3:4_1248_1632_1080p"
+    ],
+    "supportedDurations": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cost": [
+      {
+        "resolution": "720p",
+        "cost": 0.08
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.11
+      }
+    ],
+    "max_frame_image_Attachments": 1,
+    "max_reference_image_Attachments": 9,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 3,
+        "maximum": 15,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "720p",
+          "1080p"
+        ],
+        "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "Starting frame image input."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 9,
+          "description": "List of reference images to guide generation."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Seedance 2.0 Mini",
+    "organisation": "ByteDance",
+    "provider": "runware",
+    "value": "bytedance:seedance@2.0-mini",
+    "air_id": "bytedance:seedance@2.0-mini",
+    "href": "/models/video/bytedance/seedance-2.0-mini",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Seedance 2.0 Mini is a lighter variant in ByteDance's Seedance 2.0 video model family, positioned for fast concepting, quicker turnaround, and iteration-friendly workflows with synchronized audio.",
+    "schema": "https://runware.ai/docs/models/bytedance-seedance-2-0-mini/schema.json",
+    "supportedResolutions": [
+      "16:9_864_496_480p",
+      "4:3_752_560_480p",
+      "1:1_640_640_480p",
+      "3:4_560_752_480p",
+      "9:16_496_864_480p",
+      "21:9_992_432_480p",
+      "16:9_1280_720_720p",
+      "4:3_1112_834_720p",
+      "1:1_960_960_720p",
+      "3:4_834_1112_720p",
+      "9:16_720_1280_720p",
+      "21:9_1470_630_720p"
+    ],
+    "supportedDurations": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cost": [
+      {
+        "resolution": "480p",
+        "cost": 0.06
+      },
+      {
+        "resolution": "720p",
+        "cost": 0.11
+      }
+    ],
+    "max_frame_image_Attachments": 1,
+    "max_reference_image_Attachments": 9,
+    "max_reference_video_Attachments": 3,
+    "max_reference_audio_Attachments": 3,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 4,
+        "maximum": 15,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "480p",
+          "720p"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "Starting frame image input."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 9,
+          "description": "List of reference images to guide generation."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference videos for visual guidance."
+        },
+        "referenceAudios": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference audios."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Seedance 2.0",
+    "organisation": "ByteDance",
+    "provider": "runware",
+    "value": "bytedance:seedance@2.0",
+    "air_id": "bytedance:seedance@2.0",
+    "href": "/models/video/bytedance/seedance-2.0",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Seedance 2.0 is a flagship unified multimodal audio-video generation model from ByteDance. It accepts text, images, audio, and video inputs, supporting 480p up to 4K output with dual-channel synchronized audio, multi-shot composition, and physics-aware motion.",
+    "schema": "https://runware.ai/docs/models/bytedance-seedance-2-0/schema.json",
+    "supportedResolutions": [
+      "16:9_864_496_480p",
+      "4:3_752_560_480p",
+      "1:1_640_640_480p",
+      "3:4_560_752_480p",
+      "9:16_496_864_480p",
+      "21:9_992_432_480p",
+      "16:9_1280_720_720p",
+      "4:3_1112_834_720p",
+      "1:1_960_960_720p",
+      "3:4_834_1112_720p",
+      "9:16_720_1280_720p",
+      "21:9_1470_630_720p",
+      "16:9_1920_1080_1080p",
+      "4:3_1664_1248_1080p",
+      "1:1_1440_1440_1080p",
+      "3:4_1248_1664_1080p",
+      "9:16_1080_1920_1080p",
+      "21:9_2206_946_1080p",
+      "16:9_3840_2160_4k",
+      "4:3_3326_2494_4k",
+      "1:1_2880_2880_4k",
+      "3:4_2496_3328_4k",
+      "9:16_2160_3840_4k",
+      "21:9_4398_1886_4k"
+    ],
+    "supportedDurations": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cost": [
+      {
+        "resolution": "480p",
+        "cost": 0.14
+      },
+      {
+        "resolution": "720p",
+        "cost": 0.28
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.48
+      },
+      {
+        "resolution": "4k",
+        "cost": 0.96
+      }
+    ],
+    "max_frame_image_Attachments": 1,
+    "max_reference_image_Attachments": 9,
+    "max_reference_video_Attachments": 3,
+    "max_reference_audio_Attachments": 3,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 4,
+        "maximum": 15,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "480p",
+          "720p",
+          "1080p",
+          "4k"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "Starting frame image input."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 9,
+          "description": "List of reference images to guide generation."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference videos for visual guidance."
+        },
+        "referenceAudios": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference audios."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Seedance 2.0 Fast",
+    "organisation": "ByteDance",
+    "provider": "runware",
+    "value": "bytedance:seedance@2.0-fast",
+    "air_id": "bytedance:seedance@2.0-fast",
+    "href": "/models/video/bytedance/seedance-2.0-fast",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Seedance 2.0 Fast is a speed-optimized variant of ByteDance's unified multimodal audio-video generation model. It produces multi-shot videos with dual-channel synchronized audio while prioritizing fast turnaround.",
+    "schema": "https://runware.ai/docs/models/bytedance-seedance-2-0-fast/schema.json",
+    "supportedResolutions": [
+      "16:9_864_496_480p",
+      "4:3_752_560_480p",
+      "1:1_640_640_480p",
+      "3:4_560_752_480p",
+      "9:16_496_864_480p",
+      "21:9_992_432_480p",
+      "16:9_1280_720_720p",
+      "4:3_1112_834_720p",
+      "1:1_960_960_720p",
+      "3:4_834_1112_720p",
+      "9:16_720_1280_720p",
+      "21:9_1470_630_720p"
+    ],
+    "supportedDurations": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cost": [
+      {
+        "resolution": "480p",
+        "cost": 0.112
+      },
+      {
+        "resolution": "720p",
+        "cost": 0.2419
+      }
+    ],
+    "max_frame_image_Attachments": 1,
+    "max_reference_image_Attachments": 9,
+    "max_reference_video_Attachments": 3,
+    "max_reference_audio_Attachments": 3,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 4,
+        "maximum": 15,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "480p",
+          "720p"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 1,
+          "description": "Starting frame image input."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 9,
+          "description": "List of reference images to guide generation."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference videos for visual guidance."
+        },
+        "referenceAudios": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference audios."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "Wan 2.7",
+    "organisation": "Alibaba",
+    "provider": "runware",
+    "value": "alibaba:wan@2.7",
+    "air_id": "alibaba:wan@2.7",
+    "href": "/models/video/alibaba/wan-2.7",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "Wan 2.7 is Alibaba's next-generation multimodal video model supporting text-to-video, image-to-video, reference-to-video, and video editing with multi-shot storytelling, first-and-last-frame interpolation, and audio-conditioned generation.",
+    "schema": "https://runware.ai/docs/models/alibaba-wan2-7/schema.json",
+    "supportedResolutions": [
+      "16:9_1280_720_720p",
+      "9:16_720_1280_720p",
+      "1:1_960_960_720p",
+      "4:3_1088_832_720p",
+      "3:4_832_1088_720p",
+      "16:9_1920_1080_1080p",
+      "9:16_1080_1920_1080p",
+      "1:1_1440_1440_1080p",
+      "4:3_1632_1248_1080p",
+      "3:4_1248_1632_1080p"
+    ],
+    "supportedDurations": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cost": [
+      {
+        "resolution": "720p",
+        "cost": 0.09
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.14
+      }
+    ],
+    "max_frame_image_Attachments": 2,
+    "max_reference_image_Attachments": 9,
+    "max_reference_video_Attachments": 3,
+    "input": {
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 2,
+        "maximum": 15,
+        "description": "Length of the generated video in seconds."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "1080p",
+        "enum": [
+          "720p",
+          "1080p"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "description": "Height of the generated media in pixels."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "List of frame-specific image inputs (first/last frames)."
+        },
+        "referenceImages": {
+          "type": "array",
+          "maxItems": 9,
+          "description": "List of reference images to guide generation."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "List of reference videos for visual guidance."
+        },
+        "audio": {
+          "type": "string",
+          "description": "Audio input driving the generated video length and audio track."
+        }
+      },
+      "settings": {
+        "audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate synchronized audio."
+        },
+        "promptExtend": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically expand the prompt using LLM for richer visual details."
+        },
+        "shotType": {
+          "type": "string",
+          "enum": [
+            "single",
+            "multi"
+          ],
+          "description": "Shot type (single shot or multi-shot sequence)."
+        }
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "LTX-2.3 Fast",
+    "organisation": "Lightricks",
+    "provider": "runware",
+    "value": "lightricks:ltx@2.3-fast",
+    "air_id": "lightricks:ltx@2.3-fast",
+    "href": "/models/video/lightricks/ltx-2.3-fast",
+    "paid": true,
+    "type": "text-video-reference",
+    "description": "LTX-2.3 Fast is a performance-optimized variant of LTX 2.3 designed for rapid video generation with synchronized audio. It supports text-to-video, image-to-video, and audio-conditioned workflows while prioritizing speed, responsiveness, and cost efficiency for draft, preview, and high-velocity creative production use cases.",
+    "schema": "https://runware.ai/docs/models/lightricks-ltx-2-3-fast/schema.json",
+    "supportedResolutions": [
+      "16:9_1280_704_720p",
+      "9:16_704_1280_720p",
+      "1:1_960_960_720p",
+      "4:3_1088_832_720p",
+      "3:4_832_1088_720p",
+      "16:9_1920_1088_1080p",
+      "9:16_1088_1920_1080p",
+      "1:1_1408_1408_1080p",
+      "4:3_1600_1216_1080p",
+      "3:4_1216_1600_1080p"
+    ],
+    "supportedDurations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "cost": [
+      {
+        "resolution": "720p",
+        "cost": 0.03
+      },
+      {
+        "resolution": "1080p",
+        "cost": 0.06
+      },
+      {
+        "resolution": "2k",
+        "cost": 0.12
+      }
+    ],
+    "max_frame_image_Attachments": 10,
+    "max_reference_audio_Attachments": 1,
+    "input": {
+      "model": {
+        "type": "string",
+        "default": "lightricks:ltx@2.3-fast",
+        "description": "Identifier of the model to use for generation."
+      },
+      "positivePrompt": {
+        "type": "string",
+        "required": true,
+        "minLength": 2,
+        "maxLength": 10000,
+        "description": "Text prompt describing elements to include in the generated output."
+      },
+      "duration": {
+        "type": "number",
+        "default": 5,
+        "minimum": 1,
+        "maximum": 20,
+        "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+      },
+      "resolution": {
+        "type": "string",
+        "default": "720p",
+        "enum": [
+          "720p",
+          "1080p"
+        ],
+        "description": "Resolution preset for the output."
+      },
+      "width": {
+        "type": "integer",
+        "minimum": 128,
+        "maximum": 2048,
+        "multipleOf": 64,
+        "description": "Width of the generated media in pixels."
+      },
+      "height": {
+        "type": "integer",
+        "minimum": 128,
+        "maximum": 2048,
+        "multipleOf": 64,
+        "description": "Height of the generated media in pixels."
+      },
+      "fps": {
+        "type": "integer",
+        "default": 25,
+        "minimum": 1,
+        "maximum": 120,
+        "description": "Frames per second for video generation. Higher values create smoother motion but require more processing time."
+      },
+      "seed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9223372036854776000,
+        "description": "Random seed for reproducible generation. When not provided, a random seed is generated in the unsigned 32-bit range."
+      },
+      "inputs": {
+        "frameImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "An array of frame-specific image inputs to guide video generation. Supports plain image inputs (UUID, URL, Data URI, Base64) or objects pairing an image with target position (first, last, index)."
+        },
+        "audio": {
+          "type": "string",
+          "description": "Audio input (UUID or URL). Enables audio-to-video conditioning. The audio is merged with the generated video and trimmed to fit the video duration. Maximum duration 30 seconds."
+        }
+      },
+      "lora": {
+        "type": "array",
+        "minItems": 1,
+        "description": "With LoRA (Low-Rank Adaptation), you can adapt a model to specific styles or features by emphasizing particular aspects of the data.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string",
+              "description": "LoRA model identifier."
+            },
+            "weight": {
+              "type": "number",
+              "default": 1,
+              "minimum": -4,
+              "maximum": 4,
+              "multipleOf": 0.01,
+              "description": "Strength of the LoRA influence."
+            },
+            "transformer": {
+              "type": "string",
+              "default": "both",
+              "enum": [
+                "high",
+                "low",
+                "both"
+              ],
+              "description": "Transformer stages to apply LoRA (high, low, or both)."
+            }
+          },
+          "required": [
+            "model"
+          ]
+        }
+      },
+      "settings": {
+        "enhancePrompt": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic prompt enhancement for cinematic results."
+        }
+      },
+      "taskType": {
+        "type": "string",
+        "default": "videoInference",
+        "description": "Identifier for the type of task being performed."
+      },
+      "taskUUID": {
+        "type": "string",
+        "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+      },
+      "webhookURL": {
+        "type": "string",
+        "description": "Specifies a webhook URL where JSON responses will be sent via HTTP POST when generation tasks complete."
+      },
+      "includeCost": {
+        "type": "boolean",
+        "description": "Include task cost in the response."
+      },
+      "numberResults": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 4,
+        "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+      },
+      "uploadEndpoint": {
+        "type": "string",
+        "description": "Specifies a URL where the generated content will be automatically uploaded using HTTP PUT."
+      },
+      "ttl": {
+        "type": "integer",
+        "minimum": 60,
+        "description": "Time-to-live (TTL) in seconds for generated content. Only applies when outputType is URL."
+      },
+      "outputType": {
+        "type": "string",
+        "default": "URL",
+        "enum": [
+          "URL"
+        ],
+        "description": "Video output type."
+      },
+      "outputFormat": {
+        "type": "string",
+        "default": "MP4",
+        "enum": [
+          "MP4",
+          "WEBM",
+          "MOV"
+        ],
+        "description": "Specifies the file format of the generated output."
+      },
+      "outputQuality": {
+        "type": "integer",
+        "default": 95,
+        "minimum": 20,
+        "maximum": 99,
+        "description": "Compression quality of the output."
+      },
+      "deliveryMethod": {
+        "type": "string",
+        "default": "async",
+        "enum": [
+          "async"
+        ],
+        "description": "Determines how the API delivers task results."
+      },
+      "safety": {
+        "type": "object",
+        "description": "Content safety checking configuration for video generation.",
+        "properties": {
+          "checkContent": {
+            "type": "boolean",
+            "description": "Enable or disable content safety checking. Increases total generation time."
+          },
+          "mode": {
+            "type": "string",
+            "default": "fast",
+            "enum": [
+              "fast",
+              "full"
+            ],
+            "description": "Safety checking mode for video generation."
+          }
+        }
+      }
+    }
+  }
+]

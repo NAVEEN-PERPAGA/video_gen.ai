@@ -1,0 +1,575 @@
+{
+  "name": "Gemini Omni Flash 1.1",
+  "organisation": "Google",
+  "provider": "runware",
+  "value": "google:gemini@omni-flash-1.1",
+  "air_id": "google:gemini@omni-flash-1.1",
+  "href": "/models/video/google/google-gemini-omni-flash-1-1",
+  "paid": true,
+  "type": "video",
+  "capabilities": [
+    "text-to-video",
+    "image-to-video",
+    "video-to-video",
+    "edit",
+    "extend"
+  ],
+  "description": "Gemini Omni Flash 1.1 is Google's updated multimodal video generation and editing model in the Gemini Omni family. It generates native synchronized audio from the prompt, and expands the original Omni Flash workflow with additional 1080p and 4K output modes, a 360p draft mode, scene extension in 3 to 10 second increments up to 30 seconds total, start-to-end frame interpolation for fluid transitions, and reference-to-video generation guided by both images and short video clips. It is built for teams that need stronger continuity, higher-resolution delivery, and more controllable multi-input video creation than the first Omni Flash release.",
+  "schema": "https://runware.ai/docs/models/google-gemini-omni-flash-1-1",
+  "resolutions": [
+    {
+      "label": "360p (16:9)",
+      "width": 640,
+      "height": 360
+    },
+    {
+      "label": "360p (9:16)",
+      "width": 360,
+      "height": 640
+    },
+    {
+      "label": "720p (16:9)",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "label": "720p (9:16)",
+      "width": 720,
+      "height": 1280
+    },
+    {
+      "label": "1080p (16:9)",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "label": "1080p (9:16)",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "label": "4K (16:9)",
+      "width": 3840,
+      "height": 2160
+    },
+    {
+      "label": "4K (9:16)",
+      "width": 2160,
+      "height": 3840
+    }
+  ],
+  "pricing": {
+    "perSecond": {
+      "*": 0.15
+    },
+    "videoInput": {
+      "*": 0.28
+    },
+    "approximate": true,
+    "note": "Billed per token ($17.50 per 1M video tokens); rate estimated from Runware's examples.",
+    "source": "https://runware.ai/docs/models/google-gemini-omni-flash-1-1",
+    "checked": "2026-09-24"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Frame images can't be combined with reference images, reference videos or an input video.",
+    "An input video can't be combined with reference images or reference videos.",
+    "Choose either a resolution preset or an exact size, not both.",
+    "With an input video, don't pick an exact size.",
+    "Width × height must be one of the supported sizes."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "frameImages"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          },
+          {
+            "properties": {
+              "inputs": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "referenceImages"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "referenceVideos"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "video"
+                    ]
+                  }
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "video"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          },
+          {
+            "properties": {
+              "inputs": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "referenceImages"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "referenceVideos"
+                    ]
+                  }
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "required": [
+              "resolution"
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "width"
+                ]
+              },
+              {
+                "required": [
+                  "height"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "video"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "width"
+              ]
+            },
+            {
+              "required": [
+                "height"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "required": [
+          "width",
+          "height"
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 640
+              },
+              "height": {
+                "const": 360
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 360
+              },
+              "height": {
+                "const": 640
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1280
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 1280
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1920
+              },
+              "height": {
+                "const": 1080
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1080
+              },
+              "height": {
+                "const": 1920
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3840
+              },
+              "height": {
+                "const": 2160
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2160
+              },
+              "height": {
+                "const": 3840
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "google:gemini@omni-flash-1.1",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "videoInference",
+      "description": "Identifier for the type of task being performed"
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40000,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "description": "Height of the generated media in pixels."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": [
+        "360p",
+        "720p",
+        "1080p",
+        "4K"
+      ],
+      "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+    },
+    "duration": {
+      "type": "integer",
+      "default": 6,
+      "minimum": 3,
+      "maximum": 10,
+      "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Global inference settings.",
+      "properties": {
+        "temperature": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 2,
+          "multipleOf": 0.01,
+          "description": "Controls randomness in generation. Lower values produce more deterministic outputs, higher values increase variation and creativity."
+        },
+        "topP": {
+          "type": "number",
+          "default": 0.95,
+          "minimum": 0,
+          "maximum": 1,
+          "multipleOf": 0.01,
+          "description": "Nucleus sampling parameter that controls diversity by limiting the probability mass. Lower values make outputs more focused, higher values increase diversity."
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "The unified payload wrapper for complex media assets dictating image, video or audio inference constraints.",
+      "properties": {
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        },
+        "frameImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "description": "An array of frame-specific image inputs to guide video generation. Each item can be either a plain image input (UUID, URL, Data URI, or Base64) or an object that pairs an image with a target position in the video. Must include at least one image that is not the last frame.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Image input (UUID, URL, Data URI, or Base64)."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "Image input (UUID, URL, Data URI, or Base64)."
+                  },
+                  "frame": {
+                    "oneOf": [
+                      {
+                        "const": "first",
+                        "description": "First frame of the video."
+                      },
+                      {
+                        "const": "last",
+                        "description": "Last frame of the video."
+                      },
+                      {
+                        "const": 0,
+                        "description": "Frame index 0 (first frame)."
+                      },
+                      {
+                        "const": -1,
+                        "description": "Frame index -1 (last frame)."
+                      }
+                    ],
+                    "description": "Target frame position for the image. Supports first and last frame."
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            ]
+          }
+        },
+        "video": {
+          "type": "string",
+          "description": "Video input (UUID or URL). Source video to edit or extend."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "description": "List of reference videos (UUID, URL).",
+          "items": {
+            "type": "string",
+            "description": "Video input (UUID or URL)."
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for video generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        },
+        "mode": {
+          "type": "string",
+          "default": "fast",
+          "oneOf": [
+            {
+              "const": "fast",
+              "description": "Checks key frames."
+            },
+            {
+              "const": "full",
+              "description": "Checks all frames."
+            }
+          ],
+          "description": "Safety checking mode for video generation."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a webhook URL where JSON responses will be sent via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL"
+      ],
+      "default": "URL",
+      "description": "Video output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "MP4",
+        "WEBM",
+        "MOV"
+      ],
+      "default": "MP4",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "async",
+      "oneOf": [
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    }
+  }
+}
