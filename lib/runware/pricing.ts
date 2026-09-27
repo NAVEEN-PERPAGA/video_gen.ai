@@ -60,7 +60,10 @@ function billedTier(model: VideoModel, v: ComposerValues, rates: Record<string, 
   }
   if (v.size.startsWith("preset:")) {
     const [w, h] = v.size.slice(7).split("x").map(Number);
-    return tierForPixels(rates, w * h);
+    // Presets are billed at the tier they're labelled with: Seedance's "480p (~4:3)"
+    // is 752×560, a few more pixels than 854×480, but still charged as 480p.
+    const labelTier = model.resolutions?.find((r) => r.width === w && r.height === h)?.label.split(" ")[0];
+    return labelTier && labelTier in rates ? labelTier : tierForPixels(rates, w * h);
   }
   if (v.size === "custom") return tierForPixels(rates, v.customWidth * v.customHeight);
   // "Auto": the API falls back to the model's default resolution, if it has one.

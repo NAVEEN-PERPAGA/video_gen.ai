@@ -5,12 +5,13 @@ import {
   type ReactNode,
   type SVGProps,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
   useTransition,
 } from "react";
-import { type GenerateState, generateVideo } from "@/app/generate/actions";
+import { type GenerateState, type Generation, generateVideo, getGeneration } from "@/app/generate/actions";
 import { Dropdown, type DropdownOption } from "@/app/generate/dropdown";
 import {
   AlertIcon,
@@ -21,27 +22,27 @@ import {
   ChevronDownIcon,
   ClockIcon,
   DiceIcon,
-  FileIcon,
   FilmIcon,
   GaugeIcon,
-  HashIcon,
-  ImageIcon,
   InfoIcon,
   LayersIcon,
-  LinkIcon,
+  MediaIcon,
   MicIcon,
   MusicIcon,
   PencilIcon,
   PlusIcon,
   SlidersIcon,
   SparklesIcon,
+  UploadIcon,
   XIcon,
 } from "@/app/generate/icons";
 import { ModelPicker } from "@/app/generate/model-picker";
 import { defaultModelId, getVideoModel, type FieldSchema, type VideoModel } from "@/lib/runware/models";
 import {
+  type AssetItem,
   type AssetKind,
   assetKinds,
+  assetLimit,
   autoAdjust,
   checkValues,
   choices,
@@ -49,6 +50,7 @@ import {
   fpsOptions,
   humanize,
   initialValues,
+  MAX_FILE_BYTES,
   type MediaKind,
   numberOptions,
   sizeOptions,
@@ -57,15 +59,6 @@ import { type CostEstimate, estimateCost, formatCost } from "@/lib/runware/prici
 import { useDismiss } from "@/lib/use-dismiss";
 
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
-
-const MEDIA_ICONS: Record<MediaKind, IconType> = {
-  image: ImageIcon,
-  video: FilmIcon,
-  audio: MusicIcon,
-  document: FileIcon,
-  link: LinkIcon,
-  text: HashIcon,
-};
 
 const SETTING_ICONS: Record<string, IconType> = {
   audio: MusicIcon,
@@ -78,16 +71,64 @@ const SETTING_ICONS: Record<string, IconType> = {
 };
 
 const pillBase =
-  "relative flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium transition";
-const pillIdle =
-  "border-black/10 text-zinc-700 hover:bg-black/[0.04] dark:border-white/10 dark:text-zinc-300 dark:hover:bg-white/[0.06]";
-const pillActive =
-  "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:border-violet-400/30 dark:bg-violet-400/15 dark:text-violet-300";
+  "relative flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-[13px] font-semibold transition duration-150 active:scale-[0.96]";
+const pillIdle = "text-slate-200 hover:bg-white/[0.07] hover:text-white";
+const pillActive = "bg-indigo-500/20 text-indigo-200 ring-1 ring-inset ring-indigo-400/40 hover:bg-indigo-500/30";
 const fieldInput =
-  "w-full rounded-lg border border-black/10 bg-transparent px-2.5 py-1.5 text-sm outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/20 dark:border-white/15";
+  "w-full rounded-xl border border-white/10 bg-[#262b40] px-2.5 py-1.5 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 hover:border-white/20 focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/25";
 
 function newId() {
   return Math.random().toString(36).slice(2);
+}
+
+function readDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function mediaOfFile(file: File): MediaKind {
+  const type = file.type.split("/")[0];
+  return type === "image" || type === "video" || type === "audio" ? type : "document";
+}
+
+/**
+ * Reads local files into attachments. With no `target`, each file goes to the
+ * first kind of its media type with room — frame images before references,
+ * since a dropped picture is most often the opening shot.
+ */
+async function readFiles(
+  files: File[],
+  kinds: AssetKind[],
+  assets: ComposerValues["assets"],
+  target?: AssetKind,
+): Promise<{ assets: ComposerValues["assets"]; problems: string[] }> {
+  const next = { ...assets };
+  const problems: string[] = [];
+  const room = (k: AssetKind) => (next[k.key]?.length ?? 0) < k.max;
+  for (const file of files) {
+    const media = mediaOfFile(file);
+    const candidates = target ? [target] : kinds.filter((k) => k.accept && k.media === media);
+    const kind = candidates.find((k) => k.key === "frameImages" && room(k)) ?? candidates.find(room);
+    if (candidates.length === 0) {
+      problems.push(
+        media === "video" || media === "audio"
+          ? `${file.name}: ${media} files can't be uploaded yet — attach them by URL.`
+          : `${file.name}: this model doesn't take ${media}s.`,
+      );
+    } else if (!kind) {
+      problems.push(`${file.name}: no room left (${candidates.map(assetLimit).join(", ")} max).`);
+    } else if (file.size > MAX_FILE_BYTES) {
+      problems.push(`${file.name} is over ${MAX_FILE_BYTES / 1024 / 1024} MB — attach it by URL instead.`);
+    } else {
+      const item: AssetItem = { id: newId(), value: await readDataUrl(file), name: file.name };
+      next[kind.key] = [...(next[kind.key] ?? []), item];
+    }
+  }
+  return { assets: next, problems };
 }
 
 /** Keep the prompt and any attachments the new model also accepts. */
@@ -117,37 +158,81 @@ function modeLabel(model: VideoModel, v: ComposerValues) {
   return "Text to video";
 }
 
-export function VideoComposer() {
+/** How often a processing generation is re-checked (the API asks Runware at most every 5s). */
+export const POLL_INTERVAL_MS = 5000;
+
+/**
+ * `workspaceId` is where generations are created; null when the user has none yet.
+ * `onGeneration` hears about each generation this starts, and each status it polls.
+ */
+export function VideoComposer({
+  workspaceId,
+  onGeneration,
+}: {
+  workspaceId: number | null;
+  onGeneration?: (generation: Generation) => void;
+}) {
   const [modelId, setModelId] = useState(defaultModelId);
   const model = getVideoModel(modelId)!;
   const [values, setValues] = useState<ComposerValues>(() => initialValues(model));
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [result, setResult] = useState<GenerateState>();
   const [pending, startTransition] = useTransition();
+  /** Why the last dropped/picked files were turned away. */
+  const [notice, setNotice] = useState<string[]>([]);
+  const [dragging, setDragging] = useState(false);
 
   const errors = useMemo(() => checkValues(model, values), [model, values]);
   const cost = useMemo(() => estimateCost(model, values), [model, values]);
   const input = model.input;
   const kinds = assetKinds(model);
   const promptMax = input.positivePrompt?.maxLength;
+  const blockedReason = workspaceId === null ? "Create a workspace to generate videos." : errors[0];
+
+  // Follow a processing generation until the API reports it finished.
+  const processing = result?.generation?.status === "processing" ? result.generation : undefined;
+  useEffect(() => {
+    if (!processing) return;
+    const timer = setTimeout(async () => {
+      const next = await getGeneration(processing.workspaceId, processing.id);
+      if (next?.generation) onGeneration?.(next.generation);
+      // Ignore a late answer for a generation the user has since replaced or dismissed.
+      setResult((current) => (current?.generation?.id === processing.id ? next : current));
+    }, POLL_INTERVAL_MS);
+    return () => clearTimeout(timer);
+  }, [processing, onGeneration]);
 
   const update = (patch: Partial<ComposerValues>) => setValues((v) => ({ ...v, ...patch }));
   const setSetting = (key: string, value: boolean | string | number | undefined) =>
     setValues((v) => ({ ...v, settings: { ...v.settings, [key]: value } }));
   // Attachments change which sizes/durations are valid, so re-fit those.
-  const setAssets = (assets: ComposerValues["assets"]) => setValues((v) => autoAdjust(model, { ...v, assets }));
+  const setAssets = (assets: ComposerValues["assets"]) => {
+    setNotice([]);
+    setValues((v) => autoAdjust(model, { ...v, assets }));
+  };
+
+  async function attachFiles(files: File[], target?: AssetKind) {
+    if (files.length === 0) return;
+    const { assets, problems } = await readFiles(files, kinds, values.assets, target);
+    setValues((v) => autoAdjust(model, { ...v, assets }));
+    setNotice(problems);
+  }
 
   function selectModel(id: string) {
     const next = getVideoModel(id)!;
     setModelId(id);
     setValues((v) => carryOver(next, v));
-    setResult(undefined);
+    // Errors were about the old model; a generation in progress stays visible.
+    setResult((r) => (r?.generation ? r : undefined));
+    setNotice([]);
   }
 
   function submit() {
-    if (pending || errors.length > 0) return;
+    if (pending || blockedReason || workspaceId === null) return;
     startTransition(async () => {
-      setResult(await generateVideo(model.value, values));
+      const state = await generateVideo(workspaceId, model.value, values);
+      setResult(state);
+      if (state?.generation) onGeneration?.(state.generation);
     });
   }
 
@@ -164,10 +249,27 @@ export function VideoComposer() {
             e.preventDefault();
             submit();
           }}
-          className="pointer-events-auto relative mx-auto w-full max-w-3xl rounded-[28px] bg-gradient-to-b from-violet-500/25 via-black/10 to-black/5 p-px shadow-[0_12px_48px_-16px_rgba(76,29,149,0.35)] dark:from-violet-400/30 dark:via-white/10 dark:to-white/5"
+          onDragOver={(e) => {
+            if (!e.dataTransfer.types.includes("Files")) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "copy";
+            setDragging(true);
+          }}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
+          }}
+          onDrop={(e) => {
+            if (!e.dataTransfer.types.includes("Files")) return;
+            e.preventDefault();
+            setDragging(false);
+            attachFiles([...e.dataTransfer.files]);
+          }}
+          className={`pointer-events-auto relative mx-auto w-full max-w-3xl rounded-[28px] border bg-[#1b1f33] p-3 text-slate-100 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.75)] transition ${dragging ? "border-indigo-400/60 ring-4 ring-indigo-500/20" : "border-white/[0.06]"}`}
         >
-          <div className="flex flex-col gap-2 rounded-[27px] bg-background/95 p-2.5 backdrop-blur-xl">
-            {result && <ResultBanner result={result} onClose={() => setResult(undefined)} />}
+          {dragging && <DropOverlay kinds={kinds} />}
+          <div className="flex flex-col gap-2.5">
+            {/* A processing generation shows as a spinner card in the gallery instead. */}
+            {result && !processing && <ResultBanner result={result} onClose={() => setResult(undefined)} />}
 
             {showAdvanced && (
               <AdvancedPanel
@@ -191,19 +293,33 @@ export function VideoComposer() {
                   submit();
                 }
               }}
+              onPaste={(e) => {
+                const files = [...e.clipboardData.files];
+                if (files.length === 0) return;
+                e.preventDefault();
+                attachFiles(files);
+              }}
               rows={2}
               maxLength={promptMax}
               placeholder="Describe the shot: subject, motion, camera, lighting, mood…"
               aria-label="Prompt"
-              className="max-h-56 min-h-14 resize-none bg-transparent px-2.5 pt-2 text-[15px] leading-relaxed outline-none field-sizing-content placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="max-h-56 min-h-16 resize-none rounded-2xl bg-[#262b40] px-4 py-3 text-[15px] leading-relaxed text-slate-100 ring-1 ring-transparent outline-none transition field-sizing-content placeholder:text-slate-400 hover:bg-[#2b3048] focus:ring-indigo-400/50"
             />
 
             <div className="flex items-end gap-2">
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
                 <ModelPicker model={model} onChange={selectModel} />
-                {kinds.length > 0 && <AttachMenu kinds={kinds} values={values} setAssets={setAssets} />}
+                {kinds.length > 0 && (
+                  <AttachMenu
+                    model={model}
+                    kinds={kinds}
+                    values={values}
+                    setAssets={setAssets}
+                    attachFiles={attachFiles}
+                  />
+                )}
 
-                <span className="mx-0.5 h-5 w-px bg-black/10 dark:bg-white/10" aria-hidden="true" />
+                <span className="mx-0.5 h-5 w-px bg-white/10" aria-hidden="true" />
 
                 <SizeControl model={model} values={values} update={update} />
 
@@ -297,10 +413,10 @@ export function VideoComposer() {
 
               <button
                 type="submit"
-                disabled={pending || errors.length > 0}
+                disabled={pending || Boolean(blockedReason)}
                 aria-label="Generate video"
-                title={errors.length > 0 ? errors[0] : "Generate (Enter)"}
-                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 active:scale-95 disabled:from-zinc-300 disabled:to-zinc-300 disabled:shadow-none dark:disabled:from-zinc-700 dark:disabled:to-zinc-700"
+                title={blockedReason ?? "Generate (Enter)"}
+                className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-950/50 transition duration-150 hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-indigo-500/40 active:translate-y-0 active:scale-95 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-slate-500 disabled:shadow-none"
               >
                 {pending ? (
                   <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -310,7 +426,7 @@ export function VideoComposer() {
               </button>
             </div>
 
-            <StatusLine errors={errors} mode={modeLabel(model, values)} length={values.prompt.trim().length} max={promptMax} />
+            <StatusLine errors={errors} notice={notice} mode={modeLabel(model, values)} length={values.prompt.trim().length} max={promptMax} />
           </div>
         </form>
       </div>
@@ -352,7 +468,7 @@ function SelectPill({
     >
       {(current) => (
         <>
-          <IconCmp className="size-4 opacity-80" />
+          <IconCmp className="size-4 text-indigo-300" />
           <span className="max-w-36 truncate">{(current ?? options[0])?.label}</span>
         </>
       )}
@@ -386,7 +502,7 @@ function FieldDropdown({
       {(current) => (
         <>
           <span className="truncate">{(current ?? options[0])?.label}</span>
-          <ChevronDownIcon className="size-4 shrink-0 text-zinc-500" />
+          <ChevronDownIcon className="size-4 shrink-0 text-slate-400" />
         </>
       )}
     </Dropdown>
@@ -415,7 +531,7 @@ function TogglePill({
       onClick={() => onChange(!checked)}
       className={`${pillBase} ${checked ? pillActive : pillIdle}`}
     >
-      <IconCmp className="size-4 opacity-80" />
+      <IconCmp className="size-4 text-indigo-300" />
       {label}
     </button>
   );
@@ -444,10 +560,10 @@ function SizeControl({
         options={options}
       />
       {values.size === "custom" && width && (
-        <span className="flex h-9 items-center gap-1 rounded-full border border-black/10 px-2 text-[13px] dark:border-white/10">
+        <span className="flex h-9 items-center gap-1 rounded-xl bg-[#262b40] px-2 text-[13px] text-slate-100">
           {(["customWidth", "customHeight"] as const).map((key, i) => (
             <span key={key} className="flex items-center gap-1">
-              {i === 1 && <span className="text-zinc-400">×</span>}
+              {i === 1 && <span className="text-slate-500">×</span>}
               <input
                 type="number"
                 aria-label={i === 0 ? "Width" : "Height"}
@@ -477,7 +593,7 @@ function usePopover() {
 function Popover({ children, className = "w-72" }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`absolute bottom-full left-0 z-30 mb-2 flex max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-2xl border border-black/10 bg-background/95 p-3 shadow-2xl backdrop-blur-xl dark:border-white/10 ${className}`}
+      className={`absolute bottom-full left-0 z-30 mb-2 flex max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-2xl border border-white/10 bg-[#1b1f33]/95 p-3 text-slate-100 shadow-2xl backdrop-blur-xl ${className}`}
     >
       {children}
     </div>
@@ -506,14 +622,14 @@ function VoicesPill({
         aria-expanded={open}
         className={`${pillBase} ${selected.length ? pillActive : pillIdle}`}
       >
-        <MicIcon className="size-4 opacity-80" />
+        <MicIcon className="size-4 text-indigo-300" />
         {selected.length ? selected.map(humanize).join(", ") : "Voices"}
       </button>
       {open && (
         <Popover className="w-80">
           <div className="text-xs">
             <p className="font-medium">Speech voices · up to {max}</p>
-            <p className="mt-0.5 text-zinc-500">
+            <p className="mt-0.5 text-slate-400">
               Refer to them in the prompt as {"<AUDIO_0>"}, {"<AUDIO_1>"}… in the order picked.
             </p>
           </div>
@@ -529,7 +645,7 @@ function VoicesPill({
                   onClick={() =>
                     update({ voices: on ? selected.filter((s) => s !== voice) : [...selected, voice] })
                   }
-                  className={`rounded-full border px-2.5 py-1 text-xs font-medium transition disabled:opacity-30 ${on ? pillActive : pillIdle}`}
+                  className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-medium ring-1 ring-white/10 ring-inset transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 ${on ? pillActive : pillIdle}`}
                 >
                   {on && <span className="mr-1 tabular-nums opacity-70">{index}</span>}
                   {humanize(voice)}
@@ -546,17 +662,23 @@ function VoicesPill({
 /* ───────────────────────── attachments ───────────────────────── */
 
 function AttachMenu({
+  model,
   kinds,
   values,
   setAssets,
+  attachFiles,
 }: {
+  model: VideoModel;
   kinds: AssetKind[];
   values: ComposerValues;
   setAssets: (assets: ComposerValues["assets"]) => void;
+  attachFiles: (files: File[], target?: AssetKind) => Promise<void>;
 }) {
   const { open, setOpen, ref } = usePopover();
   const [kind, setKind] = useState<AssetKind | null>(null);
   const [draft, setDraft] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const remaining = kind ? kind.max - (values.assets[kind.key]?.length ?? 0) : 0;
 
   function close() {
     setOpen(false);
@@ -578,7 +700,7 @@ function AttachMenu({
         onClick={() => (open ? close() : setOpen(true))}
         aria-expanded={open}
         aria-label="Add media"
-        title="Add media"
+        title={`Add media · ${kinds.map(assetLimit).join(", ")}`}
         className={`${pillBase} w-9 justify-center px-0 ${open ? pillActive : pillIdle}`}
       >
         <PlusIcon className={`size-4 transition ${open ? "rotate-45" : ""}`} />
@@ -588,30 +710,66 @@ function AttachMenu({
         <Popover>
           {kind ? (
             <>
-              <label className="flex flex-col gap-1.5 text-xs font-medium">
-                <span className="flex items-center gap-1.5">
-                  <MediaIcon media={kind.media} className="size-4 text-violet-600 dark:text-violet-400" />
-                  {kind.label}
-                </span>
-                <input
-                  autoFocus
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      attach();
-                    }
-                  }}
-                  placeholder={kind.media === "text" ? "Draft cache id" : "https://… or Runware UUID"}
-                  className={fieldInput}
-                />
-              </label>
+              <p className="flex items-center gap-1.5 text-xs font-medium">
+                <MediaIcon media={kind.media} className="size-4 text-indigo-300" />
+                {kind.label}
+                <span className="ml-auto font-normal tabular-nums text-slate-400">{remaining} left</span>
+              </p>
+              {kind.accept && (
+                <>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    hidden
+                    accept={kind.accept}
+                    multiple={remaining > 1}
+                    onChange={(e) => {
+                      const files = [...(e.target.files ?? [])].slice(0, remaining);
+                      e.target.value = "";
+                      attachFiles(files, kind).then(close);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-dashed border-white/15 px-3 py-4 text-xs text-slate-300 transition hover:border-indigo-400/50 hover:bg-indigo-500/10 hover:text-white active:scale-[0.98]"
+                  >
+                    <UploadIcon className="size-5 text-indigo-300" />
+                    <span className="font-medium">Upload from device</span>
+                    <span className="text-[11px] text-slate-500">
+                      Up to {MAX_FILE_BYTES / 1024 / 1024} MB each · or drop / paste into the prompt
+                    </span>
+                  </button>
+                  <p className="flex items-center gap-2 text-[11px] text-slate-500 before:h-px before:flex-1 before:bg-white/10 after:h-px after:flex-1 after:bg-white/10">
+                    or link
+                  </p>
+                </>
+              )}
+              <input
+                autoFocus={!kind.accept}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    attach();
+                  }
+                }}
+                aria-label={`${kind.label} link`}
+                placeholder={
+                  kind.media === "text"
+                    ? "Draft cache id"
+                    : kind.media === "link"
+                      ? "https://…"
+                      : "https://… or Runware UUID"
+                }
+                className={fieldInput}
+              />
               <div className="flex justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => setKind(null)}
-                  className="rounded-lg px-2.5 py-1 text-xs text-zinc-500 hover:text-foreground"
+                  className="cursor-pointer rounded-lg px-2.5 py-1 text-xs text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
                 >
                   Back
                 </button>
@@ -619,37 +777,45 @@ function AttachMenu({
                   type="button"
                   onClick={attach}
                   disabled={!draft.trim()}
-                  className="rounded-lg bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-40"
+                  className="cursor-pointer rounded-lg bg-indigo-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-indigo-600"
                 >
                   Attach
                 </button>
               </div>
             </>
           ) : (
-            <ul className="-m-1.5 flex flex-col">
-              {kinds.map((k) => {
-                const count = values.assets[k.key]?.length ?? 0;
-                const full = count >= k.max;
-                return (
-                  <li key={k.key}>
-                    <button
-                      type="button"
-                      disabled={full}
-                      onClick={() => setKind(k)}
-                      className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm transition hover:bg-black/[0.04] disabled:opacity-40 disabled:hover:bg-transparent dark:hover:bg-white/[0.06]"
-                    >
-                      <span className="flex size-8 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">
-                        <MediaIcon media={k.media} className="size-4" />
-                      </span>
-                      <span className="flex-1 font-medium">{k.label}</span>
-                      <span className="text-xs tabular-nums text-zinc-500">
-                        {count}/{k.max}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <>
+              <p className="text-xs font-medium text-slate-400">{model.name} accepts</p>
+              <ul className="-mx-1.5 -mb-1.5 flex flex-col">
+                {kinds.map((k) => {
+                  const count = values.assets[k.key]?.length ?? 0;
+                  const full = count >= k.max;
+                  return (
+                    <li key={k.key}>
+                      <button
+                        type="button"
+                        disabled={full}
+                        onClick={() => setKind(k)}
+                        className="group/item flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                      >
+                        <span className="flex size-8 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300 transition group-hover/item:bg-indigo-500/25">
+                          <MediaIcon media={k.media} className="size-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-medium">{k.label}</span>
+                          <span className="block text-[11px] text-slate-500">
+                            Up to {k.max} · {k.accept ? "upload or link" : "link only"}
+                          </span>
+                        </span>
+                        <span className="text-xs tabular-nums text-slate-400">
+                          {count}/{k.max}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </Popover>
       )}
@@ -657,9 +823,20 @@ function AttachMenu({
   );
 }
 
-function MediaIcon({ media, className }: { media: MediaKind; className?: string }) {
-  const IconCmp = MEDIA_ICONS[media];
-  return <IconCmp className={className} />;
+/** Shown over the composer while files are dragged onto it. */
+function DropOverlay({ kinds }: { kinds: AssetKind[] }) {
+  const uploadable = kinds.filter((k) => k.accept);
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-1.5 rounded-[28px] bg-[#1b1f33]/90 text-center backdrop-blur-sm">
+      <UploadIcon className="size-6 text-indigo-300" />
+      <p className="text-sm font-semibold">
+        {uploadable.length > 0 ? "Drop to attach" : "This model takes media by link only"}
+      </p>
+      {uploadable.length > 0 && (
+        <p className="px-6 text-xs text-slate-400">{uploadable.map(assetLimit).join(" · ")}</p>
+      )}
+    </div>
+  );
 }
 
 function AssetTray({
@@ -684,16 +861,18 @@ function AssetTray({
     <ul className="flex gap-2 overflow-x-auto px-1 pt-1 pb-0.5">
       {entries.map(({ kind, item }) => (
         <li key={item.id} className="group relative flex w-20 shrink-0 flex-col gap-1">
-          <div className="relative size-20 overflow-hidden rounded-xl border border-black/10 bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.05]">
+          <div className="relative size-20 overflow-hidden rounded-xl border border-white/10 bg-white/[0.05]">
             {kind.media === "image" ? (
               // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL
               <img src={item.value} alt="" className="size-full object-cover" />
             ) : kind.media === "video" ? (
               <video src={item.value} muted playsInline preload="metadata" className="size-full object-cover" />
             ) : (
-              <div className="flex size-full flex-col items-center justify-center gap-1 p-1.5 text-zinc-500">
+              <div className="flex size-full flex-col items-center justify-center gap-1 p-1.5 text-slate-400">
                 <MediaIcon media={kind.media} className="size-5" />
-                <span className="w-full truncate text-center text-[10px]">{item.value}</span>
+                <span className="w-full truncate text-center text-[10px]" title={item.name ?? item.value}>
+                  {item.name ?? item.value}
+                </span>
               </div>
             )}
             <button
@@ -714,7 +893,7 @@ function AssetTray({
                 { value: "", label: "Auto", description: "Placed automatically" },
                 ...kind.framePositions.map((p) => ({ value: p, label: `${humanize(p)} frame` })),
               ]}
-              className="flex w-full items-center justify-center gap-0.5 rounded-md py-0.5 text-[11px] font-medium text-zinc-600 hover:bg-black/[0.04] dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+              className="flex w-full cursor-pointer items-center justify-center gap-0.5 rounded-md py-0.5 text-[11px] font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
             >
               {(current) => (
                 <>
@@ -724,7 +903,7 @@ function AssetTray({
               )}
             </Dropdown>
           ) : (
-            <span className="truncate text-center text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+            <span className="truncate text-center text-[11px] font-medium text-slate-400">
               {kind.label}
             </span>
           )}
@@ -754,7 +933,7 @@ function AdvancedPanel({
   const numberOrUndefined = (v: string) => (v === "" ? undefined : Number(v));
 
   return (
-    <div className="scroll-inset max-h-[45vh] overflow-y-auto rounded-2xl bg-black/[0.025] p-3 dark:bg-white/[0.04]">
+    <div className="scroll-inset max-h-[45vh] overflow-y-auto rounded-2xl bg-white/[0.04] p-3">
       <div className="grid grid-cols-1 gap-x-4 gap-y-3 text-xs sm:grid-cols-2">
         {input.seed && (
           <Field label="Seed" hint="Same seed + settings ≈ same video">
@@ -772,7 +951,7 @@ function AdvancedPanel({
                 title="Random seed"
                 aria-label="Random seed"
                 onClick={() => update({ seed: Math.floor(Math.random() * 2 ** 31) })}
-                className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-black/10 text-zinc-600 hover:bg-black/[0.04] dark:border-white/15 dark:text-zinc-400"
+                className="flex w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/[0.07] hover:text-white active:scale-95"
               >
                 <DiceIcon className="size-4" />
               </button>
@@ -791,7 +970,7 @@ function AdvancedPanel({
                 step={field.multipleOf ?? (field.type === "integer" ? 1 : 0.01)}
                 value={value}
                 onChange={(e) => setSetting(key, Number(e.target.value))}
-                className="h-8 w-full accent-violet-600"
+                className="h-8 w-full cursor-pointer accent-indigo-500"
               />
             </Field>
           );
@@ -819,7 +998,7 @@ function AdvancedPanel({
               max={quality.maximum}
               value={values.outputQuality ?? (quality.default as number) ?? quality.maximum}
               onChange={(e) => update({ outputQuality: Number(e.target.value) })}
-              className="h-8 w-full accent-violet-600"
+              className="h-8 w-full cursor-pointer accent-indigo-500"
             />
           </Field>
         )}
@@ -832,7 +1011,7 @@ function AdvancedPanel({
                   type="checkbox"
                   checked={values.checkContent}
                   onChange={(e) => update({ checkContent: e.target.checked })}
-                  className="accent-violet-600"
+                  className="accent-indigo-500"
                 />
                 On
               </label>
@@ -861,11 +1040,11 @@ function AdvancedPanel({
 
       {model.rules.length > 0 && (
         <details className="mt-3 text-xs">
-          <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-zinc-600 dark:text-zinc-400">
+          <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-slate-400 transition hover:text-white">
             <InfoIcon className="size-3.5" />
             {model.name} rules
           </summary>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-zinc-600 dark:text-zinc-400">
+          <ul className="mt-2 list-inside list-disc space-y-1 text-slate-400">
             {[...new Set(model.rules)].map((rule) => (
               <li key={rule}>{rule}</li>
             ))}
@@ -912,7 +1091,7 @@ function LoraEditor({
               type="button"
               aria-label="Remove LoRA"
               onClick={() => set(values.lora.filter((_, j) => j !== i))}
-              className="shrink-0 px-1 text-zinc-500 hover:text-foreground"
+              className="shrink-0 cursor-pointer rounded-lg px-1 text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
             >
               <XIcon className="size-4" />
             </button>
@@ -921,7 +1100,7 @@ function LoraEditor({
         <button
           type="button"
           onClick={() => set([...values.lora, { model: "", weight: (weight?.default as number) ?? 1 }])}
-          className="flex items-center gap-1 self-start rounded-lg px-1.5 py-1 font-medium text-violet-700 hover:bg-violet-500/10 dark:text-violet-300"
+          className="flex cursor-pointer items-center gap-1 self-start rounded-lg px-1.5 py-1 font-medium text-indigo-300 transition hover:bg-indigo-500/15 hover:text-indigo-200"
         >
           <PlusIcon className="size-3.5" /> Add LoRA
         </button>
@@ -945,7 +1124,7 @@ function Field({
     <div className="flex flex-col gap-1">
       <span className="flex items-baseline justify-between gap-2 font-medium">
         <span title={hint}>{label}</span>
-        {value !== undefined && <span className="tabular-nums text-zinc-500">{value}</span>}
+        {value !== undefined && <span className="tabular-nums text-slate-400">{value}</span>}
       </span>
       {children}
     </div>
@@ -957,44 +1136,43 @@ function CostBadge({ cost, model, invalid }: { cost: CostEstimate; model: VideoM
   const value = cost.total ?? cost.perSecond;
   const approx = cost.approximate || Array.isArray(value) ? "~" : "";
   const label = value === undefined ? "—" : `${approx}${formatCost(value)}${cost.total === undefined ? "/s" : ""}`;
+  // The badge shows just the amount; the tooltip keeps the "~" and the full breakdown.
+  const amount = value === undefined ? "—" : `${formatCost(value)}${cost.total === undefined ? "/s" : ""}`;
 
   return (
     <div className={`group relative mb-0.5 shrink-0 transition-opacity ${invalid ? "opacity-45" : ""}`}>
       <button
         type="button"
         aria-describedby="cost-details"
-        className="flex h-9 flex-col items-end justify-center rounded-xl px-2 text-right leading-none outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40"
+        aria-label={`Estimated cost ${label}`}
+        className="flex h-9 items-center rounded-xl px-1.5 text-sm font-semibold tabular-nums text-amber-300 outline-none transition hover:text-amber-200 focus-visible:ring-2 focus-visible:ring-amber-400/50"
       >
-        {cost.original !== undefined && (
-          <span className="text-[10px] tabular-nums text-zinc-400 line-through">{formatCost(cost.original)}</span>
-        )}
-        <span className="text-sm font-semibold tabular-nums">{label}</span>
-        {cost.original === undefined && <span className="mt-0.5 text-[10px] text-zinc-500">est. cost</span>}
+        {amount}
       </button>
 
       <div
         id="cost-details"
         role="tooltip"
-        className="pointer-events-none invisible absolute right-0 bottom-full z-30 mb-2 w-64 translate-y-1 rounded-2xl border border-black/10 bg-background/95 p-3 text-xs opacity-0 shadow-2xl backdrop-blur-xl transition group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 dark:border-white/10"
+        className="pointer-events-none invisible absolute right-0 bottom-full z-30 mb-2 w-64 translate-y-1 rounded-2xl border border-white/10 bg-[#1b1f33]/95 p-3 text-xs text-slate-200 opacity-0 shadow-2xl backdrop-blur-xl transition group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100"
       >
         <p className="flex items-baseline justify-between gap-2 font-medium">
           <span>Estimated cost</span>
           <span className="tabular-nums">{label}</span>
         </p>
-        {cost.breakdown.length > 0 && <p className="mt-1 text-zinc-600 dark:text-zinc-400">{cost.breakdown.join(" × ")}</p>}
+        {cost.breakdown.length > 0 && <p className="mt-1 text-slate-400">{cost.breakdown.join(" × ")}</p>}
         {cost.promo && (
-          <p className="mt-2 inline-block rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-700 dark:text-emerald-300">
+          <p className="mt-2 inline-block rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-300">
             {cost.promo}
           </p>
         )}
         {cost.notes.length > 0 && (
-          <ul className="mt-2 space-y-1 text-zinc-500">
+          <ul className="mt-2 space-y-1 text-slate-400">
             {cost.notes.map((n) => (
               <li key={n}>{n}</li>
             ))}
           </ul>
         )}
-        <p className="mt-2 border-t border-black/10 pt-2 text-[11px] text-zinc-500 dark:border-white/10">
+        <p className="mt-2 border-t border-white/10 pt-2 text-[11px] text-slate-400">
           Based on Runware&apos;s published rates for {model.name} (checked {model.pricing?.checked}). Runware
           sets the final cost.
         </p>
@@ -1005,32 +1183,34 @@ function CostBadge({ cost, model, invalid }: { cost: CostEstimate; model: VideoM
 
 function StatusLine({
   errors,
+  notice,
   mode,
   length,
   max,
 }: {
   errors: string[];
+  notice: string[];
   mode: string;
   length: number;
   max?: number;
 }) {
   // An empty prompt is the starting state, not something to warn about.
-  const shown = length === 0 ? errors.filter((e) => e !== "Enter a prompt.") : errors;
+  const shown = [...notice, ...(length === 0 ? errors.filter((e) => e !== "Enter a prompt.") : errors)];
   return (
     <div className="flex items-center gap-2 px-2.5 pb-0.5 text-[11px]">
       {shown.length > 0 ? (
-        <span className="flex min-w-0 items-center gap-1.5 text-amber-700 dark:text-amber-400" title={shown.join("\n")}>
+        <span className="flex min-w-0 items-center gap-1.5 text-amber-400" title={shown.join("\n")}>
           <AlertIcon className="size-3.5 shrink-0" />
           <span className="truncate">{shown[0]}</span>
           {shown.length > 1 && <span className="shrink-0 opacity-70">+{shown.length - 1} more</span>}
         </span>
       ) : (
-        <span className="flex items-center gap-1.5 text-zinc-500">
-          <span className={`size-1.5 rounded-full ${errors.length === 0 ? "bg-emerald-500" : "bg-zinc-400"}`} />
+        <span className="flex items-center gap-1.5 text-slate-400">
+          <span className={`size-1.5 rounded-full ${errors.length === 0 ? "bg-emerald-400" : "bg-slate-500"}`} />
           {mode}
         </span>
       )}
-      <span className="ml-auto shrink-0 tabular-nums text-zinc-400">
+      <span className="ml-auto shrink-0 tabular-nums text-slate-500">
         {length}
         {max ? ` / ${max}` : ""}
       </span>
@@ -1039,34 +1219,43 @@ function StatusLine({
 }
 
 function ResultBanner({ result, onClose }: { result: NonNullable<GenerateState>; onClose: () => void }) {
-  const ok = !result.errors;
+  const generation = result.errors ? undefined : result.generation;
+  const failed = !generation || generation.status === "failed";
   return (
     <div
-      role={ok ? "status" : "alert"}
+      role={failed ? "alert" : "status"}
       className={`relative rounded-2xl border p-3 pr-9 text-xs ${
-        ok
-          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-          : "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300"
+        failed
+          ? "border-red-500/20 bg-red-500/10 text-red-300"
+          : "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
       }`}
     >
-      <button type="button" aria-label="Dismiss" onClick={onClose} className="absolute top-2.5 right-2.5 opacity-70 hover:opacity-100">
+      <button type="button" aria-label="Dismiss" onClick={onClose} className="absolute top-2.5 right-2.5 cursor-pointer rounded-md opacity-70 transition hover:bg-white/10 hover:opacity-100">
         <XIcon className="size-4" />
       </button>
-      {ok ? (
-        <details>
-          <summary className="flex cursor-pointer items-center gap-1.5 font-medium">
-            <CheckIcon className="size-4" /> Request ready — view payload
-          </summary>
-          <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-black/5 p-2 font-mono text-[11px] dark:bg-white/5">
-            {JSON.stringify([result.task], null, 2)}
-          </pre>
-        </details>
-      ) : (
+      {!generation ? (
         <ul className="list-inside list-disc space-y-0.5">
-          {result.errors!.map((e) => (
+          {result.errors?.map((e) => (
             <li key={e}>{e}</li>
           ))}
         </ul>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <p className="flex items-center gap-1.5 font-medium">
+            {generation.status === "completed" ? <CheckIcon className="size-4" /> : <AlertIcon className="size-4" />}
+            {generation.status === "completed" ? "Video ready" : "Generation failed"}
+            {generation.cost !== null && <span className="font-normal opacity-70">· ${generation.cost.toFixed(4)}</span>}
+          </p>
+          {/* Set when the task failed, or when only some of several results succeeded. */}
+          {generation.error && <p>{generation.error}</p>}
+          {generation.videoUrls.length > 0 && (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {generation.videoUrls.map((url) => (
+                <video key={url} src={url} controls playsInline className="max-h-72 w-full rounded-lg bg-black" />
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

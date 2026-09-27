@@ -20,6 +20,8 @@ export interface AssetKind {
   max: number;
   /** Named positions a frame image can be pinned to (empty = not supported). */
   framePositions: string[];
+  /** File-picker `accept` list when a local file can be sent inline; unset = URL/UUID only. */
+  accept?: string;
 }
 
 export interface AssetItem {
@@ -27,6 +29,8 @@ export interface AssetItem {
   value: string;
   /** Frame position for frame images; unset lets the API distribute them. */
   frame?: string;
+  /** Original file name when attached from the device (value is then a data URI). */
+  name?: string;
 }
 
 export interface ComposerValues {
@@ -62,6 +66,20 @@ const ASSET_LABELS: Record<string, string> = {
   urls: "Web page",
   draftCache: "Draft cache",
 };
+
+/**
+ * Runware takes images and documents inline (data URI / base64); videos and
+ * audio must already be hosted, so those stay URL/UUID only.
+ */
+const FILE_ACCEPT: Partial<Record<MediaKind, string>> = {
+  image: "image/png,image/jpeg,image/webp",
+  document: ".pdf,.txt,.md,.doc,.docx",
+};
+
+/** Largest single file read into the request. */
+export const MAX_FILE_BYTES = 10 * 1024 * 1024;
+/** Inline files ride in the server action body (limit set in next.config.ts). */
+const MAX_INLINE_CHARS = 45 * 1024 * 1024;
 
 export function humanize(key: string) {
   const words = key.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
@@ -101,7 +119,13 @@ export function assetKinds(model: VideoModel): AssetKind[] {
     media: mediaOf(key),
     max: field.type === "array" ? (field.maxItems ?? 10) : 1,
     framePositions: key === "frameImages" ? framePositions(field) : [],
+    accept: FILE_ACCEPT[mediaOf(key)],
   }));
+}
+
+/** "30 reference images", "1 input video". */
+export function assetLimit(kind: AssetKind) {
+  return `${kind.max} ${kind.label.toLowerCase()}${kind.max === 1 ? "" : "s"}`;
 }
 
 /** Range fields (e.g. duration 3–15) become a list of whole-number options. */
@@ -223,10 +247,13 @@ export function buildTask(model: VideoModel, v: ComposerValues, taskUUID: string
     const items = (v.assets[kind.key] ?? []).filter((i) => i.value.trim());
     if (items.length === 0) continue;
     const field = input.inputs!.properties![kind.key];
+    // Documents take plain base64 rather than a data URI.
+    const value = (i: AssetItem) =>
+      kind.media === "document" ? i.value.trim().replace(/^data:[^,]*;base64,/, "") : i.value.trim();
     inputs[kind.key] =
       field.type === "array"
-        ? items.map((i) => (i.frame ? { image: i.value.trim(), frame: i.frame } : i.value.trim()))
-        : items[0].value.trim();
+        ? items.map((i) => (i.frame ? { image: value(i), frame: i.frame } : value(i)))
+        : value(items[0]);
   }
   if (Object.keys(inputs).length > 0) set("inputs", inputs);
 
@@ -273,17 +300,24 @@ function isUrl(value: string) {
 
 function assetProblems(model: VideoModel, v: ComposerValues) {
   const problems: string[] = [];
+  let inlineChars = 0;
   for (const kind of assetKinds(model)) {
     for (const item of v.assets[kind.key] ?? []) {
       const value = item.value.trim();
-      // Images also accept data URIs; draft caches are opaque ids from a previous run.
+      const inline = value.startsWith("data:");
+      if (inline) inlineChars += value.length;
+      // Images and documents also accept attached files; draft caches are opaque ids from a previous run.
       const ok =
         kind.media === "text" ||
         isUrl(value) ||
         (kind.media !== "link" && UUID_RE.test(value)) ||
-        (kind.media === "image" && value.startsWith("data:image/"));
+        (kind.media === "image" && value.startsWith("data:image/")) ||
+        (kind.media === "document" && inline);
       if (!ok) problems.push(`${kind.label} must be a URL${kind.media === "link" ? "" : " or a Runware UUID"}.`);
     }
+  }
+  if (inlineChars > MAX_INLINE_CHARS) {
+    problems.push("Attached files are too large in total — remove some or attach them by URL.");
   }
   return problems;
 }

@@ -60,13 +60,19 @@
   ],
   "pricing": {
     "perSecond": {
-      "*": 0.15
+      "360p": 0.03,
+      "720p": 0.1,
+      "1080p": 0.15,
+      "4K": 0.3
     },
     "videoInput": {
-      "*": 0.28
+      "360p": 0.056,
+      "720p": 0.187,
+      "1080p": 0.28,
+      "4K": 0.56
     },
     "approximate": true,
-    "note": "Billed per token ($17.50 per 1M video tokens); rate estimated from Runware's examples.",
+    "note": "Billed per token ($17.50 per 1M video tokens); input tokens add a little on top.",
     "source": "https://runware.ai/docs/models/google-gemini-omni-flash-1-1",
     "checked": "2026-09-24"
   },

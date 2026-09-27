@@ -1,4 +1,5 @@
-import type { SVGProps } from "react";
+import type { ComponentType, SVGProps } from "react";
+import type { MediaKind } from "@/lib/runware/request";
 
 /** Small stroke icons (24px grid, currentColor) used by the composer. */
 function Icon({ children, ...props }: SVGProps<SVGSVGElement>) {
@@ -38,6 +39,16 @@ export const CheckIcon = (p: P) => (
 export const ChevronDownIcon = (p: P) => (
   <Icon {...p}>
     <path d="m6 9 6 6 6-6" />
+  </Icon>
+);
+export const ChevronLeftIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="m15 6-6 6 6 6" />
+  </Icon>
+);
+export const ChevronRightIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="m9 6 6 6-6 6" />
   </Icon>
 );
 export const ArrowUpIcon = (p: P) => (
@@ -157,3 +168,23 @@ export const AlertIcon = (p: P) => (
     <path d="M12 10v4M12 17h.01" />
   </Icon>
 );
+export const UploadIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M12 15.5V4.5M7.5 9 12 4.5 16.5 9" />
+    <path d="M4.5 15v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" />
+  </Icon>
+);
+
+const MEDIA_ICONS: Record<MediaKind, ComponentType<P>> = {
+  image: ImageIcon,
+  video: FilmIcon,
+  audio: MusicIcon,
+  document: FileIcon,
+  link: LinkIcon,
+  text: HashIcon,
+};
+
+export function MediaIcon({ media, ...props }: P & { media: MediaKind }) {
+  const IconCmp = MEDIA_ICONS[media];
+  return <IconCmp {...props} />;
+}

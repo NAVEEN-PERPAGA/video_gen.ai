@@ -56,10 +56,12 @@ const PRICING = {
     note: "Billed per token; per-second rates are Runware's published equivalents.",
   },
   "google-gemini-omni-flash-1-1": {
-    perSecond: { "*": 0.15 },
-    videoInput: { "*": 0.28 },
+    // Google's per-second equivalents (720p = 5,792 video tokens/s at $17.50 per 1M).
+    perSecond: { "360p": 0.03, "720p": 0.1, "1080p": 0.15, "4K": 0.3 },
+    // Edit/extend: ~$0.28/s at 1080p from Runware's examples, scaled by the same tier ratios.
+    videoInput: { "360p": 0.056, "720p": 0.187, "1080p": 0.28, "4K": 0.56 },
     approximate: true,
-    note: "Billed per token ($17.50 per 1M video tokens); rate estimated from Runware's examples.",
+    note: "Billed per token ($17.50 per 1M video tokens); input tokens add a little on top.",
   },
   "lightricks-ltx-2-3-fast": { perSecond: { "720p": 0.03, "1080p": 0.06, "2K": 0.12 } },
   "lightricks-ltx-2-5-fast": { perSecond: { "720p": 0.09, "1080p": 0.13, "2K": 0.19, "4K": 0.3 } },

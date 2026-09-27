@@ -1,4 +1,6 @@
-import { VideoComposer } from "@/app/generate/video-composer";
+import Link from "next/link";
+import { listGenerations } from "@/app/generate/actions";
+import { Studio } from "@/app/generate/studio";
 import { UserMenu } from "@/app/user-menu";
 import { NewWorkspaceButton } from "@/app/workspaces/new-workspace-button";
 import { apiFetchAll } from "@/lib/api";
@@ -19,7 +21,11 @@ const roleStyles: Record<WorkspaceRole, string> = {
   member: "bg-zinc-100 text-zinc-700 dark:bg-white/10 dark:text-zinc-300",
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const email = auth?.claims.email;
@@ -36,6 +42,11 @@ export default async function DashboardPage() {
     apiError = err instanceof Error ? err.message : String(err);
   }
 
+  // Videos are generated in the workspace picked in the header (?workspace=<id>), else the first one.
+  const { workspace } = await searchParams;
+  const active = workspaces.find((ws) => String(ws.id) === workspace) ?? workspaces[0];
+  const generations = active ? await listGenerations(active.id) : null;
+
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-black/10 bg-background dark:border-white/15">
@@ -44,16 +55,23 @@ export default async function DashboardPage() {
           <nav aria-label="Workspaces" className="flex min-w-0 flex-1 items-center gap-2">
             <ul className="flex min-w-0 items-center gap-2 overflow-x-auto">
               {workspaces.map((ws) => (
-                <li
-                  key={ws.id}
-                  className="flex h-9 max-w-48 shrink-0 items-center gap-2 rounded-md border border-black/10 bg-white px-3 text-sm shadow-sm dark:border-white/15 dark:bg-zinc-900"
-                >
-                  <span className="truncate font-medium">{ws.name}</span>
-                  <span
-                    className={`shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium capitalize ${roleStyles[ws.role]}`}
+                <li key={ws.id} className="shrink-0">
+                  <Link
+                    href={`/?workspace=${ws.id}`}
+                    aria-current={ws.id === active?.id ? "page" : undefined}
+                    className={`flex h-9 max-w-48 items-center gap-2 rounded-md border bg-white px-3 text-sm shadow-sm transition dark:bg-zinc-900 ${
+                      ws.id === active?.id
+                        ? "border-indigo-500 ring-2 ring-indigo-500/20 dark:border-indigo-400"
+                        : "border-black/10 hover:border-black/25 dark:border-white/15 dark:hover:border-white/30"
+                    }`}
                   >
-                    {ws.role}
-                  </span>
+                    <span className="truncate font-medium">{ws.name}</span>
+                    <span
+                      className={`shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium capitalize ${roleStyles[ws.role]}`}
+                    >
+                      {ws.role}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -77,9 +95,10 @@ export default async function DashboardPage() {
             </p>
           )
         )}
-      </main>
 
-      <VideoComposer />
+        {/* Keyed so switching workspaces starts from that workspace's first page. */}
+        <Studio key={active?.id ?? "none"} workspaceId={active?.id ?? null} initial={generations} />
+      </main>
     </>
   );
 }

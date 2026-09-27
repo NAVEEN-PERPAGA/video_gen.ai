@@ -10,20 +10,30 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   return body.data;
 }
 
+export type Cursor = string | number | null;
+
 /**
- * Fetches every page of a cursor-paginated list endpoint
- * (`{ data: T[], meta: { nextCursor } }`) and returns all items.
+ * Fetches one page of a cursor-paginated list endpoint
+ * (`{ data: T[], meta: { nextCursor } }`). `nextCursor` is null on the last page.
  */
+export async function apiFetchPage<T>(
+  path: string,
+  { limit, cursor = null }: { limit: number; cursor?: Cursor },
+): Promise<{ items: T[]; nextCursor: Cursor }> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (cursor !== null) params.set("cursor", String(cursor));
+  const page = await apiRequest<{ data: T[]; meta: { nextCursor: Cursor } }>(`${path}?${params}`);
+  return { items: page.data, nextCursor: page.meta.nextCursor };
+}
+
+/** Fetches every page of a cursor-paginated list endpoint and returns all items. */
 export async function apiFetchAll<T>(path: string): Promise<T[]> {
   const items: T[] = [];
-  let cursor: string | number | null = null;
+  let cursor: Cursor = null;
   do {
-    const params = new URLSearchParams({ limit: "100" });
-    if (cursor !== null) params.set("cursor", String(cursor));
-    const page: { data: T[]; meta: { nextCursor: string | number | null } } =
-      await apiRequest(`${path}?${params}`);
-    items.push(...page.data);
-    cursor = page.meta.nextCursor;
+    const page: { items: T[]; nextCursor: Cursor } = await apiFetchPage<T>(path, { limit: 100, cursor });
+    items.push(...page.items);
+    cursor = page.nextCursor;
   } while (cursor !== null);
   return items;
 }
@@ -47,12 +57,13 @@ async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     // The API answers errors as { error: { code, message, ... } }.
     const body = (await res.json().catch(() => null)) as {
-      error?: { code?: string; message?: string };
+      error?: { code?: string; message?: string; details?: unknown };
     } | null;
     throw new ApiError(
       res.status,
       body?.error?.message ?? `Request failed with status ${res.status}`,
       body?.error?.code,
+      body?.error?.details,
     );
   }
   return (await res.json()) as T;
@@ -63,6 +74,8 @@ export class ApiError extends Error {
     readonly status: number,
     message: string,
     readonly code?: string,
+    /** e.g. { "/duration": ["must be <= 10"] } for VALIDATION_ERROR. */
+    readonly details?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
