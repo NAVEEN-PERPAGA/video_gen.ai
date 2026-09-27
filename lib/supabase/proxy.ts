@@ -11,9 +11,10 @@ const PUBLIC_PATHS = ["/login", "/auth"];
  */
 
 
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
-
+  // update supabase session
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
