@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listGenerations } from "@/app/generate/actions";
 import { Studio } from "@/app/generate/studio";
+import { GoogleSignInButton } from "@/app/google-sign-in-button";
 import { UserMenu } from "@/app/user-menu";
 import { NewWorkspaceButton } from "@/app/workspaces/new-workspace-button";
 import { apiFetchAll } from "@/lib/api";
@@ -28,6 +29,8 @@ export default async function DashboardPage({
 }) {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
+  // Signed-out visitors get the dashboard too, so they can see what they could make.
+  const signedIn = Boolean(auth?.claims);
   const email = auth?.claims.email;
   // Google (and most OAuth providers) put the profile photo and name in user_metadata.
   const meta = auth?.claims.user_metadata;
@@ -36,10 +39,12 @@ export default async function DashboardPage({
 
   let workspaces: Workspace[] = [];
   let apiError: string | null = null;
-  try {
-    workspaces = await apiFetchAll<Workspace>("/workspaces");
-  } catch (err) {
-    apiError = err instanceof Error ? err.message : String(err);
+  if (signedIn) {
+    try {
+      workspaces = await apiFetchAll<Workspace>("/workspaces");
+    } catch (err) {
+      apiError = err instanceof Error ? err.message : String(err);
+    }
   }
 
   // Videos are generated in the workspace picked in the header (?workspace=<id>), else the first one.
@@ -75,15 +80,19 @@ export default async function DashboardPage({
                 </li>
               ))}
             </ul>
-            <NewWorkspaceButton />
+            {signedIn && <NewWorkspaceButton />}
           </nav>
 
-          <UserMenu email={email} displayName={displayName} avatarUrl={avatarUrl} />
+          {signedIn ? (
+            <UserMenu email={email} displayName={displayName} avatarUrl={avatarUrl} />
+          ) : (
+            <GoogleSignInButton />
+          )}
         </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 pt-12 pb-80">
-        {apiError ? (
+        {!signedIn ? null : apiError ? (
           <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-300">
             Could not load your workspaces: {apiError}
           </p>
@@ -97,7 +106,7 @@ export default async function DashboardPage({
         )}
 
         {/* Keyed so switching workspaces starts from that workspace's first page. */}
-        <Studio key={active?.id ?? "none"} workspaceId={active?.id ?? null} initial={generations} />
+        <Studio key={active?.id ?? "none"} workspaceId={active?.id ?? null} initial={generations} signedIn={signedIn} />
       </main>
     </>
   );

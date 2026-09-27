@@ -11,6 +11,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { signInWithGoogle } from "@/app/auth/actions";
 import { type GenerateState, type Generation, generateVideo, getGeneration } from "@/app/generate/actions";
 import { Dropdown, type DropdownOption } from "@/app/generate/dropdown";
 import {
@@ -163,13 +164,16 @@ export const POLL_INTERVAL_MS = 5000;
 
 /**
  * `workspaceId` is where generations are created; null when the user has none yet.
+ * Signed-out visitors can try every control; generating sends them to sign in.
  * `onGeneration` hears about each generation this starts, and each status it polls.
  */
 export function VideoComposer({
   workspaceId,
+  signedIn,
   onGeneration,
 }: {
   workspaceId: number | null;
+  signedIn: boolean;
   onGeneration?: (generation: Generation) => void;
 }) {
   const [modelId, setModelId] = useState(defaultModelId);
@@ -187,7 +191,7 @@ export function VideoComposer({
   const input = model.input;
   const kinds = assetKinds(model);
   const promptMax = input.positivePrompt?.maxLength;
-  const blockedReason = workspaceId === null ? "Create a workspace to generate videos." : errors[0];
+  const blockedReason = signedIn && workspaceId === null ? "Create a workspace to generate videos." : errors[0];
 
   // Follow a processing generation until the API reports it finished.
   const processing = result?.generation?.status === "processing" ? result.generation : undefined;
@@ -228,7 +232,12 @@ export function VideoComposer({
   }
 
   function submit() {
-    if (pending || blockedReason || workspaceId === null) return;
+    if (pending || blockedReason) return;
+    if (!signedIn) {
+      startTransition(() => signInWithGoogle(new FormData()));
+      return;
+    }
+    if (workspaceId === null) return;
     startTransition(async () => {
       const state = await generateVideo(workspaceId, model.value, values);
       setResult(state);
@@ -415,7 +424,7 @@ export function VideoComposer({
                 type="submit"
                 disabled={pending || Boolean(blockedReason)}
                 aria-label="Generate video"
-                title={blockedReason ?? "Generate (Enter)"}
+                title={blockedReason ?? (signedIn ? "Generate (Enter)" : "Sign in with Google to generate")}
                 className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-950/50 transition duration-150 hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-indigo-500/40 active:translate-y-0 active:scale-95 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-slate-500 disabled:shadow-none"
               >
                 {pending ? (

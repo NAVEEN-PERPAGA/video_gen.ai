@@ -1,9 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Paths a signed-out user may visit. Everything else redirects to /login.
-const PUBLIC_PATHS = ["/login", "/auth"];
-
 /**
  * Refreshes the Supabase session (rotating the access token when it's close
  * to expiry) and writes the new cookies to both the request and the response,
@@ -39,17 +36,10 @@ export async function updateSession(request: NextRequest) {
   // triggers the refresh, and it verifies the JWT signature.
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims);
-  const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  if (!signedIn && !isPublic) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.search = "";
-    url.searchParams.set("next", pathname);
-    return redirectWithCookies(url, response);
-  }
-  if (signedIn && pathname === "/login") {
+  // Signed-out visitors may browse everything (the dashboard shows them what
+  // they can do); the API itself refuses their requests.
+  if (signedIn && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";

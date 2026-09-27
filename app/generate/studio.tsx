@@ -11,7 +11,15 @@ import { getVideoModel } from "@/lib/runware/models";
  * `initial` is the first page, loaded on the server; null when there is no
  * workspace. Render with `key={workspaceId}` so switching workspaces resets it.
  */
-export function Studio({ workspaceId, initial }: { workspaceId: number | null; initial: GenerationsPage | null }) {
+export function Studio({
+  workspaceId,
+  initial,
+  signedIn,
+}: {
+  workspaceId: number | null;
+  initial: GenerationsPage | null;
+  signedIn: boolean;
+}) {
   const firstPage = initial && initial.error === undefined ? initial : null;
   const [generations, setGenerations] = useState<Generation[]>(firstPage?.generations ?? []);
   const [nextCursor, setNextCursor] = useState(firstPage?.nextCursor ?? null);
@@ -118,7 +126,7 @@ export function Studio({ workspaceId, initial }: { workspaceId: number | null; i
         />
       )}
 
-      <VideoComposer workspaceId={workspaceId} onGeneration={upsert} />
+      <VideoComposer workspaceId={workspaceId} signedIn={signedIn} onGeneration={upsert} />
     </>
   );
 }
