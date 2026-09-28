@@ -38,6 +38,7 @@ import {
   XIcon,
 } from "@/app/generate/icons";
 import { ModelPicker } from "@/app/generate/model-picker";
+import { deleteUpload, uploadVideo } from "@/app/generate/upload-video";
 import { defaultModelId, getVideoModel, type FieldSchema, type VideoModel } from "@/lib/runware/models";
 import {
   type AssetItem,
@@ -51,10 +52,12 @@ import {
   fpsOptions,
   humanize,
   initialValues,
+  isUploading,
   MAX_FILE_BYTES,
   type MediaKind,
   numberOptions,
   sizeOptions,
+  VIDEO_UPLOAD_TYPES,
 } from "@/lib/runware/request";
 import { type CostEstimate, estimateCost, formatCost } from "@/lib/runware/pricing";
 import { useDismiss } from "@/lib/use-dismiss";
@@ -100,15 +103,19 @@ function mediaOfFile(file: File): MediaKind {
  * Reads local files into attachments. With no `target`, each file goes to the
  * first kind of its media type with room — frame images before references,
  * since a dropped picture is most often the opening shot.
+ * Images and documents are read inline. Videos are returned in `uploads` to
+ * be sent to workspace storage; their items wait with `progress: 0`.
  */
 async function readFiles(
   files: File[],
   kinds: AssetKind[],
   assets: ComposerValues["assets"],
+  canUpload: boolean,
   target?: AssetKind,
-): Promise<{ assets: ComposerValues["assets"]; problems: string[] }> {
+): Promise<{ assets: ComposerValues["assets"]; problems: string[]; uploads: { id: string; file: File }[] }> {
   const next = { ...assets };
   const problems: string[] = [];
+  const uploads: { id: string; file: File }[] = [];
   const room = (k: AssetKind) => (next[k.key]?.length ?? 0) < k.max;
   for (const file of files) {
     const media = mediaOfFile(file);
@@ -116,12 +123,22 @@ async function readFiles(
     const kind = candidates.find((k) => k.key === "frameImages" && room(k)) ?? candidates.find(room);
     if (candidates.length === 0) {
       problems.push(
-        media === "video" || media === "audio"
-          ? `${file.name}: ${media} files can't be uploaded yet — attach them by URL.`
+        media === "audio"
+          ? `${file.name}: audio files can't be uploaded yet — attach them by URL.`
           : `${file.name}: this model doesn't take ${media}s.`,
       );
     } else if (!kind) {
       problems.push(`${file.name}: no room left (${candidates.map(assetLimit).join(", ")} max).`);
+    } else if (kind.media === "video") {
+      if (!canUpload) {
+        problems.push(`${file.name}: sign in and pick a workspace to upload videos.`);
+      } else if (!VIDEO_UPLOAD_TYPES.includes(file.type)) {
+        problems.push(`${file.name}: unsupported video format. Use MP4, MOV, WebM, MKV, AVI, MPEG, OGG or 3GP.`);
+      } else {
+        const item: AssetItem = { id: newId(), value: "", name: file.name, preview: URL.createObjectURL(file), progress: 0 };
+        next[kind.key] = [...(next[kind.key] ?? []), item];
+        uploads.push({ id: item.id, file });
+      }
     } else if (file.size > MAX_FILE_BYTES) {
       problems.push(`${file.name} is over ${MAX_FILE_BYTES / 1024 / 1024} MB — attach it by URL instead.`);
     } else {
@@ -129,7 +146,7 @@ async function readFiles(
       next[kind.key] = [...(next[kind.key] ?? []), item];
     }
   }
-  return { assets: next, problems };
+  return { assets: next, problems, uploads };
 }
 
 /** Keep the prompt and any attachments the new model also accepts. */
@@ -231,11 +248,96 @@ export function VideoComposer({
     setValues((v) => autoAdjust(model, { ...v, assets }));
   };
 
+  // Video uploads in flight, by attachment id, so removing one (or leaving) cancels it.
+  const uploads = useRef(new Map<string, AbortController>());
+  // Uploads already sent with a generation; the task may still need them, so removing one keeps the file.
+  const submittedUploads = useRef(new Set<number>());
+  // Upload callbacks outlive renders; they re-fit sizes for the model selected by then.
+  const modelIdRef = useRef(modelId);
+  useEffect(() => {
+    modelIdRef.current = modelId;
+  }, [modelId]);
+  useEffect(() => {
+    const inFlight = uploads.current;
+    return () => inFlight.forEach((controller) => controller.abort());
+  }, []);
+
+  /** Updates one attachment wherever it is (it may have moved kinds on a model switch). */
+  const patchAsset = useCallback((id: string, patch: Partial<AssetItem>, refit = false) => {
+    setValues((v) => {
+      const assets = Object.fromEntries(
+        Object.entries(v.assets).map(([key, items]) => [key, items.map((i) => (i.id === id ? { ...i, ...patch } : i))]),
+      );
+      const next = { ...v, assets };
+      return refit ? autoAdjust(getVideoModel(modelIdRef.current)!, next) : next;
+    });
+  }, []);
+
+  function startUpload(id: string, file: File) {
+    if (workspaceId === null) return;
+    const controller = new AbortController();
+    uploads.current.set(id, controller);
+    let uploadId: number | undefined;
+    let shown = 0;
+    uploadVideo(workspaceId, file, {
+      signal: controller.signal,
+      onCreated: (created) => (uploadId = created),
+      onProgress: (share) => {
+        // Re-render in 2% steps, not on every progress event.
+        const step = Math.floor(share * 50) / 50;
+        if (step > shown) patchAsset(id, { progress: (shown = step) });
+      },
+    })
+      .then((upload) => {
+        // Removed while the API was confirming it: nothing will use the file.
+        if (controller.signal.aborted) return deleteUpload(workspaceId, upload.id);
+        // Now a real input: the size and duration may need re-fitting.
+        patchAsset(id, { value: upload.url ?? "", uploadId: upload.id, progress: undefined }, true);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          if (uploadId !== undefined) deleteUpload(workspaceId, uploadId);
+          // Normally the item is already gone; if it's still shown (e.g. after a
+          // hot reload), say so rather than leaving it spinning.
+          patchAsset(id, { uploadError: "The upload was cancelled." });
+          return;
+        }
+        console.error("Video upload failed:", err);
+        patchAsset(id, { uploadError: err instanceof Error ? err.message : "The upload failed." });
+      })
+      .finally(() => uploads.current.delete(id));
+  }
+
+  /** Cancels an attachment's upload, or deletes its stored file if no generation used it. */
+  function discardAsset(item: AssetItem) {
+    uploads.current.get(item.id)?.abort();
+    if (workspaceId !== null && item.uploadId !== undefined && !submittedUploads.current.has(item.uploadId)) {
+      deleteUpload(workspaceId, item.uploadId);
+    }
+    if (item.preview) URL.revokeObjectURL(item.preview);
+  }
+
   async function attachFiles(files: File[], target?: AssetKind) {
     if (files.length === 0) return;
-    const { assets, problems } = await readFiles(files, kinds, values.assets, target);
-    setValues((v) => autoAdjust(model, { ...v, assets }));
+    const before = values.assets;
+    const { assets, problems, uploads: pending } = await readFiles(
+      files,
+      kinds,
+      before,
+      signedIn && workspaceId !== null,
+      target,
+    );
+    // Append only what was added: uploads may have updated other items meanwhile.
+    setValues((v) => {
+      const merged = { ...v.assets };
+      for (const [key, items] of Object.entries(assets)) {
+        const added = items.slice(before[key]?.length ?? 0);
+        if (added.length > 0) merged[key] = [...(merged[key] ?? []), ...added];
+      }
+      return autoAdjust(model, { ...v, assets: merged });
+    });
     setNotice(problems);
+    for (const { id, file } of pending) startUpload(id, file);
   }
 
   function selectModel(id: string) {
@@ -257,6 +359,9 @@ export function VideoComposer({
       return;
     }
     if (workspaceId === null) return;
+    for (const items of Object.values(values.assets)) {
+      for (const item of items) if (item.uploadId !== undefined) submittedUploads.current.add(item.uploadId);
+    }
     startTransition(async () => {
       const state = await generateVideo(workspaceId, model.value, values);
       setResult(state);
@@ -309,7 +414,7 @@ export function VideoComposer({
               />
             )}
 
-            <AssetTray kinds={kinds} values={values} setAssets={setAssets} />
+            <AssetTray kinds={kinds} values={values} setAssets={setAssets} onRemove={discardAsset} />
 
             <textarea
               value={values.prompt}
@@ -765,7 +870,10 @@ function AttachMenu({
                     <UploadIcon className="size-5 text-indigo-300" />
                     <span className="font-medium">Upload from device</span>
                     <span className="text-[11px] text-slate-500">
-                      Up to {MAX_FILE_BYTES / 1024 / 1024} MB each · or drop / paste into the prompt
+                      {kind.media === "video"
+                        ? "MP4, MOV, WebM and more · saved to this workspace"
+                        : `Up to ${MAX_FILE_BYTES / 1024 / 1024} MB each`}{" "}
+                      · or drop / paste into the prompt
                     </span>
                   </button>
                   <p className="flex items-center gap-2 text-[11px] text-slate-500 before:h-px before:flex-1 before:bg-white/10 after:h-px after:flex-1 after:bg-white/10">
@@ -871,16 +979,23 @@ function AssetTray({
   kinds,
   values,
   setAssets,
+  onRemove,
 }: {
   kinds: AssetKind[];
   values: ComposerValues;
   setAssets: (assets: ComposerValues["assets"]) => void;
+  /** Cleans up after an attachment is taken out (cancels or deletes its upload). */
+  onRemove: (item: AssetItem) => void;
 }) {
   const entries = kinds.flatMap((kind) => (values.assets[kind.key] ?? []).map((item) => ({ kind, item })));
   if (entries.length === 0) return null;
 
   const change = (kind: AssetKind, id: string, patch: { frame?: string } | null) => {
     const items = values.assets[kind.key] ?? [];
+    if (patch === null) {
+      const removed = items.find((i) => i.id === id);
+      if (removed) onRemove(removed);
+    }
     const next = patch === null ? items.filter((i) => i.id !== id) : items.map((i) => (i.id === id ? { ...i, ...patch } : i));
     setAssets({ ...values.assets, [kind.key]: next });
   };
@@ -894,13 +1009,24 @@ function AssetTray({
               // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL
               <img src={item.value} alt="" className="size-full object-cover" />
             ) : kind.media === "video" ? (
-              <video src={item.value} muted playsInline preload="metadata" className="size-full object-cover" />
+              <video src={item.preview ?? item.value} muted playsInline preload="metadata" className="size-full object-cover" />
             ) : (
               <div className="flex size-full flex-col items-center justify-center gap-1 p-1.5 text-slate-400">
                 <MediaIcon media={kind.media} className="size-5" />
                 <span className="w-full truncate text-center text-[10px]" title={item.name ?? item.value}>
                   {item.name ?? item.value}
                 </span>
+              </div>
+            )}
+            {isUploading(item) && <UploadProgress progress={item.progress ?? 0} />}
+            {item.uploadError !== undefined && (
+              <div
+                role="alert"
+                title={item.uploadError}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-red-950/80 p-1.5 text-center text-[10px] font-medium text-red-200"
+              >
+                <AlertIcon className="size-4" />
+                Upload failed
               </div>
             )}
             <button
@@ -938,6 +1064,39 @@ function AssetTray({
         </li>
       ))}
     </ul>
+  );
+}
+
+/** A ring filling up over a video that's uploading, with the percentage. */
+function UploadProgress({ progress }: { progress: number }) {
+  const percent = Math.round(progress * 100);
+  const radius = 14;
+  const circumference = 2 * Math.PI * radius;
+  return (
+    <div
+      role="progressbar"
+      aria-label="Uploading video"
+      aria-valuenow={percent}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className="absolute inset-0 flex items-center justify-center bg-black/55"
+    >
+      <svg viewBox="0 0 36 36" className="size-11 -rotate-90" aria-hidden="true">
+        <circle cx="18" cy="18" r={radius} fill="none" strokeWidth="3" className="stroke-white/20" />
+        <circle
+          cx="18"
+          cy="18"
+          r={radius}
+          fill="none"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - progress)}
+          className="stroke-indigo-400 transition-[stroke-dashoffset] duration-200"
+        />
+      </svg>
+      <span className="absolute text-[10px] font-semibold text-white tabular-nums">{percent}%</span>
+    </div>
   );
 }
 

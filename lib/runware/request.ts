@@ -29,8 +29,21 @@ export interface AssetItem {
   value: string;
   /** Frame position for frame images; unset lets the API distribute them. */
   frame?: string;
-  /** Original file name when attached from the device (value is then a data URI). */
+  /** Original file name when attached from the device (value is then a data URI, or an upload's URL). */
   name?: string;
+  /** Local blob: URL to preview a video file from the device (the uploaded copy may be slow to fetch). */
+  preview?: string;
+  /** Workspace upload id of a video file; the server re-signs its URL when generating. */
+  uploadId?: number;
+  /** Share of the file sent so far (0–1) while uploading. */
+  progress?: number;
+  /** Why the upload failed. */
+  uploadError?: string;
+}
+
+/** Whether an item is a video file still on its way to storage. */
+export function isUploading(item: AssetItem) {
+  return item.progress !== undefined && item.uploadError === undefined;
 }
 
 export interface ComposerValues {
@@ -68,11 +81,28 @@ const ASSET_LABELS: Record<string, string> = {
 };
 
 /**
- * Runware takes images and documents inline (data URI / base64); videos and
- * audio must already be hosted, so those stay URL/UUID only.
+ * Video types the workspace uploads API stores (node_scalable VIDEO_TYPES).
+ * Video files go to storage first and are sent to Runware as a URL.
+ */
+export const VIDEO_UPLOAD_TYPES = [
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/x-matroska",
+  "video/ogg",
+  "video/mpeg",
+  "video/x-msvideo",
+  "video/3gpp",
+];
+
+/**
+ * Runware takes images and documents inline (data URI / base64). Videos are
+ * uploaded to workspace storage and sent as a URL. Audio must already be
+ * hosted, so it stays URL/UUID only.
  */
 const FILE_ACCEPT: Partial<Record<MediaKind, string>> = {
   image: "image/png,image/jpeg,image/webp",
+  video: VIDEO_UPLOAD_TYPES.join(","),
   document: ".pdf,.txt,.md,.doc,.docx",
 };
 
@@ -303,6 +333,14 @@ function assetProblems(model: VideoModel, v: ComposerValues) {
   let inlineChars = 0;
   for (const kind of assetKinds(model)) {
     for (const item of v.assets[kind.key] ?? []) {
+      if (item.uploadError !== undefined) {
+        problems.push(`${item.name ?? kind.label} failed to upload. Remove it and try again.`);
+        continue;
+      }
+      if (isUploading(item)) {
+        problems.push(`Wait for ${item.name ?? "the video"} to finish uploading.`);
+        continue;
+      }
       const value = item.value.trim();
       const inline = value.startsWith("data:");
       if (inline) inlineChars += value.length;

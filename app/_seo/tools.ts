@@ -6,7 +6,7 @@ import type { ToolContent } from "@/app/_seo/tool-page";
  * [text](/path) in any string becomes an internal link.
  *
  * Keep the claims true to the product: model names, inputs and limits come
- * from data/video/models; video and audio are attached by URL, images upload.
+ * from data/video/models; images and videos upload from the device, audio is attached by URL.
  */
 
 const LTX_25_FAST = "lightricks:ltx@2.5-fast";
@@ -493,14 +493,14 @@ export const videoExtender: ToolContent = {
   preset: {
     modelId: SEEDANCE_25,
     settings: { operation: "extend" },
-    placeholder: "Attach the video to extend with + (video URL), then describe what happens next…",
+    placeholder: "Drop in the video to extend (or use +), then describe what happens next…",
   },
   howTo: {
     title: "How to extend a video with AI",
     steps: [
       {
         title: "Add your video",
-        body: "Attach the clip by URL as the input video. The extender is set up with Seedance 2.5 in Extend mode.",
+        body: "Upload the clip (MP4, MOV, WebM and more) or paste a link as the input video. The extender is set up with Seedance 2.5 in Extend mode.",
       },
       {
         title: "Describe what happens next",
@@ -565,7 +565,7 @@ export const videoExtender: ToolContent = {
     },
     {
       q: "How do I add my video?",
-      a: "Right now input videos are attached by URL, for example a link to the file in cloud storage or one of your previous generations. Direct video file upload isn't available yet.",
+      a: "Drop the file onto the prompt box or pick it with the + button. It uploads to your workspace, and supported formats are MP4, MOV, WebM, MKV, AVI, MPEG, OGG and 3GP. You can also paste a link to a video that's already online.",
     },
   ],
   related: ["/ai-video-editor", "/text-to-video", "/image-to-video", "/"],
@@ -582,14 +582,14 @@ export const videoEditor: ToolContent = {
   preset: {
     modelId: SEEDANCE_25,
     settings: { operation: "edit" },
-    placeholder: "Attach the video to edit with + (video URL), then describe the change…",
+    placeholder: "Drop in the video to edit (or use +), then describe the change…",
   },
   howTo: {
     title: "How to edit a video with AI",
     steps: [
       {
         title: "Attach your clip",
-        body: "Add the video by URL as the input video. The editor opens with Seedance 2.5 in Edit mode.",
+        body: "Upload your clip or paste a link as the input video. The editor opens with Seedance 2.5 in Edit mode.",
       },
       {
         title: "Describe the edit",
@@ -649,7 +649,7 @@ export const videoEditor: ToolContent = {
     },
     {
       q: "Can I edit a video I shot on my phone?",
-      a: "Yes. Attach it by URL as the input video. Short, steady clips give the cleanest results.",
+      a: "Yes. Upload it straight from your phone or computer (MP4 and MOV both work) as the input video. Short, steady clips give the cleanest results.",
     },
     {
       q: "Can I add text to a video?",

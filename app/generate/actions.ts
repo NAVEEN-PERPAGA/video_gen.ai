@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { ApiError, apiFetch, apiFetchPage } from "@/lib/api";
 import { getVideoModel } from "@/lib/runware/models";
 import { buildTask, type ComposerValues, validateTask } from "@/lib/runware/request";
+import type { Upload } from "@/lib/uploads";
 
 /** A generation as node_scalable returns it (GET/POST .../generations). */
 export interface Generation {
@@ -42,6 +43,13 @@ export async function generateVideo(
 ): Promise<GenerateState> {
   const model = getVideoModel(modelId);
   if (!model) return { errors: ["Unknown model."] };
+
+  // Uploaded videos' links expire; swap in fresh ones so Runware can fetch them.
+  try {
+    values = await withFreshUploadUrls(workspaceId, values);
+  } catch (err) {
+    return { errors: errorMessages(err, "Could not read an uploaded video.") };
+  }
 
   // Re-check on the server: the client-side hints can be bypassed.
   const task = buildTask(model, values, randomUUID());
@@ -91,6 +99,31 @@ export async function getGeneration(workspaceId: number, generationId: number): 
   } catch (err) {
     return { errors: errorMessages(err, "Could not check the generation.") };
   }
+}
+
+/**
+ * Replaces each uploaded video's URL with a freshly signed one from the API,
+ * which also proves the upload belongs to this workspace.
+ */
+async function withFreshUploadUrls(workspaceId: number, values: ComposerValues): Promise<ComposerValues> {
+  const assets = Object.fromEntries(
+    await Promise.all(
+      Object.entries(values.assets).map(async ([key, items]) => [
+        key,
+        await Promise.all(
+          items.map(async (item) => {
+            if (item.uploadId === undefined) return item;
+            const upload = await apiFetch<Upload>(`/workspaces/${workspaceId}/uploads/${item.uploadId}`);
+            if (upload.status !== "uploaded" || !upload.url) {
+              throw new ApiError(409, `${item.name ?? "A video"} has not finished uploading.`);
+            }
+            return { ...item, value: upload.url };
+          }),
+        ),
+      ]),
+    ),
+  );
+  return { ...values, assets };
 }
 
 /** The API's message plus any per-field (VALIDATION_ERROR) or provider (PROVIDER_REJECTED) details. */

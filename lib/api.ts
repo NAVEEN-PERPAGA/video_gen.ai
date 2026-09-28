@@ -38,14 +38,40 @@ export async function apiFetchAll<T>(path: string): Promise<T[]> {
   return items;
 }
 
-async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+/**
+ * Forwards a request to the API as the signed-in user and hands back the
+ * API's answer unchanged (status and JSON body), for Route Handlers that
+ * expose an API endpoint to the browser. Answers 401 when signed out and
+ * 502 when the API can't be reached, in the API's own error shape.
+ */
+export async function apiProxy(path: string, init: RequestInit = {}): Promise<Response> {
+  let res: Response;
+  try {
+    res = await backendFetch(path, init);
+  } catch (err) {
+    const signedOut = err instanceof ApiError && err.status === 401;
+    if (!signedOut) console.error(`API request failed: ${init.method ?? "GET"} ${path}`, err);
+    return Response.json(
+      signedOut
+        ? { error: { code: "UNAUTHORIZED", message: "Sign in to continue." } }
+        : { error: { code: "API_UNREACHABLE", message: "The API server is unreachable." } },
+      { status: signedOut ? 401 : 502 },
+    );
+  }
+  // 204 and friends have no body to pass on.
+  if (res.status === 204) return new Response(null, { status: 204 });
+  return new Response(res.body, { status: res.status, headers: { "Content-Type": "application/json" } });
+}
+
+/** A fetch to `${API_URL}/api/v1${path}` with the user's access token. Throws a 401 ApiError when signed out. */
+async function backendFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const supabase = await createClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  if (!session) throw new Error("Not signed in");
+  if (!session) throw new ApiError(401, "Not signed in");
 
-  const res = await fetch(`${process.env.API_URL}/api/v1${path}`, {
+  return fetch(`${process.env.API_URL}/api/v1${path}`, {
     ...init,
     headers: {
       ...init.headers,
@@ -54,6 +80,10 @@ async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
     },
     cache: "no-store",
   });
+}
+
+async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const res = await backendFetch(path, init);
   if (!res.ok) {
     // The API answers errors as { error: { code, message, ... } }.
     const body = (await res.json().catch(() => null)) as {
