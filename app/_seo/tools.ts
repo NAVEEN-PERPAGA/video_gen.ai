@@ -9,7 +9,6 @@ import type { ToolContent } from "@/app/_seo/tool-page";
  * from data/video/models; images and videos upload from the device, audio is attached by URL.
  */
 
-const LTX_25_FAST = "lightricks:ltx@2.5-fast";
 const LTX_23_FAST = "lightricks:ltx@2.3-fast";
 const SEEDANCE_25 = "bytedance:seedance@2.5";
 
@@ -124,7 +123,6 @@ export const imageToVideo: ToolContent = {
   intro:
     "Upload a photo and our AI image to video generator turns it into a moving clip. Describe the motion you want (a slow zoom, hair blowing in the wind, a product turning on a table) and the model animates your picture while keeping it recognisably yours. It works with portraits, product shots, landscapes, artwork and old family photos.",
   preset: {
-    modelId: LTX_25_FAST,
     placeholder: "Upload a photo (drop it here or use +), then describe how it should move…",
   },
   howTo: {
@@ -218,7 +216,6 @@ export const textToVideo: ToolContent = {
   intro:
     "Write a sentence or paste a script, and our text to video AI generates the scene: characters, setting, camera movement and, on many models, synchronized sound. Sign up free, try the same prompt on several leading video models, and keep the version that matches your idea.",
   preset: {
-    modelId: LTX_25_FAST,
     placeholder: "Describe the scene: who, what happens, where, camera move, lighting, style…",
   },
   howTo: {

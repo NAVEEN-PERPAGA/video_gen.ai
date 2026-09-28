@@ -44,11 +44,11 @@ export async function generateVideo(
   const model = getVideoModel(modelId);
   if (!model) return { errors: ["Unknown model."] };
 
-  // Uploaded videos' links expire; swap in fresh ones so Runware can fetch them.
+  // Uploaded files' links expire; swap in fresh ones so Runware can fetch them.
   try {
     values = await withFreshUploadUrls(workspaceId, values);
   } catch (err) {
-    return { errors: errorMessages(err, "Could not read an uploaded video.") };
+    return { errors: errorMessages(err, "Could not read an uploaded file.") };
   }
 
   // Re-check on the server: the client-side hints can be bypassed.
@@ -102,7 +102,7 @@ export async function getGeneration(workspaceId: number, generationId: number): 
 }
 
 /**
- * Replaces each uploaded video's URL with a freshly signed one from the API,
+ * Replaces each uploaded file's URL with a freshly signed one from the API,
  * which also proves the upload belongs to this workspace.
  */
 async function withFreshUploadUrls(workspaceId: number, values: ComposerValues): Promise<ComposerValues> {
@@ -115,7 +115,7 @@ async function withFreshUploadUrls(workspaceId: number, values: ComposerValues):
             if (item.uploadId === undefined) return item;
             const upload = await apiFetch<Upload>(`/workspaces/${workspaceId}/uploads/${item.uploadId}`);
             if (upload.status !== "uploaded" || !upload.url) {
-              throw new ApiError(409, `${item.name ?? "A video"} has not finished uploading.`);
+              throw new ApiError(409, `${item.name ?? "A file"} has not finished uploading.`);
             }
             return { ...item, value: upload.url };
           }),

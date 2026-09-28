@@ -31,6 +31,7 @@ import {
   MicIcon,
   MusicIcon,
   PencilIcon,
+  PlayIcon,
   PlusIcon,
   SlidersIcon,
   SparklesIcon,
@@ -38,8 +39,8 @@ import {
   XIcon,
 } from "@/app/generate/icons";
 import { ModelPicker } from "@/app/generate/model-picker";
-import { deleteUpload, uploadVideo } from "@/app/generate/upload-video";
-import { defaultModelId, getVideoModel, type FieldSchema, type VideoModel } from "@/lib/runware/models";
+import { deleteUpload, uploadFile } from "@/app/generate/upload-file";
+import { defaultModelId, getVideoModel, type FieldSchema, type VideoModel, videoModels } from "@/lib/runware/models";
 import {
   type AssetItem,
   type AssetKind,
@@ -57,7 +58,7 @@ import {
   type MediaKind,
   numberOptions,
   sizeOptions,
-  VIDEO_UPLOAD_TYPES,
+  UPLOAD_TYPES,
 } from "@/lib/runware/request";
 import { type CostEstimate, estimateCost, formatCost } from "@/lib/runware/pricing";
 import { useDismiss } from "@/lib/use-dismiss";
@@ -99,20 +100,27 @@ function mediaOfFile(file: File): MediaKind {
   return type === "image" || type === "video" || type === "audio" ? type : "document";
 }
 
+/** Models that take a video input or video references, for pointing people to one. */
+const VIDEO_MODELS = videoModels.filter((m) => assetKinds(m).some((k) => k.media === "video"));
+/** Where "Switch model" goes when the current model can't use a video. */
+const VIDEO_MODEL = VIDEO_MODELS.find((m) => m.value === "bytedance:seedance@2.5") ?? VIDEO_MODELS[0];
+
 /**
  * Reads local files into attachments. With no `target`, each file goes to the
  * first kind of its media type with room — frame images before references,
  * since a dropped picture is most often the opening shot.
- * Images and documents are read inline. Videos are returned in `uploads` to
- * be sent to workspace storage; their items wait with `progress: 0`.
+ * Images and videos are returned in `uploads` to be sent to workspace storage;
+ * their items wait with `progress: 0`. Documents are read inline, and so are
+ * images when there's no workspace to upload to (signed out).
  */
 async function readFiles(
   files: File[],
-  kinds: AssetKind[],
+  model: VideoModel,
   assets: ComposerValues["assets"],
   canUpload: boolean,
   target?: AssetKind,
 ): Promise<{ assets: ComposerValues["assets"]; problems: string[]; uploads: { id: string; file: File }[] }> {
+  const kinds = assetKinds(model);
   const next = { ...assets };
   const problems: string[] = [];
   const uploads: { id: string; file: File }[] = [];
@@ -121,19 +129,28 @@ async function readFiles(
     const media = mediaOfFile(file);
     const candidates = target ? [target] : kinds.filter((k) => k.accept && k.media === media);
     const kind = candidates.find((k) => k.key === "frameImages" && room(k)) ?? candidates.find(room);
-    if (candidates.length === 0) {
+    if (target && target.media !== media) {
+      // The picker's "All files" lets anything through; don't read a video as an image.
+      problems.push(`${file.name} is ${media === "image" || media === "audio" ? "an" : "a"} ${media} file, but ${target.label.toLowerCase()} takes ${target.media}s.`);
+    } else if (candidates.length === 0) {
       problems.push(
         media === "audio"
           ? `${file.name}: audio files can't be uploaded yet — attach them by URL.`
-          : `${file.name}: this model doesn't take ${media}s.`,
+          : media === "video"
+            ? `${model.name} doesn't take videos. Switch to ${VIDEO_MODELS.map((m) => m.name).join(", ")} to use ${file.name}.`
+            : `${file.name}: ${model.name} doesn't take ${media}s.`,
       );
     } else if (!kind) {
       problems.push(`${file.name}: no room left (${candidates.map(assetLimit).join(", ")} max).`);
-    } else if (kind.media === "video") {
+    } else if (kind.media === "video" || (kind.media === "image" && canUpload)) {
       if (!canUpload) {
         problems.push(`${file.name}: sign in and pick a workspace to upload videos.`);
-      } else if (!VIDEO_UPLOAD_TYPES.includes(file.type)) {
-        problems.push(`${file.name}: unsupported video format. Use MP4, MOV, WebM, MKV, AVI, MPEG, OGG or 3GP.`);
+      } else if (!UPLOAD_TYPES[kind.media]!.includes(file.type)) {
+        problems.push(
+          kind.media === "video"
+            ? `${file.name}: unsupported video format. Use MP4, MOV, WebM, MKV, AVI, MPEG, OGG or 3GP.`
+            : `${file.name}: unsupported image format. Use PNG, JPEG or WebP.`,
+        );
       } else {
         const item: AssetItem = { id: newId(), value: "", name: file.name, preview: URL.createObjectURL(file), progress: 0 };
         next[kind.key] = [...(next[kind.key] ?? []), item];
@@ -248,7 +265,7 @@ export function VideoComposer({
     setValues((v) => autoAdjust(model, { ...v, assets }));
   };
 
-  // Video uploads in flight, by attachment id, so removing one (or leaving) cancels it.
+  // File uploads in flight, by attachment id, so removing one (or leaving) cancels it.
   const uploads = useRef(new Map<string, AbortController>());
   // Uploads already sent with a generation; the task may still need them, so removing one keeps the file.
   const submittedUploads = useRef(new Set<number>());
@@ -279,7 +296,7 @@ export function VideoComposer({
     uploads.current.set(id, controller);
     let uploadId: number | undefined;
     let shown = 0;
-    uploadVideo(workspaceId, file, {
+    uploadFile(workspaceId, file, {
       signal: controller.signal,
       onCreated: (created) => (uploadId = created),
       onProgress: (share) => {
@@ -302,7 +319,7 @@ export function VideoComposer({
           patchAsset(id, { uploadError: "The upload was cancelled." });
           return;
         }
-        console.error("Video upload failed:", err);
+        console.error("Upload failed:", err);
         patchAsset(id, { uploadError: err instanceof Error ? err.message : "The upload failed." });
       })
       .finally(() => uploads.current.delete(id));
@@ -322,7 +339,7 @@ export function VideoComposer({
     const before = values.assets;
     const { assets, problems, uploads: pending } = await readFiles(
       files,
-      kinds,
+      model,
       before,
       signedIn && workspaceId !== null,
       target,
@@ -449,6 +466,7 @@ export function VideoComposer({
                     values={values}
                     setAssets={setAssets}
                     attachFiles={attachFiles}
+                    onSelectModel={selectModel}
                   />
                 )}
 
@@ -800,12 +818,14 @@ function AttachMenu({
   values,
   setAssets,
   attachFiles,
+  onSelectModel,
 }: {
   model: VideoModel;
   kinds: AssetKind[];
   values: ComposerValues;
   setAssets: (assets: ComposerValues["assets"]) => void;
   attachFiles: (files: File[], target?: AssetKind) => Promise<void>;
+  onSelectModel: (id: string) => void;
 }) {
   const { open, setOpen, ref } = usePopover();
   const [kind, setKind] = useState<AssetKind | null>(null);
@@ -872,7 +892,9 @@ function AttachMenu({
                     <span className="text-[11px] text-slate-500">
                       {kind.media === "video"
                         ? "MP4, MOV, WebM and more · saved to this workspace"
-                        : `Up to ${MAX_FILE_BYTES / 1024 / 1024} MB each`}{" "}
+                        : kind.media === "image"
+                          ? "PNG, JPEG or WebP · saved to this workspace"
+                          : `Up to ${MAX_FILE_BYTES / 1024 / 1024} MB each`}{" "}
                       · or drop / paste into the prompt
                     </span>
                   </button>
@@ -951,6 +973,21 @@ function AttachMenu({
                   );
                 })}
               </ul>
+              {!kinds.some((k) => k.media === "video") && VIDEO_MODEL && (
+                <div className="mt-1 flex items-center gap-2 border-t border-white/10 pt-2.5 text-[11px] text-slate-400">
+                  <span className="min-w-0 flex-1">{model.name} can&apos;t use a video.</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelectModel(VIDEO_MODEL.value);
+                      close();
+                    }}
+                    className="shrink-0 cursor-pointer rounded-lg bg-indigo-500/20 px-2 py-1 font-semibold text-indigo-200 transition hover:bg-indigo-500/30"
+                  >
+                    Use {VIDEO_MODEL.name}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </Popover>
@@ -987,6 +1024,8 @@ function AssetTray({
   /** Cleans up after an attachment is taken out (cancels or deletes its upload). */
   onRemove: (item: AssetItem) => void;
 }) {
+  /** The video attachment open in the player. */
+  const [playing, setPlaying] = useState<AssetItem | null>(null);
   const entries = kinds.flatMap((kind) => (values.assets[kind.key] ?? []).map((item) => ({ kind, item })));
   if (entries.length === 0) return null;
 
@@ -1001,69 +1040,129 @@ function AssetTray({
   };
 
   return (
-    <ul className="flex gap-2 overflow-x-auto px-1 pt-1 pb-0.5">
-      {entries.map(({ kind, item }) => (
-        <li key={item.id} className="group relative flex w-20 shrink-0 flex-col gap-1">
-          <div className="relative size-20 overflow-hidden rounded-xl border border-white/10 bg-white/[0.05]">
-            {kind.media === "image" ? (
-              // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL
-              <img src={item.value} alt="" className="size-full object-cover" />
-            ) : kind.media === "video" ? (
-              <video src={item.preview ?? item.value} muted playsInline preload="metadata" className="size-full object-cover" />
-            ) : (
-              <div className="flex size-full flex-col items-center justify-center gap-1 p-1.5 text-slate-400">
-                <MediaIcon media={kind.media} className="size-5" />
-                <span className="w-full truncate text-center text-[10px]" title={item.name ?? item.value}>
-                  {item.name ?? item.value}
-                </span>
-              </div>
-            )}
-            {isUploading(item) && <UploadProgress progress={item.progress ?? 0} />}
-            {item.uploadError !== undefined && (
-              <div
-                role="alert"
-                title={item.uploadError}
-                className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-red-950/80 p-1.5 text-center text-[10px] font-medium text-red-200"
-              >
-                <AlertIcon className="size-4" />
-                Upload failed
-              </div>
-            )}
-            <button
-              type="button"
-              aria-label={`Remove ${kind.label.toLowerCase()}`}
-              onClick={() => change(kind, item.id, null)}
-              className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white opacity-90 backdrop-blur transition hover:bg-black/80 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
-            >
-              <XIcon className="size-3" />
-            </button>
-          </div>
-          {kind.framePositions.length > 0 ? (
-            <Dropdown
-              label="Frame position"
-              value={item.frame ?? ""}
-              onChange={(frame) => change(kind, item.id, { frame: frame || undefined })}
-              options={[
-                { value: "", label: "Auto", description: "Placed automatically" },
-                ...kind.framePositions.map((p) => ({ value: p, label: `${humanize(p)} frame` })),
-              ]}
-              className="flex w-full cursor-pointer items-center justify-center gap-0.5 rounded-md py-0.5 text-[11px] font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
-            >
-              {(current) => (
-                <>
-                  <span className="truncate">{current?.value ? current.label.replace(" frame", "") : "Auto"}</span>
-                  <ChevronDownIcon className="size-3 shrink-0" />
-                </>
+    <>
+      <ul className="flex gap-2 overflow-x-auto px-1 pt-1 pb-0.5">
+        {entries.map(({ kind, item }) => (
+          <li key={item.id} className="group relative flex w-20 shrink-0 flex-col gap-1">
+            <div className="relative size-20 overflow-hidden rounded-xl border border-white/10 bg-white/[0.05]">
+              {kind.media === "image" ? (
+                // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL
+                <img src={item.preview ?? item.value} alt="" className="size-full object-cover" />
+              ) : kind.media === "video" ? (
+                <button
+                  type="button"
+                  onClick={() => setPlaying(item)}
+                  aria-label={`Play ${item.name ?? kind.label.toLowerCase()}`}
+                  className="group/play relative block size-full cursor-pointer"
+                >
+                  <video src={item.preview ?? item.value} muted playsInline preload="metadata" className="size-full object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/20 transition group-hover/play:bg-black/40">
+                    <span className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition group-hover/play:scale-110">
+                      <PlayIcon className="size-3.5 translate-x-px" />
+                    </span>
+                  </span>
+                </button>
+              ) : (
+                <div className="flex size-full flex-col items-center justify-center gap-1 p-1.5 text-slate-400">
+                  <MediaIcon media={kind.media} className="size-5" />
+                  <span className="w-full truncate text-center text-[10px]" title={item.name ?? item.value}>
+                    {item.name ?? item.value}
+                  </span>
+                </div>
               )}
-            </Dropdown>
-          ) : (
-            <span className="truncate text-center text-[11px] font-medium text-slate-400">
-              {kind.label}
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
+              {isUploading(item) && <UploadProgress progress={item.progress ?? 0} />}
+              {item.uploadError !== undefined && (
+                <div
+                  role="alert"
+                  title={item.uploadError}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-red-950/80 p-1.5 text-center text-[10px] font-medium text-red-200"
+                >
+                  <AlertIcon className="size-4" />
+                  Upload failed
+                </div>
+              )}
+              <button
+                type="button"
+                aria-label={`Remove ${kind.label.toLowerCase()}`}
+                onClick={() => change(kind, item.id, null)}
+                className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white opacity-90 backdrop-blur transition hover:bg-black/80 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+              >
+                <XIcon className="size-3" />
+              </button>
+            </div>
+            {kind.framePositions.length > 0 ? (
+              <Dropdown
+                label="Frame position"
+                value={item.frame ?? ""}
+                onChange={(frame) => change(kind, item.id, { frame: frame || undefined })}
+                options={[
+                  { value: "", label: "Auto", description: "Placed automatically" },
+                  ...kind.framePositions.map((p) => ({ value: p, label: `${humanize(p)} frame` })),
+                ]}
+                className="flex w-full cursor-pointer items-center justify-center gap-0.5 rounded-md py-0.5 text-[11px] font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+              >
+                {(current) => (
+                  <>
+                    <span className="truncate">{current?.value ? current.label.replace(" frame", "") : "Auto"}</span>
+                    <ChevronDownIcon className="size-3 shrink-0" />
+                  </>
+                )}
+              </Dropdown>
+            ) : (
+              <span className="truncate text-center text-[11px] font-medium text-slate-400">
+                {kind.label}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      {playing && <VideoPlayerDialog item={playing} onClose={() => setPlaying(null)} />}
+    </>
+  );
+}
+
+/**
+ * An attached video playing over the page. A modal <dialog>, so Escape closes
+ * it and focus stays inside; clicking the backdrop closes it too. Plays the
+ * local copy when there is one, so it works while the file is still uploading.
+ */
+function VideoPlayerDialog({ item, onClose }: { item: AssetItem; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    dialogRef.current?.showModal();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      // A click on the dialog itself (not its content) is a click on the backdrop.
+      onClick={(e) => e.target === e.currentTarget && dialogRef.current?.close()}
+      aria-label={item.name ?? "Attached video"}
+      className="m-auto max-h-[90vh] w-[min(56rem,92vw)] overflow-visible bg-transparent p-0 text-slate-100 backdrop:bg-black/80 backdrop:backdrop-blur-sm"
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="truncate text-sm font-medium">{item.name ?? "Attached video"}</p>
+          <button
+            type="button"
+            onClick={() => dialogRef.current?.close()}
+            aria-label="Close"
+            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+          >
+            <XIcon className="size-5" />
+          </button>
+        </div>
+        <video
+          src={item.preview ?? item.value}
+          controls
+          autoPlay
+          playsInline
+          className="max-h-[80vh] w-full rounded-xl bg-black"
+        />
+      </div>
+    </dialog>
   );
 }
 
@@ -1075,11 +1174,12 @@ function UploadProgress({ progress }: { progress: number }) {
   return (
     <div
       role="progressbar"
-      aria-label="Uploading video"
+      aria-label="Uploading file"
       aria-valuenow={percent}
       aria-valuemin={0}
       aria-valuemax={100}
-      className="absolute inset-0 flex items-center justify-center bg-black/55"
+      // Clicks pass through to the thumbnail, so a video can be played while it uploads.
+      className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/55"
     >
       <svg viewBox="0 0 36 36" className="size-11 -rotate-90" aria-hidden="true">
         <circle cx="18" cy="18" r={radius} fill="none" strokeWidth="3" className="stroke-white/20" />

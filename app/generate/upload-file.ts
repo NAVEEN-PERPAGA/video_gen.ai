@@ -4,7 +4,7 @@ import { type Upload, type UploadTarget, uploadsPath } from "@/lib/uploads";
 const API_TIMEOUT_MS = 30_000;
 
 /**
- * Uploads a video file from the browser to workspace storage:
+ * Uploads an image or video file from the browser to workspace storage:
  *   1. POST /api/workspaces/:id/uploads registers it and returns a presigned PUT URL;
  *   2. the file goes straight from the browser to storage (Cloudflare R2),
  *      never through this app's server, with progress reported on the way;
@@ -12,7 +12,7 @@ const API_TIMEOUT_MS = 30_000;
  * `onCreated` hears the upload id as soon as it exists, so a cancelled
  * upload can be deleted. Rejects with a readable Error, or an AbortError.
  */
-export async function uploadVideo(
+export async function uploadFile(
   workspaceId: number,
   file: File,
   {

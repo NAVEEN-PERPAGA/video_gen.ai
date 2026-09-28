@@ -1,12 +1,14 @@
 /**
- * Video uploads: the shapes node_scalable's /workspaces/:id/uploads answers
+ * Image and video uploads: the shapes node_scalable's /workspaces/:id/uploads answers
  * with, shared by the Route Handlers under app/api and the browser.
  */
 
-/** A video file stored in the workspace (Cloudflare R2). */
+/** An image or video file stored in the workspace (Cloudflare R2). */
 export interface Upload {
   id: number;
   workspaceId: number;
+  /** From the content type; null for a type the API no longer recognises. */
+  kind: "video" | "image" | null;
   fileName: string;
   contentType: string;
   sizeBytes: number;

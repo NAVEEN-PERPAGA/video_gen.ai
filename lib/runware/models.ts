@@ -49,7 +49,7 @@ export interface VideoModel {
 
 export const videoModels = runwareModels as unknown as VideoModel[];
 
-export const defaultModelId = "lightricks:ltx@2.5-fast";
+export const defaultModelId = "google:gemini@omni-flash-1.1";
 
 export function getVideoModel(id: string) {
   return videoModels.find((m) => m.value === id);

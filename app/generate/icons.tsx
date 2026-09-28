@@ -31,6 +31,11 @@ export const XIcon = (p: P) => (
     <path d="M6 6l12 12M18 6 6 18" />
   </Icon>
 );
+export const PlayIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
+  </Icon>
+);
 export const CheckIcon = (p: P) => (
   <Icon {...p}>
     <path d="m5 12.5 4.5 4.5L19 7.5" />

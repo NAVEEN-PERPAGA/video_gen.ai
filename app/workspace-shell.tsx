@@ -28,8 +28,8 @@ const roleStyles: Record<WorkspaceRole, string> = {
 
 /**
  * The studio page frame shared by the dashboard and every tool page: header
- * with the workspace strip, `hero`, the selected workspace's generations with
- * the composer, then `children` (the page's article) and the footer.
+ * with the workspace strip, the selected workspace's generations with the
+ * composer, then `hero`, `children` (the page's article) and the footer.
  * `path` is the page's own URL, so switching workspaces stays on it.
  */
 export async function WorkspaceShell({
@@ -113,8 +113,6 @@ export async function WorkspaceShell({
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 pt-12 pb-16">
-        {hero}
-
         {!signedIn ? null : apiError ? (
           <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-300">
             Could not load your workspaces: {apiError}
@@ -128,7 +126,11 @@ export async function WorkspaceShell({
           )
         )}
 
-        {/* Keyed so switching workspaces starts from that workspace's first page. */}
+        {/*
+          Generations come first. Keyed so switching workspaces starts from that
+          workspace's first page. Signed out (as search engines are), the gallery
+          isn't shown and the hero leads the page.
+        */}
         <Studio
           key={active?.id ?? "none"}
           workspaceId={active?.id ?? null}
@@ -136,6 +138,8 @@ export async function WorkspaceShell({
           signedIn={signedIn}
           preset={preset}
         />
+
+        {hero}
 
         {children}
       </main>

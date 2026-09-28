@@ -31,9 +31,9 @@ export interface AssetItem {
   frame?: string;
   /** Original file name when attached from the device (value is then a data URI, or an upload's URL). */
   name?: string;
-  /** Local blob: URL to preview a video file from the device (the uploaded copy may be slow to fetch). */
+  /** Local blob: URL to preview a file from the device (the uploaded copy may be slow to fetch). */
   preview?: string;
-  /** Workspace upload id of a video file; the server re-signs its URL when generating. */
+  /** Workspace upload id of a file stored in R2; the server re-signs its URL when generating. */
   uploadId?: number;
   /** Share of the file sent so far (0–1) while uploading. */
   progress?: number;
@@ -41,7 +41,7 @@ export interface AssetItem {
   uploadError?: string;
 }
 
-/** Whether an item is a video file still on its way to storage. */
+/** Whether an item is a file still on its way to storage. */
 export function isUploading(item: AssetItem) {
   return item.progress !== undefined && item.uploadError === undefined;
 }
@@ -81,32 +81,36 @@ const ASSET_LABELS: Record<string, string> = {
 };
 
 /**
- * Video types the workspace uploads API stores (node_scalable VIDEO_TYPES).
- * Video files go to storage first and are sent to Runware as a URL.
+ * File types uploaded to workspace storage (node_scalable MEDIA_TYPES) and
+ * sent to Runware as a URL. The API also stores GIF and AVIF images, but
+ * video models expect PNG, JPEG or WebP, so only those are offered.
  */
-export const VIDEO_UPLOAD_TYPES = [
-  "video/mp4",
-  "video/webm",
-  "video/quicktime",
-  "video/x-matroska",
-  "video/ogg",
-  "video/mpeg",
-  "video/x-msvideo",
-  "video/3gpp",
-];
+export const UPLOAD_TYPES: Partial<Record<MediaKind, string[]>> = {
+  video: [
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
+    "video/x-matroska",
+    "video/ogg",
+    "video/mpeg",
+    "video/x-msvideo",
+    "video/3gpp",
+  ],
+  image: ["image/png", "image/jpeg", "image/webp"],
+};
 
 /**
- * Runware takes images and documents inline (data URI / base64). Videos are
- * uploaded to workspace storage and sent as a URL. Audio must already be
- * hosted, so it stays URL/UUID only.
+ * Images and videos upload to workspace storage. Documents go inline
+ * (base64), as do images when there's no workspace to upload to (signed
+ * out). Audio must already be hosted, so it stays URL/UUID only.
  */
 const FILE_ACCEPT: Partial<Record<MediaKind, string>> = {
-  image: "image/png,image/jpeg,image/webp",
-  video: VIDEO_UPLOAD_TYPES.join(","),
+  image: UPLOAD_TYPES.image!.join(","),
+  video: UPLOAD_TYPES.video!.join(","),
   document: ".pdf,.txt,.md,.doc,.docx",
 };
 
-/** Largest single file read into the request. */
+/** Largest single file read inline into the request (documents, or images when signed out). */
 export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 /** Inline files ride in the server action body (limit set in next.config.ts). */
 const MAX_INLINE_CHARS = 45 * 1024 * 1024;
@@ -338,7 +342,7 @@ function assetProblems(model: VideoModel, v: ComposerValues) {
         continue;
       }
       if (isUploading(item)) {
-        problems.push(`Wait for ${item.name ?? "the video"} to finish uploading.`);
+        problems.push(`Wait for ${item.name ?? "the file"} to finish uploading.`);
         continue;
       }
       const value = item.value.trim();
