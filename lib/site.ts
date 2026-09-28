@@ -22,3 +22,27 @@ export const blogLinks = [
   { href: "/blog/best-free-ai-video-generators", label: "Best Free AI Video Generators" },
   { href: "/blog/how-to-make-ai-video", label: "How to Make an AI Video" },
 ] as const;
+
+/**
+ * Company details used by the legal and contact pages. Bracketed values are
+ * placeholders: replace them (and confirm the mailboxes exist) before launch.
+ */
+export const COMPANY = {
+  legalName: "[Company legal name]",
+  address: "[Registered business address]",
+  governingLaw: "[country or state]",
+  supportEmail: "support@videogeneditor.com",
+  privacyEmail: "privacy@videogeneditor.com",
+  legalEmail: "legal@videogeneditor.com",
+  /** Youngest age allowed to use the service. */
+  minimumAge: 18,
+} as const;
+
+export const companyLinks = [
+  { href: "/about", label: "About us" },
+  { href: "/contact", label: "Contact" },
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/acceptable-use", label: "Acceptable Use Policy" },
+  { href: "/refund-policy", label: "Refund Policy" },
+] as const;

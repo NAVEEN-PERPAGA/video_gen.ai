@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -17,6 +18,17 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           next={typeof next === "string" ? next : undefined}
           initialError={error ? "Sign-in failed or the link expired. Please try again." : undefined}
         />
+        <p className="mt-6 text-center text-xs text-zinc-600 dark:text-zinc-400">
+          By continuing, you agree to our{" "}
+          <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </main>
   );

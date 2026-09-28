@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { articles } from "@/app/_seo/articles";
-import { absoluteUrl, toolLinks } from "@/lib/site";
+import { LEGAL_UPDATED } from "@/app/_seo/company-page";
+import { absoluteUrl, companyLinks, toolLinks } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -15,6 +16,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: a.updated,
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    })),
+    ...companyLinks.map((l) => ({
+      url: absoluteUrl(l.href),
+      lastModified: LEGAL_UPDATED,
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
     })),
   ];
 }
