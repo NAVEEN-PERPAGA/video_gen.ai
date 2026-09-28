@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { type Generation, type GenerationsPage, getGeneration, listGenerations } from "@/app/generate/actions";
 import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "@/app/generate/icons";
-import { POLL_INTERVAL_MS, VideoComposer } from "@/app/generate/video-composer";
+import { type ComposerPreset, POLL_INTERVAL_MS, VideoComposer } from "@/app/generate/video-composer";
 import { getVideoModel } from "@/lib/runware/models";
 
 /**
@@ -15,10 +15,13 @@ export function Studio({
   workspaceId,
   initial,
   signedIn,
+  preset,
 }: {
   workspaceId: number | null;
   initial: GenerationsPage | null;
   signedIn: boolean;
+  /** The composer's starting model and settings on a tool page. */
+  preset?: ComposerPreset;
 }) {
   const firstPage = initial && initial.error === undefined ? initial : null;
   const [generations, setGenerations] = useState<Generation[]>(firstPage?.generations ?? []);
@@ -77,9 +80,10 @@ export function Studio({
     <>
       {workspaceId !== null && (
         <section aria-labelledby="generations-heading" className="flex flex-col gap-4">
-          <h1 id="generations-heading" className="text-lg font-semibold">
+          {/* h2: every page that shows the studio has its own h1. */}
+          <h2 id="generations-heading" className="text-lg font-semibold">
             Generations
-          </h1>
+          </h2>
 
           {generations.length > 0 ? (
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -126,7 +130,7 @@ export function Studio({
         />
       )}
 
-      <VideoComposer workspaceId={workspaceId} signedIn={signedIn} onGeneration={upsert} />
+      <VideoComposer workspaceId={workspaceId} signedIn={signedIn} onGeneration={upsert} preset={preset} />
     </>
   );
 }

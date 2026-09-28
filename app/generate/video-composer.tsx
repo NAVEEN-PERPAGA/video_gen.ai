@@ -162,6 +162,18 @@ function modeLabel(model: VideoModel, v: ComposerValues) {
 /** How often a processing generation is re-checked (the API asks Runware at most every 5s). */
 export const POLL_INTERVAL_MS = 5000;
 
+/** How a tool page opens the composer: its model, prompt hint and settings (e.g. Seedance's "extend"). */
+export interface ComposerPreset {
+  modelId?: string;
+  placeholder?: string;
+  settings?: ComposerValues["settings"];
+}
+
+function presetValues(model: VideoModel, preset?: ComposerPreset): ComposerValues {
+  const values = initialValues(model);
+  return { ...values, settings: { ...values.settings, ...preset?.settings } };
+}
+
 /**
  * `workspaceId` is where generations are created; null when the user has none yet.
  * Signed-out visitors can try every control; generating sends them to sign in.
@@ -171,14 +183,18 @@ export function VideoComposer({
   workspaceId,
   signedIn,
   onGeneration,
+  preset,
 }: {
   workspaceId: number | null;
   signedIn: boolean;
   onGeneration?: (generation: Generation) => void;
+  preset?: ComposerPreset;
 }) {
-  const [modelId, setModelId] = useState(defaultModelId);
+  const [modelId, setModelId] = useState(() =>
+    preset?.modelId && getVideoModel(preset.modelId) ? preset.modelId : defaultModelId,
+  );
   const model = getVideoModel(modelId)!;
-  const [values, setValues] = useState<ComposerValues>(() => initialValues(model));
+  const [values, setValues] = useState<ComposerValues>(() => presetValues(model, preset));
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [result, setResult] = useState<GenerateState>();
   const [pending, startTransition] = useTransition();
@@ -234,7 +250,10 @@ export function VideoComposer({
   function submit() {
     if (pending || blockedReason) return;
     if (!signedIn) {
-      startTransition(() => signInWithGoogle(new FormData()));
+      // Come back to this tool page after signing in.
+      const form = new FormData();
+      form.set("next", window.location.pathname);
+      startTransition(() => signInWithGoogle(form));
       return;
     }
     if (workspaceId === null) return;
@@ -310,7 +329,7 @@ export function VideoComposer({
               }}
               rows={2}
               maxLength={promptMax}
-              placeholder="Describe the shot: subject, motion, camera, lighting, mood…"
+              placeholder={preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…"}
               aria-label="Prompt"
               className="max-h-56 min-h-16 resize-none rounded-2xl bg-[#262b40] px-4 py-3 text-[15px] leading-relaxed text-slate-100 ring-1 ring-transparent outline-none transition field-sizing-content placeholder:text-slate-400 hover:bg-[#2b3048] focus:ring-indigo-400/50"
             />
