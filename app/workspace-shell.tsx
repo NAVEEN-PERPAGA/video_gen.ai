@@ -5,10 +5,10 @@ import { Studio } from "@/app/generate/studio";
 import type { ComposerPreset } from "@/app/generate/video-composer";
 import { GoogleSignInButton } from "@/app/google-sign-in-button";
 import { SiteFooter } from "@/app/site-footer";
+import { SiteLogo } from "@/app/site-logo";
 import { UserMenu } from "@/app/user-menu";
 import { NewWorkspaceButton } from "@/app/workspaces/new-workspace-button";
 import { apiFetchAll } from "@/lib/api";
-import { SITE_NAME } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 type WorkspaceRole = "owner" | "admin" | "member";
@@ -74,9 +74,7 @@ export async function WorkspaceShell({
     <>
       <header className="sticky top-0 z-10 border-b border-black/10 bg-background dark:border-white/15">
         <div className="flex h-14 items-center gap-4 px-4">
-          <Link href="/" className="shrink-0 text-sm font-semibold tracking-tight">
-            {SITE_NAME}
-          </Link>
+          <SiteLogo className="text-sm font-semibold tracking-tight" />
           {/* min-w-0 lets the workspace strip shrink and scroll instead of pushing the avatar off-screen. */}
           <nav aria-label="Workspaces" className="flex min-w-0 flex-1 items-center gap-2">
             <ul className="flex min-w-0 items-center gap-2 overflow-x-auto">

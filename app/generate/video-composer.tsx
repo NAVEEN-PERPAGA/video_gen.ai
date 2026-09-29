@@ -3,6 +3,7 @@
 import {
   type ComponentType,
   type ReactNode,
+  type RefObject,
   type SVGProps,
   useCallback,
   useEffect,
@@ -61,6 +62,16 @@ import {
   UPLOAD_TYPES,
 } from "@/lib/runware/request";
 import { type CostEstimate, estimateCost, formatCost } from "@/lib/runware/pricing";
+import {
+  convertTags,
+  retagAfterRemoval,
+  tagFor,
+  type TagMedia,
+  tagProblems,
+  tagQueryAt,
+  tagStyle,
+  taggableKinds,
+} from "@/lib/runware/tags";
 import { useDismiss } from "@/lib/use-dismiss";
 
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
@@ -166,10 +177,10 @@ async function readFiles(
   return { assets: next, problems, uploads };
 }
 
-/** Keep the prompt and any attachments the new model also accepts. */
-function carryOver(model: VideoModel, prev: ComposerValues): ComposerValues {
+/** Keep the prompt (with tags in the new model's spelling) and any attachments the new model also accepts. */
+function carryOver(model: VideoModel, prev: ComposerValues, prevModel: VideoModel): ComposerValues {
   const next = initialValues(model);
-  next.prompt = prev.prompt;
+  next.prompt = convertTags(prev.prompt, prevModel, model);
   for (const kind of assetKinds(model)) {
     const items = prev.assets[kind.key];
     if (items?.length) {
@@ -237,6 +248,8 @@ export function VideoComposer({
   const [dragging, setDragging] = useState(false);
 
   const errors = useMemo(() => checkValues(model, values), [model, values]);
+  // Not blocking: Runware accepts the prompt, the model just ignores the dangling tag.
+  const tagWarnings = useMemo(() => tagProblems(model, values), [model, values]);
   const cost = useMemo(() => estimateCost(model, values), [model, values]);
   const input = model.input;
   const kinds = assetKinds(model);
@@ -260,9 +273,10 @@ export function VideoComposer({
   const setSetting = (key: string, value: boolean | string | number | undefined) =>
     setValues((v) => ({ ...v, settings: { ...v.settings, [key]: value } }));
   // Attachments change which sizes/durations are valid, so re-fit those.
+  // Removing one renumbers the prompt's tags so they keep pointing at the same files.
   const setAssets = (assets: ComposerValues["assets"]) => {
     setNotice([]);
-    setValues((v) => autoAdjust(model, { ...v, assets }));
+    setValues((v) => autoAdjust(model, { ...v, assets, prompt: retagAfterRemoval(model, v.prompt, v.assets, assets) }));
   };
 
   // File uploads in flight, by attachment id, so removing one (or leaving) cancels it.
@@ -357,10 +371,33 @@ export function VideoComposer({
     for (const { id, file } of pending) startUpload(id, file);
   }
 
+  const promptRef = useRef<HTMLTextAreaElement>(null);
+  // Where the caret was when the prompt lost focus, so a tag picked from the tray lands there.
+  const promptCaret = useRef<number | null>(null);
+
+  /** Puts a tag in place of `start`–`end` (default: the caret), spaced from its neighbours, and focuses after it. */
+  function insertIntoPrompt(tag: string, start?: number, end?: number) {
+    const prompt = values.prompt;
+    const from = Math.min(start ?? promptCaret.current ?? prompt.length, prompt.length);
+    const to = Math.min(end ?? from, prompt.length);
+    const before = prompt.slice(0, from);
+    const after = prompt.slice(to);
+    const text = (before && !/\s$/.test(before) ? " " : "") + tag + (/^\s/.test(after) ? "" : " ");
+    const next = before + text + after;
+    if (promptMax && next.length > promptMax) return;
+    update({ prompt: next });
+    const caret = from + text.length;
+    promptCaret.current = caret;
+    requestAnimationFrame(() => {
+      promptRef.current?.focus();
+      promptRef.current?.setSelectionRange(caret, caret);
+    });
+  }
+
   function selectModel(id: string) {
     const next = getVideoModel(id)!;
     setModelId(id);
-    setValues((v) => carryOver(next, v));
+    setValues((v) => carryOver(next, v, model));
     // Errors were about the old model; a generation in progress stays visible.
     setResult((r) => (r?.generation ? r : undefined));
     setNotice([]);
@@ -431,29 +468,26 @@ export function VideoComposer({
               />
             )}
 
-            <AssetTray kinds={kinds} values={values} setAssets={setAssets} onRemove={discardAsset} />
+            <AssetTray
+              model={model}
+              kinds={kinds}
+              values={values}
+              setAssets={setAssets}
+              onRemove={discardAsset}
+              onInsertTag={(tag) => insertIntoPrompt(tag)}
+            />
 
-            <textarea
-              value={values.prompt}
-              onChange={(e) => update({ prompt: e.target.value })}
-              onKeyDown={(e) => {
-                // Enter sends, Shift+Enter adds a new line.
-                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                  e.preventDefault();
-                  submit();
-                }
-              }}
-              onPaste={(e) => {
-                const files = [...e.clipboardData.files];
-                if (files.length === 0) return;
-                e.preventDefault();
-                attachFiles(files);
-              }}
-              rows={2}
+            <PromptInput
+              model={model}
+              values={values}
+              textareaRef={promptRef}
+              onChange={(prompt) => update({ prompt })}
+              onCaret={(caret) => (promptCaret.current = caret)}
+              onInsertTag={insertIntoPrompt}
+              onSubmit={submit}
+              onPasteFiles={attachFiles}
               maxLength={promptMax}
               placeholder={preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…"}
-              aria-label="Prompt"
-              className="max-h-56 min-h-16 resize-none rounded-2xl bg-[#262b40] px-4 py-3 text-[15px] leading-relaxed text-slate-100 ring-1 ring-transparent outline-none transition field-sizing-content placeholder:text-slate-400 hover:bg-[#2b3048] focus:ring-indigo-400/50"
             />
 
             <div className="flex items-end gap-2">
@@ -577,7 +611,7 @@ export function VideoComposer({
               </button>
             </div>
 
-            <StatusLine errors={errors} notice={notice} mode={modeLabel(model, values)} length={values.prompt.trim().length} max={promptMax} />
+            <StatusLine errors={errors} notice={[...notice, ...tagWarnings]} mode={modeLabel(model, values)} length={values.prompt.trim().length} max={promptMax} />
           </div>
         </form>
       </div>
@@ -587,6 +621,192 @@ export function VideoComposer({
 
 function defaultLabel<T>(field: FieldSchema, format: (v: T) => string, fallback = "Default") {
   return field.default !== undefined ? `Default · ${format(field.default as T)}` : fallback;
+}
+
+/* ───────────────────────── prompt ───────────────────────── */
+
+/** An attachment the prompt can point to, with the tag the current model reads. */
+interface TagOption {
+  id: string;
+  media: TagMedia;
+  item: AssetItem;
+  tag: string;
+  /** "Image 2", whatever the model's spelling. */
+  label: string;
+}
+
+function tagOptions(model: VideoModel, values: ComposerValues): TagOption[] {
+  const style = tagStyle(model);
+  return taggableKinds(model).flatMap((kind) =>
+    (values.assets[kind.key] ?? []).map((item, i) => ({
+      id: item.id,
+      media: kind.media,
+      item,
+      tag: tagFor(style, kind.media, i + 1),
+      label: tagFor("word", kind.media, i + 1),
+    })),
+  );
+}
+
+/**
+ * The prompt box. Typing "@" opens a menu of the attached references; picking
+ * one writes its tag in the model's spelling (`@Image1` for Seedance, `Image 1`
+ * for others). Enter sends, Shift+Enter adds a line.
+ */
+function PromptInput({
+  model,
+  values,
+  textareaRef,
+  onChange,
+  onCaret,
+  onInsertTag,
+  onSubmit,
+  onPasteFiles,
+  maxLength,
+  placeholder,
+}: {
+  model: VideoModel;
+  values: ComposerValues;
+  textareaRef: RefObject<HTMLTextAreaElement | null>;
+  onChange: (prompt: string) => void;
+  onCaret: (caret: number) => void;
+  onInsertTag: (tag: string, start: number, end: number) => void;
+  onSubmit: () => void;
+  onPasteFiles: (files: File[]) => void;
+  maxLength?: number;
+  placeholder: string;
+}) {
+  /** The "@…" being typed, while the menu is open. */
+  const [query, setQuery] = useState<{ start: number; end: number; query: string } | null>(null);
+  const [active, setActive] = useState(0);
+  const taggable = taggableKinds(model);
+  const all = tagOptions(model, values);
+  const options = query
+    ? all.filter((o) => o.label.toLowerCase().replace(" ", "").startsWith(query.query) || o.media.startsWith(query.query))
+    : [];
+  // With nothing attached yet, "@" alone explains how to get something to tag.
+  const open = query !== null && taggable.length > 0 && (options.length > 0 || (all.length === 0 && query.query === ""));
+
+  function track(el: HTMLTextAreaElement) {
+    const caret = el.selectionStart;
+    onCaret(caret);
+    const found = caret === el.selectionEnd ? tagQueryAt(el.value, caret) : null;
+    if (found?.start !== query?.start) setActive(0);
+    setQuery(found && { ...found, end: caret });
+  }
+
+  function pick(option: TagOption) {
+    if (!query) return;
+    onInsertTag(option.tag, query.start, query.end);
+    setQuery(null);
+  }
+
+  return (
+    <div className="relative flex flex-col">
+      <textarea
+        ref={textareaRef}
+        value={values.prompt}
+        onChange={(e) => {
+          onChange(e.target.value);
+          track(e.target);
+        }}
+        onSelect={(e) => track(e.currentTarget)}
+        onBlur={() => setQuery(null)}
+        onKeyDown={(e) => {
+          if (open && options.length > 0) {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              const step = e.key === "ArrowDown" ? 1 : -1;
+              setActive((a) => (a + step + options.length) % options.length);
+              return;
+            }
+            if ((e.key === "Enter" || e.key === "Tab") && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              pick(options[Math.min(active, options.length - 1)]);
+              return;
+            }
+          }
+          if (open && e.key === "Escape") {
+            e.preventDefault();
+            setQuery(null);
+            return;
+          }
+          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            onSubmit();
+          }
+        }}
+        onPaste={(e) => {
+          const files = [...e.clipboardData.files];
+          if (files.length === 0) return;
+          e.preventDefault();
+          onPasteFiles(files);
+        }}
+        rows={2}
+        maxLength={maxLength}
+        placeholder={taggable.length > 0 ? `${placeholder} Type @ to reference an attachment.` : placeholder}
+        aria-label="Prompt"
+        aria-autocomplete="list"
+        aria-controls={open ? "prompt-tags" : undefined}
+        className="max-h-56 min-h-16 resize-none rounded-2xl bg-[#262b40] px-4 py-3 text-[15px] leading-relaxed text-slate-100 ring-1 ring-transparent outline-none transition field-sizing-content placeholder:text-slate-400 hover:bg-[#2b3048] focus:ring-indigo-400/50"
+      />
+      {open && (
+        <Popover className="w-72">
+          {options.length > 0 ? (
+            <>
+              <p className="text-xs font-medium text-slate-400">Reference an attachment</p>
+              <ul id="prompt-tags" role="listbox" aria-label="Attachments" className="-mx-1.5 -mb-1.5 flex max-h-64 flex-col overflow-y-auto">
+                {options.map((option, i) => (
+                  <li key={option.id} role="option" aria-selected={i === active}>
+                    <button
+                      type="button"
+                      // Keep focus (and the caret) in the prompt.
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => pick(option)}
+                      onMouseEnter={() => setActive(i)}
+                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-1.5 text-left text-sm transition ${i === active ? "bg-white/[0.08]" : ""}`}
+                    >
+                      <TagThumb option={option} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-medium">{option.label}</span>
+                        <span className="block truncate text-[11px] text-slate-500">
+                          {option.item.name ?? option.item.value}
+                        </span>
+                      </span>
+                      <code className="shrink-0 rounded-md bg-indigo-500/15 px-1.5 py-0.5 text-[11px] text-indigo-200">
+                        {option.tag}
+                      </code>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-xs text-slate-400">
+              Attach a {taggable.map((k) => k.label.toLowerCase()).join(" or ")} with + to reference it here.
+              Frame images are placed by position instead.
+            </p>
+          )}
+        </Popover>
+      )}
+    </div>
+  );
+}
+
+function TagThumb({ option }: { option: TagOption }) {
+  const src = option.item.preview ?? option.item.value;
+  return (
+    <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-indigo-500/15 text-indigo-300">
+      {option.media === "image" ? (
+        // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL
+        <img src={src} alt="" className="size-full object-cover" />
+      ) : option.media === "video" ? (
+        <video src={src} muted playsInline preload="metadata" className="size-full object-cover" />
+      ) : (
+        <MediaIcon media={option.media} className="size-4" />
+      )}
+    </span>
+  );
 }
 
 /* ───────────────────────── controls ───────────────────────── */
@@ -1013,19 +1233,25 @@ function DropOverlay({ kinds }: { kinds: AssetKind[] }) {
 }
 
 function AssetTray({
+  model,
   kinds,
   values,
   setAssets,
   onRemove,
+  onInsertTag,
 }: {
+  model: VideoModel;
   kinds: AssetKind[];
   values: ComposerValues;
   setAssets: (assets: ComposerValues["assets"]) => void;
   /** Cleans up after an attachment is taken out (cancels or deletes its upload). */
   onRemove: (item: AssetItem) => void;
+  /** Writes a reference's tag into the prompt. */
+  onInsertTag: (tag: string) => void;
 }) {
   /** The video attachment open in the player. */
   const [playing, setPlaying] = useState<AssetItem | null>(null);
+  const tags = new Map(tagOptions(model, values).map((o) => [o.id, o]));
   const entries = kinds.flatMap((kind) => (values.assets[kind.key] ?? []).map((item) => ({ kind, item })));
   if (entries.length === 0) return null;
 
@@ -1108,6 +1334,15 @@ function AssetTray({
                   </>
                 )}
               </Dropdown>
+            ) : tags.has(item.id) ? (
+              <button
+                type="button"
+                onClick={() => onInsertTag(tags.get(item.id)!.tag)}
+                title={`${kind.label} · click to add ${tags.get(item.id)!.tag} to the prompt`}
+                className="truncate rounded-md py-0.5 text-center text-[11px] font-semibold text-indigo-200 transition hover:bg-indigo-500/20 hover:text-white"
+              >
+                {tags.get(item.id)!.tag}
+              </button>
             ) : (
               <span className="truncate text-center text-[11px] font-medium text-slate-400">
                 {kind.label}

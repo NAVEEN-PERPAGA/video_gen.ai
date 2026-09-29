@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { blogLinks, COMPANY, companyLinks, SITE_NAME, toolLinks } from "@/lib/site";
+import { SiteLogo } from "@/app/site-logo";
+import { blogLinks, COMPANY, companyLinks, toolLinks } from "@/lib/site";
 
 /** Links every tool page, guide and company page, so each is reachable (and crawlable) from every other. */
 export function SiteFooter({ className = "" }: { className?: string }) {
@@ -8,9 +9,7 @@ export function SiteFooter({ className = "" }: { className?: string }) {
     <footer className={`border-t border-black/10 dark:border-white/15 ${className}`}>
       <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 pt-10 text-sm sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto]">
         <div>
-          <Link href="/" className="font-semibold">
-            {SITE_NAME}
-          </Link>
+          <SiteLogo className="w-fit font-semibold" />
           <p className="mt-2 max-w-xs text-zinc-600 dark:text-zinc-400">
             Generate and edit videos with the latest AI models, from text, images or audio.
           </p>

@@ -5,6 +5,7 @@ import type { ArticleInfo } from "@/app/_seo/articles";
 import { type Faq, faqPageLd, JsonLd } from "@/app/_seo/json-ld";
 import { FaqList, Section } from "@/app/_seo/sections";
 import { SiteFooter } from "@/app/site-footer";
+import { SiteLogo } from "@/app/site-logo";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 export function articleMetadata(article: ArticleInfo): Metadata {
@@ -29,9 +30,7 @@ export function PlainHeader() {
   return (
     <header className="sticky top-0 z-10 border-b border-black/10 bg-background dark:border-white/15">
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-4 px-4">
-        <Link href="/" className="text-sm font-semibold tracking-tight">
-          {SITE_NAME}
-        </Link>
+        <SiteLogo className="text-sm font-semibold tracking-tight" />
         <Link
           href="/"
           className="flex h-9 items-center rounded-md bg-indigo-600 px-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
