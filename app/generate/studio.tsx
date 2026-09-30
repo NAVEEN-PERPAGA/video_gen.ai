@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { type Generation, type GenerationsPage, getGeneration, listGenerations } from "@/app/generate/actions";
 import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "@/app/generate/icons";
 import { type ComposerPreset, POLL_INTERVAL_MS, VideoComposer } from "@/app/generate/video-composer";
-import { getVideoModel } from "@/lib/runware/models";
+import { getModel } from "@/lib/runware/models";
 
 /**
  * The selected workspace's generations plus the composer that adds to them.
@@ -96,7 +96,7 @@ export function Studio({
           ) : (
             !error && (
               <p className="rounded-lg border border-dashed border-black/15 p-10 text-center text-sm text-zinc-600 dark:border-white/20 dark:text-zinc-400">
-                No videos in this workspace yet. Describe a shot below to generate the first one.
+                Nothing in this workspace yet. Describe a shot or an image below to generate the first one.
               </p>
             )
           )}
@@ -139,8 +139,13 @@ function promptOf(g: Generation) {
   return g.videoMetadata?.request?.positivePrompt;
 }
 
+/** The generated files: videos or images, depending on the generation. */
+function outputsOf(g: Generation) {
+  return g.mediaType === "image" ? g.imageUrls : g.videoUrls;
+}
+
 function modelNameOf(g: Generation) {
-  return g.model ? (getVideoModel(g.model)?.name ?? g.model) : null;
+  return g.model ? (getModel(g.model)?.name ?? g.model) : null;
 }
 
 /** Formatted in the viewer's locale and time zone, which the server can't know. */
@@ -152,12 +157,14 @@ function CreatedAt({ generation: g }: { generation: Generation }) {
   );
 }
 
-/** A gallery tile. Hovering previews the (muted) video; clicking opens the viewer. */
+/** A gallery tile. Hovering previews a (muted) video; clicking opens the viewer. */
 function GenerationCard({ generation: g, onOpen }: { generation: Generation; onOpen: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const prompt = promptOf(g);
   const modelName = modelNameOf(g);
-  const [firstUrl] = g.videoUrls;
+  const outputs = outputsOf(g);
+  const [firstUrl] = outputs;
+  const isImage = g.mediaType === "image";
 
   return (
     <button
@@ -176,18 +183,28 @@ function GenerationCard({ generation: g, onOpen }: { generation: Generation; onO
       <div className="relative aspect-video w-full overflow-hidden bg-black">
         {firstUrl ? (
           <>
-            <video
-              ref={videoRef}
-              src={firstUrl}
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              className="size-full object-contain transition duration-300 group-hover:scale-[1.03]"
-            />
-            {g.videoUrls.length > 1 && (
+            {isImage ? (
+              // eslint-disable-next-line @next/next/no-img-element -- generated image on Runware's CDN
+              <img
+                src={firstUrl}
+                alt=""
+                loading="lazy"
+                className="size-full object-contain transition duration-300 group-hover:scale-[1.03]"
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={firstUrl}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="size-full object-contain transition duration-300 group-hover:scale-[1.03]"
+              />
+            )}
+            {outputs.length > 1 && (
               <span className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
-                {g.videoUrls.length} videos
+                {outputs.length} {isImage ? "images" : "videos"}
               </span>
             )}
           </>
@@ -207,7 +224,7 @@ function GenerationCard({ generation: g, onOpen }: { generation: Generation; onO
       <div className="flex w-full flex-1 flex-col gap-1.5 p-3 text-sm">
         {prompt && <p className="line-clamp-2 text-zinc-800 dark:text-zinc-200">{prompt}</p>}
         {/* A partial failure: some of several results succeeded. */}
-        {g.error && g.videoUrls.length > 0 && (
+        {g.error && outputs.length > 0 && (
           <p className="line-clamp-2 text-xs text-amber-700 dark:text-amber-300">{g.error}</p>
         )}
         <p className="mt-auto flex flex-wrap items-center gap-x-1.5 text-xs text-zinc-500 dark:text-zinc-400">
@@ -230,7 +247,7 @@ const viewerButton =
   "flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white outline-none transition hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/50";
 
 /**
- * A generation filling the window: the video with controls, and its details.
+ * A generation filling the window: the video with controls (or the image), and its details.
  * A modal <dialog>, so Escape closes it and focus stays inside; the arrow keys
  * move between generations.
  */
@@ -255,7 +272,10 @@ function GenerationViewer({
     setShownId(g.id);
     setVideoIndex(0);
   }
-  const url = g.videoUrls[videoIndex] ?? g.videoUrls[0];
+  const outputs = outputsOf(g);
+  const isImage = g.mediaType === "image";
+  const noun = isImage ? "image" : "video";
+  const url = outputs[videoIndex] ?? outputs[0];
   const prompt = promptOf(g);
   const modelName = modelNameOf(g);
 
@@ -297,7 +317,10 @@ function GenerationViewer({
           </div>
 
           <div className="relative flex min-h-0 flex-1 items-center justify-center px-3 pb-3 sm:px-16">
-            {url ? (
+            {url && isImage ? (
+              // eslint-disable-next-line @next/next/no-img-element -- generated image on Runware's CDN
+              <img key={url} src={url} alt={prompt ?? ""} className="max-h-full max-w-full rounded-lg bg-black object-contain" />
+            ) : url ? (
               <video
                 key={url}
                 src={url}
@@ -341,20 +364,25 @@ function GenerationViewer({
             )}
           </div>
 
-          {g.videoUrls.length > 1 && (
+          {outputs.length > 1 && (
             <div className="flex justify-center gap-2 overflow-x-auto px-3 pb-3">
-              {g.videoUrls.map((u, i) => (
+              {outputs.map((u, i) => (
                 <button
                   key={u}
                   type="button"
                   onClick={() => setVideoIndex(i)}
-                  aria-label={`Video ${i + 1}`}
+                  aria-label={`${isImage ? "Image" : "Video"} ${i + 1}`}
                   aria-current={u === url}
                   className={`h-14 shrink-0 cursor-pointer overflow-hidden rounded-md ring-2 transition ${
                     u === url ? "ring-indigo-400" : "opacity-60 ring-transparent hover:opacity-100"
                   }`}
                 >
-                  <video src={u} muted preload="metadata" className="h-full bg-black" />
+                  {isImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- generated image on Runware's CDN
+                    <img src={u} alt="" className="h-full bg-black" />
+                  ) : (
+                    <video src={u} muted preload="metadata" className="h-full bg-black" />
+                  )}
                 </button>
               ))}
             </div>
@@ -368,7 +396,7 @@ function GenerationViewer({
               <p className="leading-relaxed whitespace-pre-wrap text-zinc-100">{prompt}</p>
             </div>
           )}
-          {g.error && g.videoUrls.length > 0 && <p className="text-xs text-amber-300">{g.error}</p>}
+          {g.error && outputs.length > 0 && <p className="text-xs text-amber-300">{g.error}</p>}
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-xs">
             {modelName && (
               <>
@@ -396,7 +424,7 @@ function GenerationViewer({
               rel="noreferrer"
               className="mt-auto rounded-md bg-white/10 px-3 py-2 text-center text-xs font-medium transition hover:bg-white/20"
             >
-              Open video in new tab
+              Open {noun} in new tab
             </a>
           )}
         </aside>

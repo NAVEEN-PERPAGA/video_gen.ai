@@ -1,4 +1,4 @@
-import type { VideoModel } from "./models";
+import type { RunwareModel } from "./models";
 import { type AssetKind, assetKinds, type ComposerValues } from "./request";
 
 /**
@@ -19,12 +19,12 @@ export type TagMedia = "image" | "video" | "audio";
 const NOUNS: Record<TagMedia, string> = { image: "Image", video: "Video", audio: "Audio" };
 const MEDIA_OF_NOUN: Record<string, TagMedia> = { image: "image", video: "video", audio: "audio" };
 
-export function tagStyle(model: VideoModel): TagStyle {
+export function tagStyle(model: RunwareModel): TagStyle {
   return model.input.positivePrompt?.description?.includes("@Image1") ? "at" : "word";
 }
 
 /** The reference arrays a prompt can point into (not frame images or single inputs). */
-export function taggableKinds(model: VideoModel): (AssetKind & { media: TagMedia })[] {
+export function taggableKinds(model: RunwareModel): (AssetKind & { media: TagMedia })[] {
   return assetKinds(model).filter(
     (k): k is AssetKind & { media: TagMedia } => k.key.startsWith("reference") && k.media in NOUNS,
   );
@@ -77,7 +77,7 @@ export function removeTag(prompt: string, style: TagStyle, media: TagMedia, n: n
 }
 
 /** Rewrites every tag into the next model's spelling (kept as-is if it takes no references). */
-export function convertTags(prompt: string, from: VideoModel, to: VideoModel) {
+export function convertTags(prompt: string, from: RunwareModel, to: RunwareModel) {
   if (taggableKinds(from).length === 0 || taggableKinds(to).length === 0) return prompt;
   const [a, b] = [tagStyle(from), tagStyle(to)];
   return a === b ? prompt : mapTags(prompt, a, (media, n) => tagFor(b, media, n));
@@ -85,7 +85,7 @@ export function convertTags(prompt: string, from: VideoModel, to: VideoModel) {
 
 /** Keeps tags pointing at the same files after attachments are removed. */
 export function retagAfterRemoval(
-  model: VideoModel,
+  model: RunwareModel,
   prompt: string,
   before: ComposerValues["assets"],
   after: ComposerValues["assets"],
@@ -104,7 +104,7 @@ export function retagAfterRemoval(
 }
 
 /** Tags that point at nothing: the model silently drops the clause holding them. */
-export function tagProblems(model: VideoModel, values: ComposerValues): string[] {
+export function tagProblems(model: RunwareModel, values: ComposerValues): string[] {
   const kinds = taggableKinds(model);
   // Without references, "Video 1" is just prose; a leftover "@Image1" is still a tag.
   const style = kinds.length > 0 ? tagStyle(model) : "at";

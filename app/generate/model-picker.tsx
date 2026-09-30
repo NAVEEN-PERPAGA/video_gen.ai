@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon, MediaIcon } from "@/app/generate/icons";
-import { modelsByOrganisation, organisationLogos, type VideoModel } from "@/lib/runware/models";
+import { modelsByOrganisation, organisationLogos, type RunwareModel } from "@/lib/runware/models";
 import { assetKinds, assetLimit } from "@/lib/runware/request";
 import { useDismiss } from "@/lib/use-dismiss";
 
@@ -30,12 +30,15 @@ const CAPABILITY_LABELS: Record<string, string> = {
   "image-to-video": "Image",
   "video-to-video": "Video",
   "audio-to-video": "Audio",
+  "text-to-image": "Text",
+  "image-to-image": "Image",
   edit: "Edit",
   extend: "Extend",
+  transparency: "Transparent",
 };
 
 /** How many of each input the model takes, e.g. "30 reference images · 2 frame images". */
-function MediaLimits({ model }: { model: VideoModel }) {
+function MediaLimits({ model }: { model: RunwareModel }) {
   const kinds = assetKinds(model);
   if (kinds.length === 0) return null;
   return (
@@ -50,7 +53,8 @@ function MediaLimits({ model }: { model: VideoModel }) {
   );
 }
 
-export function ModelPicker({ model, onChange }: { model: VideoModel; onChange: (id: string) => void }) {
+/** Lists the models of the current model's type; the composer's mode switch changes type. */
+export function ModelPicker({ model, onChange }: { model: RunwareModel; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   useDismiss(rootRef, open, useCallback(() => setOpen(false), []));
@@ -72,10 +76,10 @@ export function ModelPicker({ model, onChange }: { model: VideoModel; onChange: 
       {open && (
         <div
           role="listbox"
-          aria-label="Video model"
+          aria-label={model.type === "image" ? "Image model" : "Video model"}
           className="scroll-inset absolute bottom-full left-0 z-30 mb-2 max-h-[min(28rem,70vh)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-white/10 bg-[#1b1f33]/95 p-1.5 text-slate-100 shadow-2xl backdrop-blur-xl"
         >
-          {modelsByOrganisation().map(([organisation, models]) => (
+          {modelsByOrganisation(model.type).map(([organisation, models]) => (
             <div key={organisation} className="py-1">
               <div className="flex items-center gap-2 px-2.5 pt-1 pb-1.5 text-[11px] font-semibold tracking-wide text-slate-400 uppercase">
                 <OrgLogo organisation={organisation} className="size-4 rounded" />

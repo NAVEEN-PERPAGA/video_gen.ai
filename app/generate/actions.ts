@@ -2,7 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { ApiError, apiFetch, apiFetchPage } from "@/lib/api";
-import { getVideoModel } from "@/lib/runware/models";
+import { getModel, type MediaType } from "@/lib/runware/models";
 import { buildTask, type ComposerValues, validateTask } from "@/lib/runware/request";
 import type { Upload } from "@/lib/uploads";
 
@@ -11,9 +11,12 @@ export interface Generation {
   id: number;
   workspaceId: number;
   status: "processing" | "completed" | "failed";
+  /** Which of videoUrls / imageUrls the results are in. */
+  mediaType: MediaType;
   model: string | null;
   videoUrls: string[];
-  /** For Runware videos, `{ taskType, request }` where `request` is the task that was sent. */
+  imageUrls: string[];
+  /** For Runware tasks (images too), `{ taskType, request }` where `request` is the task that was sent. */
   videoMetadata: { request?: { positivePrompt?: string } } & Record<string, unknown>;
   /** Why the task failed (or partly failed). */
   error: string | null;
@@ -27,21 +30,27 @@ export type GenerateState = { errors?: string[]; generation?: Generation } | und
 
 /**
  * Task fields node_scalable sets itself and rejects if the client sends them
- * (SERVER_FIELDS in its video-models registry).
+ * (SERVER_FIELDS in its video-models and image-models registries). Image
+ * results are always URLs, so the API sets `outputType` for images.
  */
-const SERVER_FIELDS = ["taskType", "taskUUID", "deliveryMethod", "includeCost", "webhookURL", "uploadEndpoint"];
+const COMMON_SERVER_FIELDS = ["taskType", "taskUUID", "deliveryMethod", "includeCost", "webhookURL", "uploadEndpoint"];
+const SERVER_FIELDS: Record<MediaType, string[]> = {
+  video: COMMON_SERVER_FIELDS,
+  image: [...COMMON_SERVER_FIELDS, "outputType"],
+};
 
 /**
- * Starts a video generation (text/image to video, or an edit when the task
- * has an input video) in `workspaceId`. The API answers 202 with a
- * 'processing' generation; poll `getGeneration` for the result.
+ * Starts a generation in `workspaceId`: a video (text/image to video, or an
+ * edit when the task has an input video) or an image, depending on the model.
+ * The API answers 202 with a 'processing' generation; poll `getGeneration`
+ * for the result.
  */
-export async function generateVideo(
+export async function generate(
   workspaceId: number,
   modelId: string,
   values: ComposerValues,
 ): Promise<GenerateState> {
-  const model = getVideoModel(modelId);
+  const model = getModel(modelId);
   if (!model) return { errors: ["Unknown model."] };
 
   // Uploaded files' links expire; swap in fresh ones so Runware can fetch them.
@@ -56,9 +65,9 @@ export async function generateVideo(
   const errors = validateTask(model, values, task);
   if (errors.length > 0) return { errors };
 
-  const body = Object.fromEntries(Object.entries(task).filter(([key]) => !SERVER_FIELDS.includes(key)));
+  const body = Object.fromEntries(Object.entries(task).filter(([key]) => !SERVER_FIELDS[model.type].includes(key)));
   try {
-    const generation = await apiFetch<Generation>(`/workspaces/${workspaceId}/generations/video`, {
+    const generation = await apiFetch<Generation>(`/workspaces/${workspaceId}/generations/${model.type}`, {
       method: "POST",
       body: JSON.stringify(body),
     });

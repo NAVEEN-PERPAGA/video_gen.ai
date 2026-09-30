@@ -1,0 +1,361 @@
+{
+  "name": "GPT-Image-2.5 Sunburst",
+  "organisation": "OpenAI",
+  "provider": "runware",
+  "value": "openai:gpt-image@2.5-sunburst",
+  "air_id": "openai:gpt-image@2.5-sunburst",
+  "href": "/models/image/openai/openai-gpt-image-2-5-sunburst",
+  "paid": true,
+  "type": "image",
+  "capabilities": [
+    "text-to-image",
+    "image-to-image",
+    "edit",
+    "transparency"
+  ],
+  "description": "GPT-Image-2.5 Sunburst is OpenAI's most capable model for image generation and editing, designed for premium workflows that need tighter control across detailed and iterative edits. It combines strong reference-subject preservation, localized changes, natural lighting and textures, complex layout handling, and consistent visual direction for production-ready campaign creative, polished product imagery, and other demanding visual design work.",
+  "schema": "https://runware.ai/docs/models/openai-gpt-image-2-5-sunburst",
+  "pricing": {
+    "perImage": {
+      "*": 0.167
+    },
+    "approximate": true,
+    "note": "Billed per token ($30 per 1M image output tokens); varies with size and quality.",
+    "source": "https://runware.ai/docs/models/openai-gpt-image-2-5-sunburst",
+    "checked": "2026-09-30"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "A transparent background needs PNG or WEBP output.",
+    "A mask image needs a reference image."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "background": {
+                "const": "transparent"
+              }
+            },
+            "required": [
+              "background"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outputFormat": {
+            "enum": [
+              "PNG",
+              "WEBP"
+            ]
+          }
+        },
+        "required": [
+          "outputFormat"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "maskImage"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "openai:gpt-image@2.5-sunburst",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "imageInference",
+      "description": "Identifier for the type of task being performed."
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 32000,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 16,
+      "maximum": 3840,
+      "multipleOf": 16,
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 16,
+      "maximum": 3840,
+      "multipleOf": 16,
+      "description": "Height of the generated media in pixels."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Global inference settings.",
+      "properties": {
+        "background": {
+          "type": "string",
+          "default": "auto",
+          "oneOf": [
+            {
+              "const": "auto",
+              "description": "Automatically determines the most appropriate background based on content."
+            },
+            {
+              "const": "opaque",
+              "description": "Solid background, no transparency."
+            },
+            {
+              "const": "transparent",
+              "description": "Transparent background areas where applicable."
+            }
+          ],
+          "description": "Background handling in generated images."
+        },
+        "moderation": {
+          "type": "string",
+          "default": "auto",
+          "oneOf": [
+            {
+              "const": "auto",
+              "description": "Standard filtering that limits creating certain categories of potentially age-inappropriate content."
+            },
+            {
+              "const": "low",
+              "description": "Less restrictive filtering."
+            }
+          ],
+          "description": "Content moderation level."
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "max",
+            "xhigh",
+            "high",
+            "medium",
+            "low"
+          ],
+          "default": "auto",
+          "description": "Image quality level."
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input assets for the task.",
+      "properties": {
+        "maskImage": {
+          "type": "string",
+          "description": "Image used to specify which areas of the input image should be edited (UUID, URL, Data URI, or Base64). White marks the area to edit, black is preserved. The model treats the mask as guidance rather than a hard boundary, so edits can extend past its shape. With several reference images the mask applies to the first."
+        },
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for image generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL",
+        "base64Data",
+        "dataURI"
+      ],
+      "default": "URL",
+      "description": "Image output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "JPG",
+        "PNG",
+        "WEBP"
+      ],
+      "default": "JPG",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "sync",
+      "oneOf": [
+        {
+          "const": "sync",
+          "description": "Returns complete results directly in the API response."
+        },
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    },
+    "advancedFeatures": {
+      "type": "object",
+      "description": "Model-specific advanced configuration options.",
+      "properties": {
+        "watermark": {
+          "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "text"
+              ]
+            },
+            {
+              "required": [
+                "image"
+              ]
+            }
+          ],
+          "description": "Configuration object for adding watermarks to generated videos. Watermarks can be applied using either text or image content with customizable positioning and appearance. You must provide either `text` or `image` content for the watermark, but not both.",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 32,
+              "description": "Watermark text."
+            },
+            "image": {
+              "type": "string",
+              "description": "Watermark image (UUID, URL, Data URI, or Base64)."
+            },
+            "displayPosition": {
+              "type": "string",
+              "enum": [
+                "top-left",
+                "top-center",
+                "top-right",
+                "center-left",
+                "center-center",
+                "center-right",
+                "bottom-left",
+                "bottom-center",
+                "bottom-right",
+                "tiled"
+              ],
+              "description": "Watermark position."
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1,
+              "multipleOf": 0.01,
+              "description": "Watermark opacity."
+            },
+            "fontColor": {
+              "type": "string",
+              "description": "Text color in hex format."
+            },
+            "bgColor": {
+              "type": "string",
+              "description": "Background color in hex format."
+            }
+          }
+        }
+      }
+    }
+  }
+}

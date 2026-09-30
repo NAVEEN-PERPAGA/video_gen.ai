@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 import type { ModelPricing } from "./pricing";
+import runwareImageModels from "@/data/image/models/runware";
 import runwareModels from "@/data/video/models/runware";
 import alibabaLogo from "@/assets/icons/alibaba.svg";
 import bflLogo from "@/assets/icons/blackForestLabs.png";
@@ -7,9 +8,10 @@ import bytedanceLogo from "@/assets/icons/bytedance.svg";
 import googleLogo from "@/assets/icons/google.svg";
 import lightricksLogo from "@/assets/icons/lightricks.png";
 import minimaxLogo from "@/assets/icons/minimax.svg";
+import openaiLogo from "@/assets/icons/openai.svg";
 import xLogo from "@/assets/icons/x.svg";
 
-/** The subset of JSON Schema used by data/video/models/runware/*.json. */
+/** The subset of JSON Schema used by data/{video,image}/models/runware/*.json. */
 export interface FieldSchema {
   type?: string | string[];
   const?: unknown;
@@ -31,11 +33,15 @@ export interface FieldSchema {
   required?: string[];
 }
 
-export interface VideoModel {
+/** What a model generates; also picks the API endpoint (POST .../generations/{video,image}). */
+export type MediaType = "video" | "image";
+
+export interface RunwareModel {
   name: string;
   organisation: string;
   value: string;
   href: string;
+  type: MediaType;
   capabilities: string[];
   description: string;
   schema: string;
@@ -47,12 +53,19 @@ export interface VideoModel {
   input: Record<string, FieldSchema>;
 }
 
-export const videoModels = runwareModels as unknown as VideoModel[];
+export const videoModels = runwareModels as unknown as RunwareModel[];
+export const imageModels = runwareImageModels as unknown as RunwareModel[];
+const allModels = [...videoModels, ...imageModels];
 
-export const defaultModelId = "google:gemini@omni-flash-1.1";
+/** The model each mode opens with. */
+export const defaultModelIds: Record<MediaType, string> = {
+  video: "google:gemini@omni-flash-1.1",
+  image: "google:4@3",
+};
 
-export function getVideoModel(id: string) {
-  return videoModels.find((m) => m.value === id);
+/** A video or image model by its AIR id. */
+export function getModel(id: string) {
+  return allModels.find((m) => m.value === id);
 }
 
 /**
@@ -67,13 +80,14 @@ export const organisationLogos: Record<string, { src: StaticImageData; tile: "li
   Google: { src: googleLogo, tile: "light" },
   Lightricks: { src: lightricksLogo, tile: "dark" },
   MiniMax: { src: minimaxLogo, tile: "light" },
+  OpenAI: { src: openaiLogo, tile: "dark" },
   xAI: { src: xLogo, tile: "dark", invert: true },
 };
 
-/** Models grouped by organisation, in first-seen order. */
-export function modelsByOrganisation() {
-  const groups = new Map<string, VideoModel[]>();
-  for (const model of videoModels) {
+/** `type`'s models grouped by organisation, in first-seen order. */
+export function modelsByOrganisation(type: MediaType) {
+  const groups = new Map<string, RunwareModel[]>();
+  for (const model of type === "image" ? imageModels : videoModels) {
     groups.set(model.organisation, [...(groups.get(model.organisation) ?? []), model]);
   }
   return [...groups.entries()];

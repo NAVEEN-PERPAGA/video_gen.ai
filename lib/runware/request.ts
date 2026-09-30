@@ -1,12 +1,13 @@
 import Ajv2020, { type ErrorObject, type ValidateFunction } from "ajv/dist/2020";
 import addFormats from "ajv-formats";
-import type { FieldSchema, VideoModel } from "./models";
+import type { FieldSchema, RunwareModel } from "./models";
 
 /**
- * Turns composer values into a Runware `videoInference` task for any model in
- * data/video/models/runware, and checks it against that model's schema —
- * including its cross-field `conditions`, reported with the matching `rules`
- * sentence. Runs in the browser for live hints and on the server for real.
+ * Turns composer values into a Runware `videoInference` or `imageInference`
+ * task for any model in data/{video,image}/models/runware, and checks it
+ * against that model's schema — including its cross-field `conditions`,
+ * reported with the matching `rules` sentence. Runs in the browser for live
+ * hints and on the server for real.
  */
 
 export type MediaKind = "image" | "video" | "audio" | "document" | "link" | "text";
@@ -54,6 +55,11 @@ export interface ComposerValues {
   customHeight: number;
   duration?: number | "auto";
   fps?: number;
+  /** Image models: what to keep out of the picture. */
+  negativePrompt?: string;
+  steps?: number;
+  cfgScale?: number;
+  scheduler?: string;
   numberResults: number;
   seed?: number;
   settings: Record<string, boolean | string | number | undefined>;
@@ -145,7 +151,7 @@ function framePositions(field: FieldSchema): string[] {
   return named.length > 0 ? named : ["first", "last"];
 }
 
-export function assetKinds(model: VideoModel): AssetKind[] {
+export function assetKinds(model: RunwareModel): AssetKind[] {
   const props = model.input.inputs?.properties ?? {};
   return Object.entries(props).map(([key, field]) => ({
     key,
@@ -189,7 +195,7 @@ export interface SizeOption {
 }
 
 /** Every size choice a model offers, in the order they're tried by `autoAdjust`. */
-export function sizeOptions(model: VideoModel): SizeOption[] {
+export function sizeOptions(model: RunwareModel): SizeOption[] {
   const input = model.input;
   const options: SizeOption[] = [];
   for (const r of choices(input.resolution)) {
@@ -206,7 +212,7 @@ export function sizeOptions(model: VideoModel): SizeOption[] {
 }
 
 /** A landscape ~16:9 preset around 1080p, the usual starting point. */
-function defaultPreset(model: VideoModel) {
+function defaultPreset(model: RunwareModel) {
   const presets = model.resolutions ?? [];
   const input = model.input;
   const byDefault = presets.find((r) => r.width === input.width?.default && r.height === input.height?.default);
@@ -216,7 +222,7 @@ function defaultPreset(model: VideoModel) {
   return [...presets].sort((a, b) => score(a) - score(b))[0];
 }
 
-export function initialValues(model: VideoModel): ComposerValues {
+export function initialValues(model: RunwareModel): ComposerValues {
   const input = model.input;
   const preset = defaultPreset(model);
   let size = "auto";
@@ -232,7 +238,7 @@ export function initialValues(model: VideoModel): ComposerValues {
     prompt: "",
     size,
     customWidth: 1024,
-    customHeight: 576,
+    customHeight: model.type === "image" ? 1024 : 576,
     duration: durationRequired ? (durationDefault ?? numberOptions(durationField).find((d) => d === 5) ?? 5) : undefined,
     numberResults: 1,
     settings: {},
@@ -244,10 +250,10 @@ export function initialValues(model: VideoModel): ComposerValues {
 }
 
 /** Builds the task object, sending only what the user set and the model accepts. */
-export function buildTask(model: VideoModel, v: ComposerValues, taskUUID: string): RunwareTask {
+export function buildTask(model: RunwareModel, v: ComposerValues, taskUUID: string): RunwareTask {
   const input = model.input;
   const task: RunwareTask = {
-    taskType: input.taskType?.const ?? "videoInference",
+    taskType: input.taskType?.const ?? (model.type === "image" ? "imageInference" : "videoInference"),
     taskUUID,
     model: model.value,
   };
@@ -256,6 +262,7 @@ export function buildTask(model: VideoModel, v: ComposerValues, taskUUID: string
   };
 
   set("positivePrompt", v.prompt.trim() || undefined);
+  set("negativePrompt", v.negativePrompt?.trim() || undefined);
 
   if (v.size.startsWith("preset:")) {
     const [width, height] = v.size.slice(7).split("x").map(Number);
@@ -272,6 +279,9 @@ export function buildTask(model: VideoModel, v: ComposerValues, taskUUID: string
   set("fps", v.fps);
   set("seed", v.seed);
   set("numberResults", v.numberResults);
+  set("steps", v.steps);
+  set("CFGScale", v.cfgScale);
+  set("scheduler", v.scheduler);
 
   const settings = Object.fromEntries(Object.entries(v.settings).filter(([, value]) => value !== undefined));
   if (Object.keys(settings).length > 0) set("settings", settings);
@@ -307,7 +317,7 @@ const ajv = new Ajv2020({ allErrors: true, strict: false });
 addFormats(ajv);
 const validators = new Map<string, ValidateFunction>();
 
-function validatorFor(model: VideoModel) {
+function validatorFor(model: RunwareModel) {
   let validate = validators.get(model.value);
   if (!validate) {
     validate = ajv.compile({
@@ -332,7 +342,7 @@ function isUrl(value: string) {
   }
 }
 
-function assetProblems(model: VideoModel, v: ComposerValues) {
+function assetProblems(model: RunwareModel, v: ComposerValues) {
   const problems: string[] = [];
   let inlineChars = 0;
   for (const kind of assetKinds(model)) {
@@ -364,14 +374,14 @@ function assetProblems(model: VideoModel, v: ComposerValues) {
   return problems;
 }
 
-const FIELD_LABELS: Record<string, string> = { positivePrompt: "Prompt" };
+const FIELD_LABELS: Record<string, string> = { positivePrompt: "Prompt", negativePrompt: "Negative prompt", CFGScale: "CFG scale" };
 
 function fieldLabel(path: string) {
   const key = path.split("/").filter((p) => p && !/^\d+$/.test(p)).pop() ?? "request";
   return FIELD_LABELS[key] ?? humanize(key);
 }
 
-function describe(model: VideoModel, e: ErrorObject): string {
+function describe(model: RunwareModel, e: ErrorObject): string {
   const rule = e.schemaPath.match(/^#\/allOf\/(\d+)\//);
   if (rule) return model.rules[Number(rule[1])];
   if (e.keyword === "required" && e.schemaPath === "#/required") {
@@ -388,7 +398,7 @@ function describe(model: VideoModel, e: ErrorObject): string {
 const PLACEHOLDER_UUID = "00000000-0000-4000-8000-000000000000";
 
 /** Validates values as they'd be sent (with a placeholder task UUID). */
-export function checkValues(model: VideoModel, v: ComposerValues) {
+export function checkValues(model: RunwareModel, v: ComposerValues) {
   return validateTask(model, v, buildTask(model, v, PLACEHOLDER_UUID));
 }
 
@@ -398,7 +408,7 @@ export function checkValues(model: VideoModel, v: ComposerValues) {
  * frame sets the aspect). Picks the size — and drops an optional duration —
  * that leaves the fewest problems, keeping the current choice on a tie.
  */
-export function autoAdjust(model: VideoModel, v: ComposerValues): ComposerValues {
+export function autoAdjust(model: RunwareModel, v: ComposerValues): ComposerValues {
   let best = v;
   let bestCount = checkValues(model, v).length;
   if (bestCount === 0) return v;
@@ -423,7 +433,7 @@ export function autoAdjust(model: VideoModel, v: ComposerValues): ComposerValues
 }
 
 /** All problems with the request, as user-facing sentences (empty = valid). */
-export function validateTask(model: VideoModel, v: ComposerValues, task: RunwareTask): string[] {
+export function validateTask(model: RunwareModel, v: ComposerValues, task: RunwareTask): string[] {
   const validate = validatorFor(model);
   validate(task);
   const messages = new Set(assetProblems(model, v));

@@ -13,7 +13,7 @@ import {
   useTransition,
 } from "react";
 import { signInWithGoogle } from "@/app/auth/actions";
-import { type GenerateState, type Generation, generateVideo, getGeneration } from "@/app/generate/actions";
+import { type GenerateState, type Generation, generate, getGeneration } from "@/app/generate/actions";
 import { Dropdown, type DropdownOption } from "@/app/generate/dropdown";
 import {
   AlertIcon,
@@ -41,7 +41,14 @@ import {
 } from "@/app/generate/icons";
 import { ModelPicker } from "@/app/generate/model-picker";
 import { deleteUpload, uploadFile } from "@/app/generate/upload-file";
-import { defaultModelId, getVideoModel, type FieldSchema, type VideoModel, videoModels } from "@/lib/runware/models";
+import {
+  defaultModelIds,
+  type FieldSchema,
+  getModel,
+  type MediaType,
+  type RunwareModel,
+  videoModels,
+} from "@/lib/runware/models";
 import {
   type AssetItem,
   type AssetKind,
@@ -126,7 +133,7 @@ const VIDEO_MODEL = VIDEO_MODELS.find((m) => m.value === "bytedance:seedance@2.5
  */
 async function readFiles(
   files: File[],
-  model: VideoModel,
+  model: RunwareModel,
   assets: ComposerValues["assets"],
   canUpload: boolean,
   target?: AssetKind,
@@ -178,7 +185,7 @@ async function readFiles(
 }
 
 /** Keep the prompt (with tags in the new model's spelling) and any attachments the new model also accepts. */
-function carryOver(model: VideoModel, prev: ComposerValues, prevModel: VideoModel): ComposerValues {
+function carryOver(model: RunwareModel, prev: ComposerValues, prevModel: RunwareModel): ComposerValues {
   const next = initialValues(model);
   next.prompt = convertTags(prev.prompt, prevModel, model);
   for (const kind of assetKinds(model)) {
@@ -193,8 +200,12 @@ function carryOver(model: VideoModel, prev: ComposerValues, prevModel: VideoMode
   return autoAdjust(model, next);
 }
 
-function modeLabel(model: VideoModel, v: ComposerValues) {
+function modeLabel(model: RunwareModel, v: ComposerValues) {
   const kinds = assetKinds(model).filter((k) => v.assets[k.key]?.length);
+  if (model.type === "image") {
+    if (kinds.some((k) => k.key === "maskImage")) return "Inpaint";
+    return kinds.length > 0 ? "Image to image" : "Text to image";
+  }
   if (kinds.some((k) => k.key === "draftCache")) return "Finalise draft";
   if (kinds.some((k) => k.key === "video")) return "Video to video";
   if (kinds.some((k) => k.media === "audio")) return "Audio to video";
@@ -214,7 +225,7 @@ export interface ComposerPreset {
   settings?: ComposerValues["settings"];
 }
 
-function presetValues(model: VideoModel, preset?: ComposerPreset): ComposerValues {
+function presetValues(model: RunwareModel, preset?: ComposerPreset): ComposerValues {
   const values = initialValues(model);
   return { ...values, settings: { ...values.settings, ...preset?.settings } };
 }
@@ -236,9 +247,11 @@ export function VideoComposer({
   preset?: ComposerPreset;
 }) {
   const [modelId, setModelId] = useState(() =>
-    preset?.modelId && getVideoModel(preset.modelId) ? preset.modelId : defaultModelId,
+    preset?.modelId && getModel(preset.modelId) ? preset.modelId : defaultModelIds.video,
   );
-  const model = getVideoModel(modelId)!;
+  const model = getModel(modelId)!;
+  /** The model last used in each mode, so switching back returns to it. */
+  const lastModelIds = useRef<Record<MediaType, string>>({ ...defaultModelIds });
   const [values, setValues] = useState<ComposerValues>(() => presetValues(model, preset));
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [result, setResult] = useState<GenerateState>();
@@ -254,7 +267,8 @@ export function VideoComposer({
   const input = model.input;
   const kinds = assetKinds(model);
   const promptMax = input.positivePrompt?.maxLength;
-  const blockedReason = signedIn && workspaceId === null ? "Create a workspace to generate videos." : errors[0];
+  const noun = model.type === "image" ? "image" : "video";
+  const blockedReason = signedIn && workspaceId === null ? `Create a workspace to generate ${noun}s.` : errors[0];
 
   // Follow a processing generation until the API reports it finished.
   const processing = result?.generation?.status === "processing" ? result.generation : undefined;
@@ -300,7 +314,7 @@ export function VideoComposer({
         Object.entries(v.assets).map(([key, items]) => [key, items.map((i) => (i.id === id ? { ...i, ...patch } : i))]),
       );
       const next = { ...v, assets };
-      return refit ? autoAdjust(getVideoModel(modelIdRef.current)!, next) : next;
+      return refit ? autoAdjust(getModel(modelIdRef.current)!, next) : next;
     });
   }, []);
 
@@ -395,7 +409,8 @@ export function VideoComposer({
   }
 
   function selectModel(id: string) {
-    const next = getVideoModel(id)!;
+    const next = getModel(id)!;
+    lastModelIds.current[model.type] = model.value;
     setModelId(id);
     setValues((v) => carryOver(next, v, model));
     // Errors were about the old model; a generation in progress stays visible.
@@ -417,7 +432,7 @@ export function VideoComposer({
       for (const item of items) if (item.uploadId !== undefined) submittedUploads.current.add(item.uploadId);
     }
     startTransition(async () => {
-      const state = await generateVideo(workspaceId, model.value, values);
+      const state = await generate(workspaceId, model.value, values);
       setResult(state);
       if (state?.generation) onGeneration?.(state.generation);
     });
@@ -487,11 +502,19 @@ export function VideoComposer({
               onSubmit={submit}
               onPasteFiles={attachFiles}
               maxLength={promptMax}
-              placeholder={preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…"}
+              placeholder={
+                model.type === "image"
+                  ? "Describe the image: subject, style, composition, lighting…"
+                  : (preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…")
+              }
             />
 
             <div className="flex items-end gap-2">
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                <ModeSwitch
+                  type={model.type}
+                  onChange={(type) => type !== model.type && selectModel(lastModelIds.current[type])}
+                />
                 <ModelPicker model={model} onChange={selectModel} />
                 {kinds.length > 0 && (
                   <AttachMenu
@@ -571,7 +594,7 @@ export function VideoComposer({
                 {input.numberResults && (
                   <SelectPill
                     icon={LayersIcon}
-                    label="Number of videos"
+                    label={`Number of ${noun}s`}
                     highlight={false}
                     value={String(values.numberResults)}
                     onChange={(v) => update({ numberResults: Number(v) })}
@@ -599,7 +622,7 @@ export function VideoComposer({
               <button
                 type="submit"
                 disabled={pending || Boolean(blockedReason)}
-                aria-label="Generate video"
+                aria-label={`Generate ${noun}`}
                 title={blockedReason ?? (signedIn ? "Generate (Enter)" : "Sign in with Google to generate")}
                 className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-950/50 transition duration-150 hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-indigo-500/40 active:translate-y-0 active:scale-95 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-slate-500 disabled:shadow-none"
               >
@@ -615,6 +638,29 @@ export function VideoComposer({
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+/** Video or image: which kind of model the picker offers. */
+function ModeSwitch({ type, onChange }: { type: MediaType; onChange: (type: MediaType) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Generate" className="flex h-9 shrink-0 items-center rounded-xl bg-white/[0.05] p-0.5">
+      {(["video", "image"] as const).map((t) => (
+        <button
+          key={t}
+          type="button"
+          role="radio"
+          aria-checked={type === t}
+          onClick={() => onChange(t)}
+          className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-[10px] px-2.5 text-[13px] font-semibold transition duration-150 active:scale-[0.96] ${
+            type === t ? "bg-indigo-500/25 text-indigo-100" : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <MediaIcon media={t} className="size-4" />
+          {t === "video" ? "Video" : "Image"}
+        </button>
+      ))}
     </div>
   );
 }
@@ -635,7 +681,7 @@ interface TagOption {
   label: string;
 }
 
-function tagOptions(model: VideoModel, values: ComposerValues): TagOption[] {
+function tagOptions(model: RunwareModel, values: ComposerValues): TagOption[] {
   const style = tagStyle(model);
   return taggableKinds(model).flatMap((kind) =>
     (values.assets[kind.key] ?? []).map((item, i) => ({
@@ -665,7 +711,7 @@ function PromptInput({
   maxLength,
   placeholder,
 }: {
-  model: VideoModel;
+  model: RunwareModel;
   values: ComposerValues;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   onChange: (prompt: string) => void;
@@ -913,7 +959,7 @@ function SizeControl({
   values,
   update,
 }: {
-  model: VideoModel;
+  model: RunwareModel;
   values: ComposerValues;
   update: (patch: Partial<ComposerValues>) => void;
 }) {
@@ -1040,7 +1086,7 @@ function AttachMenu({
   attachFiles,
   onSelectModel,
 }: {
-  model: VideoModel;
+  model: RunwareModel;
   kinds: AssetKind[];
   values: ComposerValues;
   setAssets: (assets: ComposerValues["assets"]) => void;
@@ -1193,7 +1239,7 @@ function AttachMenu({
                   );
                 })}
               </ul>
-              {!kinds.some((k) => k.media === "video") && VIDEO_MODEL && (
+              {model.type === "video" && !kinds.some((k) => k.media === "video") && VIDEO_MODEL && (
                 <div className="mt-1 flex items-center gap-2 border-t border-white/10 pt-2.5 text-[11px] text-slate-400">
                   <span className="min-w-0 flex-1">{model.name} can&apos;t use a video.</span>
                   <button
@@ -1240,7 +1286,7 @@ function AssetTray({
   onRemove,
   onInsertTag,
 }: {
-  model: VideoModel;
+  model: RunwareModel;
   kinds: AssetKind[];
   values: ComposerValues;
   setAssets: (assets: ComposerValues["assets"]) => void;
@@ -1444,7 +1490,7 @@ function AdvancedPanel({
   numericSettings,
   setSetting,
 }: {
-  model: VideoModel;
+  model: RunwareModel;
   values: ComposerValues;
   update: (patch: Partial<ComposerValues>) => void;
   numericSettings: [string, FieldSchema][];
@@ -1458,7 +1504,7 @@ function AdvancedPanel({
     <div className="scroll-inset max-h-[45vh] overflow-y-auto rounded-2xl bg-white/[0.04] p-3">
       <div className="grid grid-cols-1 gap-x-4 gap-y-3 text-xs sm:grid-cols-2">
         {input.seed && (
-          <Field label="Seed" hint="Same seed + settings ≈ same video">
+          <Field label="Seed" hint={`Same seed + settings ≈ same ${model.type}`}>
             <div className="flex gap-1.5">
               <input
                 type="number"
@@ -1478,6 +1524,57 @@ function AdvancedPanel({
                 <DiceIcon className="size-4" />
               </button>
             </div>
+          </Field>
+        )}
+
+        {input.negativePrompt && (
+          <div className="sm:col-span-2">
+            <Field label="Negative prompt" hint="What to keep out of the image">
+              <textarea
+                rows={2}
+                value={values.negativePrompt ?? ""}
+                onChange={(e) => update({ negativePrompt: e.target.value })}
+                maxLength={input.negativePrompt.maxLength}
+                placeholder="blurry, text, watermark…"
+                className={`${fieldInput} resize-none`}
+              />
+            </Field>
+          </div>
+        )}
+
+        {(
+          [
+            ["steps", "Steps", input.steps],
+            ["cfgScale", "CFG scale", input.CFGScale],
+          ] as const
+        ).map(
+          ([key, label, field]) =>
+            field && (
+              <Field key={key} label={label} value={String(values[key] ?? field.default ?? "")} hint={field.description}>
+                <input
+                  type="range"
+                  min={field.minimum}
+                  max={field.maximum}
+                  step={field.type === "integer" ? 1 : 0.1}
+                  value={values[key] ?? (field.default as number) ?? field.minimum}
+                  onChange={(e) => update({ [key]: Number(e.target.value) })}
+                  className="h-8 w-full cursor-pointer accent-indigo-500"
+                />
+              </Field>
+            ),
+        )}
+
+        {input.scheduler && (
+          <Field label="Scheduler" hint={input.scheduler.description}>
+            <FieldDropdown
+              label="Scheduler"
+              value={values.scheduler ?? ""}
+              onChange={(v) => update({ scheduler: v || undefined })}
+              options={[
+                { value: "", label: "Default" },
+                ...choices(input.scheduler).map((c) => ({ value: String(c), label: String(c) })),
+              ]}
+            />
           </Field>
         )}
 
@@ -1654,7 +1751,7 @@ function Field({
 }
 
 /** Live price next to Generate, with a hover/focus card explaining it. */
-function CostBadge({ cost, model, invalid }: { cost: CostEstimate; model: VideoModel; invalid: boolean }) {
+function CostBadge({ cost, model, invalid }: { cost: CostEstimate; model: RunwareModel; invalid: boolean }) {
   const value = cost.total ?? cost.perSecond;
   const approx = cost.approximate || Array.isArray(value) ? "~" : "";
   const label = value === undefined ? "—" : `${approx}${formatCost(value)}${cost.total === undefined ? "/s" : ""}`;
@@ -1743,6 +1840,8 @@ function StatusLine({
 function ResultBanner({ result, onClose }: { result: NonNullable<GenerateState>; onClose: () => void }) {
   const generation = result.errors ? undefined : result.generation;
   const failed = !generation || generation.status === "failed";
+  const isImage = generation?.mediaType === "image";
+  const urls = (isImage ? generation?.imageUrls : generation?.videoUrls) ?? [];
   return (
     <div
       role={failed ? "alert" : "status"}
@@ -1765,16 +1864,23 @@ function ResultBanner({ result, onClose }: { result: NonNullable<GenerateState>;
         <div className="flex flex-col gap-2">
           <p className="flex items-center gap-1.5 font-medium">
             {generation.status === "completed" ? <CheckIcon className="size-4" /> : <AlertIcon className="size-4" />}
-            {generation.status === "completed" ? "Video ready" : "Generation failed"}
+            {generation.status === "completed" ? (isImage ? "Image ready" : "Video ready") : "Generation failed"}
             {generation.cost !== null && <span className="font-normal opacity-70">· ${generation.cost.toFixed(4)}</span>}
           </p>
           {/* Set when the task failed, or when only some of several results succeeded. */}
           {generation.error && <p>{generation.error}</p>}
-          {generation.videoUrls.length > 0 && (
+          {urls.length > 0 && (
             <div className="grid gap-2 sm:grid-cols-2">
-              {generation.videoUrls.map((url) => (
-                <video key={url} src={url} controls playsInline className="max-h-72 w-full rounded-lg bg-black" />
-              ))}
+              {urls.map((url) =>
+                isImage ? (
+                  <a key={url} href={url} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- generated image on Runware's CDN */}
+                    <img src={url} alt="" className="max-h-72 w-full rounded-lg bg-black object-contain" />
+                  </a>
+                ) : (
+                  <video key={url} src={url} controls playsInline className="max-h-72 w-full rounded-lg bg-black" />
+                ),
+              )}
             </div>
           )}
         </div>

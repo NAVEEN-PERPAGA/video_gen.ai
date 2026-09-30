@@ -1,14 +1,18 @@
-import type { VideoModel } from "./models";
+import type { RunwareModel } from "./models";
 import type { ComposerValues } from "./request";
 
 /**
  * Live cost estimate from the `pricing` block in each model file (published
- * per-second rates by resolution tier). Runware only reports the real cost
- * after a task runs, so this is an estimate by design.
+ * per-second rates for video, per-image prices for images, by resolution
+ * tier). Runware only reports the real cost after a task runs, so this is an
+ * estimate by design.
  */
 
 export interface ModelPricing {
-  perSecond: Record<string, number>;
+  /** Video models. */
+  perSecond?: Record<string, number>;
+  /** Image models: price per generated image. */
+  perImage?: Record<string, number>;
   videoInput?: Record<string, number>;
   draft?: { perSecond: number; videoInput?: number };
   perInputImage?: { price: number; free: number; kinds: string[] };
@@ -36,6 +40,8 @@ export interface CostEstimate {
 
 /** Output pixels per tier; a size is billed at the first tier that covers it. */
 const TIER_PIXELS: Record<string, number> = {
+  "0.5K": 512 * 512,
+  "1K": 1024 * 1024,
   "360p": 640 * 360,
   "480p": 854 * 480,
   "720p": 1280 * 720,
@@ -52,7 +58,7 @@ function tierForPixels(rates: Record<string, number>, pixels: number) {
 }
 
 /** The tier the chosen size is billed at, or null when it follows the input. */
-function billedTier(model: VideoModel, v: ComposerValues, rates: Record<string, number>): string | null {
+function billedTier(model: RunwareModel, v: ComposerValues, rates: Record<string, number>): string | null {
   if ("*" in rates) return "*";
   if (v.size.startsWith("res:")) {
     const res = v.size.slice(4);
@@ -71,7 +77,9 @@ function billedTier(model: VideoModel, v: ComposerValues, rates: Record<string, 
   return typeof fallback === "string" ? (fallback in rates ? fallback : tierForPixels(rates, TIER_PIXELS[fallback] ?? 0)) : null;
 }
 
-const money = (n: number) => `$${n < 1 ? n.toFixed(3).replace(/0$/, "") : n.toFixed(2)}`;
+// Sub-cent image prices (e.g. $0.00078) keep two significant digits instead of rounding to $0.001.
+const money = (n: number) =>
+  `$${n > 0 && n < 0.01 ? Number(n.toPrecision(2)) : n < 1 ? n.toFixed(3).replace(/0$/, "") : n.toFixed(2)}`;
 
 export function formatCost(value: number | [number, number]) {
   return Array.isArray(value)
@@ -86,13 +94,16 @@ function promoActive(promo: ModelPricing["promo"], now: Date) {
   return promo !== undefined && now <= new Date(`${promo.until}T23:59:59`);
 }
 
-export function estimateCost(model: VideoModel, v: ComposerValues, now = new Date()): CostEstimate | null {
+export function estimateCost(model: RunwareModel, v: ComposerValues, now = new Date()): CostEstimate | null {
   const pricing = model.pricing;
   if (!pricing) return null;
 
   const notes = pricing.note ? [pricing.note] : [];
   const breakdown: string[] = [];
   const count = (key: string) => (v.assets[key] ?? []).filter((a) => a.value.trim()).length;
+
+  if (pricing.perImage) return estimateImageCost(model, v, pricing, pricing.perImage, count, notes);
+  if (!pricing.perSecond) return null;
 
   if (count("draftCache") > 0) {
     return { approximate: true, breakdown, notes: ["Finalising a draft has no published price."] };
@@ -109,7 +120,7 @@ export function estimateCost(model: VideoModel, v: ComposerValues, now = new Dat
     rates = pricing.videoInput;
     breakdown.push("Video input rate");
   } else {
-    rates = pricing.perSecond;
+    rates = pricing.perSecond!;
   }
 
   const tier = billedTier(model, v, rates);
@@ -165,4 +176,38 @@ export function estimateCost(model: VideoModel, v: ComposerValues, now = new Dat
   estimate.total = collapse(total(factor));
   if (factor !== 1) estimate.original = collapse(total(1));
   return estimate;
+}
+
+/** Image models: a price per image by size tier, plus any per-input-image surcharge. */
+function estimateImageCost(
+  model: RunwareModel,
+  v: ComposerValues,
+  pricing: ModelPricing,
+  rates: Record<string, number>,
+  count: (key: string) => number,
+  notes: string[],
+): CostEstimate {
+  const breakdown: string[] = [];
+  const tier = billedTier(model, v, rates);
+  const tierRates = tier ? [rates[tier]] : Object.values(rates);
+  const price: [number, number] = [Math.min(...tierRates), Math.max(...tierRates)];
+  if (tier && tier !== "*") breakdown.push(`${tier} tier`);
+  else if (!tier) notes.push("Size follows the input, so the price depends on its resolution.");
+
+  let extras = 0;
+  if (pricing.perInputImage) {
+    const images = pricing.perInputImage.kinds.reduce((n, k) => n + count(k), 0);
+    const billed = Math.max(0, images - pricing.perInputImage.free);
+    if (billed > 0) {
+      extras = billed * pricing.perInputImage.price;
+      breakdown.push(`${billed} input image${billed > 1 ? "s" : ""} × ${money(pricing.perInputImage.price)}`);
+    }
+  }
+
+  const results = v.numberResults || 1;
+  breakdown.unshift(`${formatCost(price[0] === price[1] ? price[0] : price)}/image`);
+  if (results > 1) breakdown.push(`${results} images`);
+  const low = (price[0] + extras) * results;
+  const high = (price[1] + extras) * results;
+  return { total: low === high ? low : [low, high], approximate: pricing.approximate ?? false, breakdown, notes };
 }
