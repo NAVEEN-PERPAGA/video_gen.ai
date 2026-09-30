@@ -80,7 +80,7 @@ export default function AcceptableUsePage() {
       <Clause
         title="9. Reporting"
         paragraphs={[
-          `If you see content made with ${SITE_NAME} that breaks this policy, including a deepfake of you, email ${mail(COMPANY.legalEmail)} with a link to or description of the content. We treat reports involving minors, non-consensual content and impersonation as urgent.`,
+          `If you see content made with ${SITE_NAME} that breaks this policy, including a deepfake of you, email ${mail(COMPANY.supportEmail)} with a link to or description of the content. We treat reports involving minors, non-consensual content and impersonation as urgent.`,
         ]}
       />
     </CompanyPage>

@@ -65,7 +65,7 @@ export default function TermsPage() {
       <Clause
         title="8. Copyright complaints"
         paragraphs={[
-          `We respect intellectual property rights. If you believe content on the Service infringes your copyright, send a notice to ${mail(COMPANY.legalEmail)} that includes: your contact details; a description of the copyrighted work; the location of the infringing material; a statement that you believe in good faith the use is not authorised; a statement, under penalty of perjury, that your notice is accurate and that you are the owner or authorised to act for the owner; and your physical or electronic signature. We may remove the content and close the accounts of repeat infringers.`,
+          `We respect intellectual property rights. If you believe content on the Service infringes your copyright, send a notice to ${mail(COMPANY.supportEmail)} that includes: your contact details; a description of the copyrighted work; the location of the infringing material; a statement that you believe in good faith the use is not authorised; a statement, under penalty of perjury, that your notice is accurate and that you are the owner or authorised to act for the owner; and your physical or electronic signature. We may remove the content and close the accounts of repeat infringers.`,
         ]}
       />
       <Clause
@@ -124,7 +124,7 @@ export default function TermsPage() {
       />
       <Clause
         title="18. Contact"
-        paragraphs={[`${COMPANY.legalName}, ${COMPANY.address}. Email: ${mail(COMPANY.legalEmail)}.`]}
+        paragraphs={[`${COMPANY.legalName}, ${COMPANY.address}. Email: ${mail(COMPANY.supportEmail)}.`]}
       />
     </CompanyPage>
   );

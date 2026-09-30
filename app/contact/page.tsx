@@ -21,13 +21,13 @@ export default function ContactPage() {
       <Clause
         title="Privacy requests"
         paragraphs={[
-          `To access, correct, export or delete your personal data, email ${mail(COMPANY.privacyEmail)} from the address on your account. See our [Privacy Policy](/privacy) for details.`,
+          `To access, correct, export or delete your personal data, email ${mail(COMPANY.supportEmail)} from the address on your account. See our [Privacy Policy](/privacy) for details.`,
         ]}
       />
       <Clause
         title="Report abuse or copyright infringement"
         paragraphs={[
-          `To report content that breaks our [Acceptable Use Policy](/acceptable-use), or to send a copyright notice, email ${mail(COMPANY.legalEmail)} with a link to or description of the content and why you're reporting it. We treat reports about minors, non-consensual content and impersonation as urgent.`,
+          `To report content that breaks our [Acceptable Use Policy](/acceptable-use), or to send a copyright notice, email ${mail(COMPANY.supportEmail)} with a link to or description of the content and why you're reporting it. We treat reports about minors, non-consensual content and impersonation as urgent.`,
         ]}
       />
       <Clause title="Company details" paragraphs={[`${COMPANY.legalName}`, `${COMPANY.address}`]} />

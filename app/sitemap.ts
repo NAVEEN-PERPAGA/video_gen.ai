@@ -3,25 +3,23 @@ import { articles } from "@/app/_seo/articles";
 import { LEGAL_UPDATED } from "@/app/_seo/company-page";
 import { absoluteUrl, companyLinks, toolLinks } from "@/lib/site";
 
+// The blog index changes whenever any article does. ISO dates sort as strings.
+const BLOG_UPDATED = articles.map((a) => a.updated).sort().at(-1);
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...toolLinks.map((l) => ({
       url: absoluteUrl(l.href),
-      changeFrequency: "weekly" as const,
-      priority: l.href === "/" ? 1 : 0.9,
+      lastModified: l.updated,
     })),
-    { url: absoluteUrl("/blog"), changeFrequency: "weekly", priority: 0.6 },
+    { url: absoluteUrl("/blog"), lastModified: BLOG_UPDATED },
     ...articles.map((a) => ({
       url: absoluteUrl(a.path),
       lastModified: a.updated,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
     })),
     ...companyLinks.map((l) => ({
       url: absoluteUrl(l.href),
       lastModified: LEGAL_UPDATED,
-      changeFrequency: "yearly" as const,
-      priority: 0.3,
     })),
   ];
 }

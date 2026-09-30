@@ -25,7 +25,7 @@ export default function PrivacyPage() {
       <Clause
         title="1. Who we are"
         paragraphs={[
-          `${COMPANY.legalName}, ${COMPANY.address}, is the controller of your personal data. For any privacy question, email ${mail(COMPANY.privacyEmail)}.`,
+          `${COMPANY.legalName}, ${COMPANY.address}, is the controller of your personal data. For any privacy question, email ${mail(COMPANY.supportEmail)}.`,
         ]}
       />
       <Clause
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
           "complain to your local data protection authority.",
         ]}
         after={[
-          `To use any of these rights, email ${mail(COMPANY.privacyEmail)} from the address on your account. We'll respond within the time the law allows and won't treat you differently for exercising your rights.`,
+          `To use any of these rights, email ${mail(COMPANY.supportEmail)} from the address on your account. We'll respond within the time the law allows and won't treat you differently for exercising your rights.`,
         ]}
       />
       <Clause
@@ -129,7 +129,7 @@ export default function PrivacyPage() {
       />
       <Clause
         title="13. Contact"
-        paragraphs={[`${COMPANY.legalName}, ${COMPANY.address}. Email: ${mail(COMPANY.privacyEmail)}.`]}
+        paragraphs={[`${COMPANY.legalName}, ${COMPANY.address}. Email: ${mail(COMPANY.supportEmail)}.`]}
       />
     </CompanyPage>
   );
