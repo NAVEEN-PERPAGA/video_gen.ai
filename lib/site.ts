@@ -1,5 +1,7 @@
 /** Public site identity, used for metadata, JSON-LD, the sitemap and the footer. */
 export const SITE_NAME = "VideoGenEditor";
+/** The name as the logo shows it. */
+export const SITE_DISPLAY_NAME = "Video Gen Editor";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://videogeneditor.com").replace(/\/$/, "");
 
 export function absoluteUrl(path: string) {

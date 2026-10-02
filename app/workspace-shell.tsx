@@ -20,12 +20,6 @@ interface Workspace {
   role: WorkspaceRole;
 }
 
-const roleStyles: Record<WorkspaceRole, string> = {
-  owner: "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300",
-  admin: "bg-blue-100 text-blue-800 dark:bg-blue-400/15 dark:text-blue-300",
-  member: "bg-zinc-100 text-zinc-700 dark:bg-white/10 dark:text-zinc-300",
-};
-
 /**
  * The studio page frame shared by the dashboard and every tool page: header
  * with the workspace strip, the selected workspace's generations with the
@@ -83,18 +77,13 @@ export async function WorkspaceShell({
                   <Link
                     href={`${path}?workspace=${ws.id}`}
                     aria-current={ws.id === active?.id ? "page" : undefined}
-                    className={`flex h-9 max-w-48 items-center gap-2 rounded-md border bg-white px-3 text-sm shadow-sm transition dark:bg-zinc-900 ${
+                    className={`flex h-9 max-w-48 items-center gap-2 rounded-md px-3 text-sm transition ${
                       ws.id === active?.id
-                        ? "border-indigo-500 ring-2 ring-indigo-500/20 dark:border-indigo-400"
-                        : "border-black/10 hover:border-black/25 dark:border-white/15 dark:hover:border-white/30"
+                        ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/25 dark:text-white"
+                        : "bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.1]"
                     }`}
                   >
                     <span className="truncate font-medium">{ws.name}</span>
-                    <span
-                      className={`shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium capitalize ${roleStyles[ws.role]}`}
-                    >
-                      {ws.role}
-                    </span>
                   </Link>
                 </li>
               ))}

@@ -14,6 +14,8 @@ import {
 } from "react";
 import { signInWithGoogle } from "@/app/auth/actions";
 import { type GenerateState, type Generation, generate, getGeneration } from "@/app/generate/actions";
+import type { AgentProvider } from "@/app/generate/agent-actions";
+import { AGENT_PROVIDERS, AgentPanel, providerLabel, useAgentSession } from "@/app/generate/agent-panel";
 import { Dropdown, type DropdownOption } from "@/app/generate/dropdown";
 import {
   AlertIcon,
@@ -259,8 +261,12 @@ export function VideoComposer({
   /** Why the last dropped/picked files were turned away. */
   const [notice, setNotice] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
+  /** Off: the prompt generates with the chosen model. On: it goes to the agent, which picks models itself. */
+  const [agentMode, setAgentMode] = useState(false);
+  const agent = useAgentSession(workspaceId, onGeneration);
 
-  const errors = useMemo(() => checkValues(model, values), [model, values]);
+  const modelErrors = useMemo(() => checkValues(model, values), [model, values]);
+  const errors = agentMode ? (values.prompt.trim() ? [] : ["Enter a message."]) : modelErrors;
   // Not blocking: Runware accepts the prompt, the model just ignores the dangling tag.
   const tagWarnings = useMemo(() => tagProblems(model, values), [model, values]);
   const cost = useMemo(() => estimateCost(model, values), [model, values]);
@@ -268,7 +274,14 @@ export function VideoComposer({
   const kinds = assetKinds(model);
   const promptMax = input.positivePrompt?.maxLength;
   const noun = model.type === "image" ? "image" : "video";
-  const blockedReason = signedIn && workspaceId === null ? `Create a workspace to generate ${noun}s.` : errors[0];
+  const blockedReason =
+    signedIn && workspaceId === null
+      ? agentMode
+        ? "Create a workspace to use the agent."
+        : `Create a workspace to generate ${noun}s.`
+      : agentMode && (agent.sending || (agent.busy && !agent.canQueue))
+        ? "The agent is still working. Stop it to send another message."
+        : errors[0];
 
   // Follow a processing generation until the API reports it finished.
   const processing = result?.generation?.status === "processing" ? result.generation : undefined;
@@ -364,6 +377,10 @@ export function VideoComposer({
 
   async function attachFiles(files: File[], target?: AssetKind) {
     if (files.length === 0) return;
+    if (agentMode) {
+      setNotice(["The agent takes text only. Turn Agent off to attach files."]);
+      return;
+    }
     const before = values.assets;
     const { assets, problems, uploads: pending } = await readFiles(
       files,
@@ -428,6 +445,12 @@ export function VideoComposer({
       return;
     }
     if (workspaceId === null) return;
+    if (agentMode) {
+      startTransition(async () => {
+        if (await agent.send(values.prompt.trim())) update({ prompt: "" });
+      });
+      return;
+    }
     for (const items of Object.values(values.assets)) {
       for (const item of items) if (item.uploadId !== undefined) submittedUploads.current.add(item.uploadId);
     }
@@ -471,9 +494,13 @@ export function VideoComposer({
           {dragging && <DropOverlay kinds={kinds} />}
           <div className="flex flex-col gap-2.5">
             {/* A processing generation shows as a spinner card in the gallery instead. */}
-            {result && !processing && <ResultBanner result={result} onClose={() => setResult(undefined)} />}
+            {!agentMode && result && !processing && (
+              <ResultBanner result={result} onClose={() => setResult(undefined)} />
+            )}
 
-            {showAdvanced && (
+            {agentMode && <AgentPanel agent={agent} />}
+
+            {!agentMode && showAdvanced && (
               <AdvancedPanel
                 model={model}
                 values={values}
@@ -483,14 +510,16 @@ export function VideoComposer({
               />
             )}
 
-            <AssetTray
-              model={model}
-              kinds={kinds}
-              values={values}
-              setAssets={setAssets}
-              onRemove={discardAsset}
-              onInsertTag={(tag) => insertIntoPrompt(tag)}
-            />
+            {!agentMode && (
+              <AssetTray
+                model={model}
+                kinds={kinds}
+                values={values}
+                setAssets={setAssets}
+                onRemove={discardAsset}
+                onInsertTag={(tag) => insertIntoPrompt(tag)}
+              />
+            )}
 
             <PromptInput
               model={model}
@@ -501,132 +530,161 @@ export function VideoComposer({
               onInsertTag={insertIntoPrompt}
               onSubmit={submit}
               onPasteFiles={attachFiles}
-              maxLength={promptMax}
+              plain={agentMode}
+              maxLength={agentMode ? undefined : promptMax}
               placeholder={
-                model.type === "image"
-                  ? "Describe the image: subject, style, composition, lighting…"
-                  : (preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…")
+                agentMode
+                  ? agent.session
+                    ? "Ask for changes: brighter, another angle, a different background…"
+                    : "Describe what you need, e.g. 2 moody product shots of a perfume bottle"
+                  : model.type === "image"
+                    ? "Describe the image: subject, style, composition, lighting…"
+                    : (preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…")
               }
             />
 
             <div className="flex items-end gap-2">
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-                <ModeSwitch
-                  type={model.type}
-                  onChange={(type) => type !== model.type && selectModel(lastModelIds.current[type])}
+                <TogglePill
+                  icon={SparklesIcon}
+                  label="Agent"
+                  title="Let an AI agent plan and generate images from your brief"
+                  checked={agentMode}
+                  onChange={(on) => {
+                    setAgentMode(on);
+                    setNotice([]);
+                  }}
                 />
-                <ModelPicker model={model} onChange={selectModel} />
-                {kinds.length > 0 && (
-                  <AttachMenu
-                    model={model}
-                    kinds={kinds}
-                    values={values}
-                    setAssets={setAssets}
-                    attachFiles={attachFiles}
-                    onSelectModel={selectModel}
+                {agentMode && (
+                  <ProviderSwitch
+                    provider={agent.session?.provider ?? agent.provider}
+                    locked={agent.session !== null}
+                    onChange={agent.setProvider}
                   />
                 )}
-
-                <span className="mx-0.5 h-5 w-px bg-white/10" aria-hidden="true" />
-
-                <SizeControl model={model} values={values} update={update} />
-
-                {input.duration && (
-                  <SelectPill
-                    icon={ClockIcon}
-                    label="Duration"
-                    value={values.duration === undefined ? "" : String(values.duration)}
-                    onChange={(v) => update({ duration: v === "" ? undefined : v === "auto" ? "auto" : Number(v) })}
-                    options={[
-                      ...(model.required.includes("duration")
-                        ? []
-                        : [{ value: "", label: defaultLabel(input.duration, (d) => (d === "auto" ? "Auto" : `${d}s`)) }]),
-                      ...numberOptions(input.duration).map((d) => ({
-                        value: String(d),
-                        label: d === "auto" ? "Auto" : `${d}s`,
-                      })),
-                    ]}
-                  />
-                )}
-
-                {input.fps && (
-                  <SelectPill
-                    icon={GaugeIcon}
-                    label="Frame rate"
-                    value={values.fps === undefined ? "" : String(values.fps)}
-                    onChange={(v) => update({ fps: v ? Number(v) : undefined })}
-                    options={[
-                      { value: "", label: defaultLabel(input.fps, (f) => `${f} fps`, "Auto fps") },
-                      ...fpsOptions(input.fps).map((f) => ({ value: String(f), label: `${f} fps` })),
-                    ]}
-                  />
-                )}
-
-                {toolbarSettings.map(([key, field]) =>
-                  field.type === "boolean" ? (
-                    <TogglePill
-                      key={key}
-                      icon={SETTING_ICONS[key] ?? SparklesIcon}
-                      label={humanize(key)}
-                      title={field.description}
-                      checked={(values.settings[key] ?? field.default ?? false) as boolean}
-                      onChange={(checked) => setSetting(key, checked)}
+                {!agentMode && (
+                  <>
+                    <ModeSwitch
+                      type={model.type}
+                      onChange={(type) => type !== model.type && selectModel(lastModelIds.current[type])}
                     />
-                  ) : (
-                    <SelectPill
-                      key={key}
-                      icon={SETTING_ICONS[key] ?? SparklesIcon}
-                      label={humanize(key)}
-                      value={String(values.settings[key] ?? "")}
-                      onChange={(v) => setSetting(key, v || undefined)}
-                      options={[
-                        { value: "", label: `${humanize(key)}: ${field.default ? humanize(String(field.default)) : "Auto"}` },
-                        ...choices(field).map((c) => ({ value: String(c), label: humanize(String(c)) })),
-                      ]}
-                    />
-                  ),
-                )}
+                    <ModelPicker model={model} onChange={selectModel} />
+                    {kinds.length > 0 && (
+                      <AttachMenu
+                        model={model}
+                        kinds={kinds}
+                        values={values}
+                        setAssets={setAssets}
+                        attachFiles={attachFiles}
+                        onSelectModel={selectModel}
+                      />
+                    )}
 
-                {input.speech?.properties?.voices && (
-                  <VoicesPill field={input.speech.properties.voices} values={values} update={update} />
-                )}
+                    <span className="mx-0.5 h-5 w-px bg-white/10" aria-hidden="true" />
 
-                {input.numberResults && (
-                  <SelectPill
-                    icon={LayersIcon}
-                    label={`Number of ${noun}s`}
-                    highlight={false}
-                    value={String(values.numberResults)}
-                    onChange={(v) => update({ numberResults: Number(v) })}
-                    options={Array.from({ length: input.numberResults.maximum ?? 1 }, (_, i) => ({
-                      value: String(i + 1),
-                      label: `${i + 1}×`,
-                    }))}
-                  />
-                )}
+                    <SizeControl model={model} values={values} update={update} />
 
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced((s) => !s)}
-                  aria-expanded={showAdvanced}
-                  aria-label="Advanced settings"
-                  title="Advanced settings"
-                  className={`${pillBase} w-9 justify-center px-0 ${showAdvanced ? pillActive : pillIdle}`}
-                >
-                  <SlidersIcon className="size-4" />
-                </button>
+                    {input.duration && (
+                      <SelectPill
+                        icon={ClockIcon}
+                        label="Duration"
+                        value={values.duration === undefined ? "" : String(values.duration)}
+                        onChange={(v) => update({ duration: v === "" ? undefined : v === "auto" ? "auto" : Number(v) })}
+                        options={[
+                          ...(model.required.includes("duration")
+                            ? []
+                            : [{ value: "", label: defaultLabel(input.duration, (d) => (d === "auto" ? "Auto" : `${d}s`)) }]),
+                          ...numberOptions(input.duration).map((d) => ({
+                            value: String(d),
+                            label: d === "auto" ? "Auto" : `${d}s`,
+                          })),
+                        ]}
+                      />
+                    )}
+
+                    {input.fps && (
+                      <SelectPill
+                        icon={GaugeIcon}
+                        label="Frame rate"
+                        value={values.fps === undefined ? "" : String(values.fps)}
+                        onChange={(v) => update({ fps: v ? Number(v) : undefined })}
+                        options={[
+                          { value: "", label: defaultLabel(input.fps, (f) => `${f} fps`, "Auto fps") },
+                          ...fpsOptions(input.fps).map((f) => ({ value: String(f), label: `${f} fps` })),
+                        ]}
+                      />
+                    )}
+
+                    {toolbarSettings.map(([key, field]) =>
+                      field.type === "boolean" ? (
+                        <TogglePill
+                          key={key}
+                          icon={SETTING_ICONS[key] ?? SparklesIcon}
+                          label={humanize(key)}
+                          title={field.description}
+                          checked={(values.settings[key] ?? field.default ?? false) as boolean}
+                          onChange={(checked) => setSetting(key, checked)}
+                        />
+                      ) : (
+                        <SelectPill
+                          key={key}
+                          icon={SETTING_ICONS[key] ?? SparklesIcon}
+                          label={humanize(key)}
+                          value={String(values.settings[key] ?? "")}
+                          onChange={(v) => setSetting(key, v || undefined)}
+                          options={[
+                            { value: "", label: `${humanize(key)}: ${field.default ? humanize(String(field.default)) : "Auto"}` },
+                            ...choices(field).map((c) => ({ value: String(c), label: humanize(String(c)) })),
+                          ]}
+                        />
+                      ),
+                    )}
+
+                    {input.speech?.properties?.voices && (
+                      <VoicesPill field={input.speech.properties.voices} values={values} update={update} />
+                    )}
+
+                    {input.numberResults && (
+                      <SelectPill
+                        icon={LayersIcon}
+                        label={`Number of ${noun}s`}
+                        highlight={false}
+                        value={String(values.numberResults)}
+                        onChange={(v) => update({ numberResults: Number(v) })}
+                        options={Array.from({ length: input.numberResults.maximum ?? 1 }, (_, i) => ({
+                          value: String(i + 1),
+                          label: `${i + 1}×`,
+                        }))}
+                      />
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvanced((s) => !s)}
+                      aria-expanded={showAdvanced}
+                      aria-label="Advanced settings"
+                      title="Advanced settings"
+                      className={`${pillBase} w-9 justify-center px-0 ${showAdvanced ? pillActive : pillIdle}`}
+                    >
+                      <SlidersIcon className="size-4" />
+                    </button>
+                  </>
+                )}
               </div>
 
-              {cost && <CostBadge cost={cost} model={model} invalid={errors.length > 0} />}
+              {!agentMode && cost && <CostBadge cost={cost} model={model} invalid={errors.length > 0} />}
 
               <button
                 type="submit"
                 disabled={pending || Boolean(blockedReason)}
-                aria-label={`Generate ${noun}`}
-                title={blockedReason ?? (signedIn ? "Generate (Enter)" : "Sign in with Google to generate")}
+                aria-label={agentMode ? "Send to agent" : `Generate ${noun}`}
+                title={
+                  blockedReason ??
+                  (!signedIn ? "Sign in with Google to generate" : agentMode ? "Send (Enter)" : "Generate (Enter)")
+                }
                 className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-950/50 transition duration-150 hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-indigo-500/40 active:translate-y-0 active:scale-95 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-slate-500 disabled:shadow-none"
               >
-                {pending ? (
+                {pending || (agentMode && agent.busy && !agent.canQueue) ? (
                   <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                 ) : (
                   <ArrowUpIcon className="size-5" />
@@ -634,7 +692,13 @@ export function VideoComposer({
               </button>
             </div>
 
-            <StatusLine errors={errors} notice={[...notice, ...tagWarnings]} mode={modeLabel(model, values)} length={values.prompt.trim().length} max={promptMax} />
+            <StatusLine
+              errors={errors}
+              notice={agentMode ? notice : [...notice, ...tagWarnings]}
+              mode={agentMode ? `Agent · ${providerLabel(agent.session?.provider ?? agent.provider)} · images` : modeLabel(model, values)}
+              length={values.prompt.trim().length}
+              max={agentMode ? undefined : promptMax}
+            />
           </div>
         </form>
       </div>
@@ -659,6 +723,44 @@ function ModeSwitch({ type, onChange }: { type: MediaType; onChange: (type: Medi
         >
           <MediaIcon media={t} className="size-4" />
           {t === "video" ? "Video" : "Image"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Which model runs the agent. `locked` once a conversation has started: its provider can't change. */
+function ProviderSwitch({
+  provider,
+  locked,
+  onChange,
+}: {
+  provider: AgentProvider;
+  locked: boolean;
+  onChange: (provider: AgentProvider) => void;
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Agent model"
+      title={locked ? "Start a new chat to switch the agent's model" : "The model that runs the agent"}
+      className="flex h-9 shrink-0 items-center rounded-xl bg-white/[0.05] p-0.5"
+    >
+      {AGENT_PROVIDERS.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          role="radio"
+          aria-checked={provider === p.id}
+          disabled={locked}
+          onClick={() => onChange(p.id)}
+          className={`flex h-8 cursor-pointer items-center rounded-[10px] px-2.5 text-[13px] font-semibold transition duration-150 active:scale-[0.96] disabled:cursor-not-allowed ${
+            provider === p.id
+              ? "bg-indigo-500/25 text-indigo-100"
+              : "text-slate-400 enabled:hover:text-white disabled:opacity-40"
+          }`}
+        >
+          {p.label}
         </button>
       ))}
     </div>
@@ -708,6 +810,7 @@ function PromptInput({
   onInsertTag,
   onSubmit,
   onPasteFiles,
+  plain = false,
   maxLength,
   placeholder,
 }: {
@@ -719,13 +822,15 @@ function PromptInput({
   onInsertTag: (tag: string, start: number, end: number) => void;
   onSubmit: () => void;
   onPasteFiles: (files: File[]) => void;
+  /** No "@" references: the text isn't sent to a model that reads them (the agent). */
+  plain?: boolean;
   maxLength?: number;
   placeholder: string;
 }) {
   /** The "@…" being typed, while the menu is open. */
   const [query, setQuery] = useState<{ start: number; end: number; query: string } | null>(null);
   const [active, setActive] = useState(0);
-  const taggable = taggableKinds(model);
+  const taggable = plain ? [] : taggableKinds(model);
   const all = tagOptions(model, values);
   const options = query
     ? all.filter((o) => o.label.toLowerCase().replace(" ", "").startsWith(query.query) || o.media.startsWith(query.query))

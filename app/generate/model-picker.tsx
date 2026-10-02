@@ -27,7 +27,7 @@ export function OrgLogo({ organisation, className = "size-5" }: { organisation: 
 
 const CAPABILITY_LABELS: Record<string, string> = {
   "text-to-video": "Text",
-  "image-to-video": "Image",
+  "image-to-video": "Image",  
   "video-to-video": "Video",
   "audio-to-video": "Audio",
   "text-to-image": "Text",

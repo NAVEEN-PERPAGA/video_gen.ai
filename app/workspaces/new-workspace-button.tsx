@@ -21,7 +21,7 @@ export function NewWorkspaceButton() {
         onClick={() => dialogRef.current?.showModal()}
         aria-label="New workspace"
         title="New workspace"
-        className="flex size-9 shrink-0 items-center justify-center rounded-md border border-dashed border-black/20 text-zinc-600 hover:border-black/40 hover:text-foreground dark:border-white/25 dark:text-zinc-400 dark:hover:border-white/50"
+        className="flex size-9 shrink-0 items-center justify-center rounded-md bg-black/[0.04] text-zinc-600 transition hover:bg-black/[0.08] hover:text-foreground dark:bg-white/[0.06] dark:text-zinc-400 dark:hover:bg-white/[0.1]"
       >
         <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4">
           <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
