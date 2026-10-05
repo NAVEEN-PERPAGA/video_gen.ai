@@ -179,6 +179,12 @@ export const UploadIcon = (p: P) => (
     <path d="M4.5 15v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" />
   </Icon>
 );
+export const TrashIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M4.5 7h15M9.5 7V4.5h5V7" />
+    <path d="M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12M10 11v5.5M14 11v5.5" />
+  </Icon>
+);
 
 const MEDIA_ICONS: Record<MediaKind, ComponentType<P>> = {
   image: ImageIcon,

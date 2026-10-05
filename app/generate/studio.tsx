@@ -1,8 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { type Generation, type GenerationsPage, getGeneration, listGenerations } from "@/app/generate/actions";
-import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "@/app/generate/icons";
+import {
+  deleteGeneration,
+  type Generation,
+  type GenerationsPage,
+  getGeneration,
+  listGenerations,
+} from "@/app/generate/actions";
+import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, XIcon } from "@/app/generate/icons";
 import { type ComposerPreset, POLL_INTERVAL_MS, VideoComposer } from "@/app/generate/video-composer";
 import { getModel } from "@/lib/runware/models";
 
@@ -31,6 +37,8 @@ export function Studio({
   /** The generation open in the full-window viewer. An id, so polled updates show there too. */
   const [openId, setOpenId] = useState<number | null>(null);
   const openIndex = generations.findIndex((g) => g.id === openId);
+  /** Generations with a delete request in flight. */
+  const [deletingIds, setDeletingIds] = useState<number[]>([]);
 
   /** Adds a new generation at the top, or updates one already listed. */
   const upsert = useCallback((generation: Generation) => {
@@ -62,6 +70,26 @@ export function Studio({
     return () => clearInterval(timer);
   }, [processingIds, workspaceId, upsert]);
 
+  async function remove(generation: Generation) {
+    if (workspaceId === null) return;
+    if (!window.confirm("Delete this generation? This can't be undone.")) return;
+    setDeletingIds((ids) => [...ids, generation.id]);
+    const result = await deleteGeneration(workspaceId, generation.id);
+    setDeletingIds((ids) => ids.filter((id) => id !== generation.id));
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setError(undefined);
+    // If it was open in the viewer, show the next one along (or close the viewer).
+    setOpenId((current) => {
+      if (current !== generation.id) return current;
+      const index = generations.findIndex((g) => g.id === generation.id);
+      return (generations[index + 1] ?? generations[index - 1])?.id ?? null;
+    });
+    setGenerations((list) => list.filter((g) => g.id !== generation.id));
+  }
+
   function loadMore() {
     if (workspaceId === null || nextCursor === null) return;
     startLoadingMore(async () => {
@@ -80,16 +108,31 @@ export function Studio({
     <>
       {workspaceId !== null && (
         <section aria-labelledby="generations-heading" className="flex flex-col gap-4">
-          {/* h2: every page that shows the studio has its own h1. */}
-          <h2 id="generations-heading" className="text-lg font-semibold">
+          {/* h2: every page that shows the studio has its own h1. Screen-reader only. */}
+          <h2 id="generations-heading" className="sr-only">
             Generations
           </h2>
 
           {generations.length > 0 ? (
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {generations.map((g) => (
-                <li key={g.id}>
+                <li key={g.id} className="group/card relative">
                   <GenerationCard generation={g} onOpen={() => setOpenId(g.id)} />
+                  {/* A sibling of the card, since a button can't sit inside another button. */}
+                  <button
+                    type="button"
+                    onClick={() => remove(g)}
+                    disabled={deletingIds.includes(g.id)}
+                    aria-label="Delete generation"
+                    title="Delete"
+                    className="absolute top-2 left-2 flex size-8 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white opacity-0 backdrop-blur transition duration-200 outline-none group-hover/card:-translate-y-1 group-hover/card:opacity-100 hover:bg-red-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-wait disabled:opacity-100"
+                  >
+                    {deletingIds.includes(g.id) ? (
+                      <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    ) : (
+                      <TrashIcon className="size-4" />
+                    )}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -127,6 +170,8 @@ export function Studio({
           onPrev={openIndex > 0 ? () => setOpenId(generations[openIndex - 1].id) : undefined}
           onNext={openIndex < generations.length - 1 ? () => setOpenId(generations[openIndex + 1].id) : undefined}
           onClose={() => setOpenId(null)}
+          onDelete={() => remove(generations[openIndex])}
+          deleting={deletingIds.includes(generations[openIndex].id)}
         />
       )}
 
@@ -178,7 +223,7 @@ function GenerationCard({ generation: g, onOpen }: { generation: Generation; onO
         video.currentTime = 0;
       }}
       aria-label={prompt ? `Open "${prompt}"` : "Open generation"}
-      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-black/10 bg-white text-left shadow-sm transition duration-200 outline-none hover:-translate-y-1 hover:border-indigo-400/60 hover:shadow-xl hover:shadow-indigo-500/10 focus-visible:ring-2 focus-visible:ring-indigo-500/50 active:translate-y-0 dark:border-white/15 dark:bg-zinc-900 dark:hover:border-indigo-400/50"
+      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl bg-white text-left shadow-sm transition duration-200 outline-none hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 focus-visible:ring-2 focus-visible:ring-indigo-500/50 active:translate-y-0 dark:bg-zinc-900"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-black">
         {firstUrl ? (
@@ -257,12 +302,16 @@ function GenerationViewer({
   onPrev,
   onNext,
   onClose,
+  onDelete,
+  deleting,
 }: {
   generation: Generation;
   position: string;
   onPrev?: () => void;
   onNext?: () => void;
   onClose: () => void;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [videoIndex, setVideoIndex] = useState(0);
@@ -417,16 +466,27 @@ function GenerationViewer({
               </>
             )}
           </dl>
-          {url && (
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-auto rounded-md bg-white/10 px-3 py-2 text-center text-xs font-medium transition hover:bg-white/20"
+          <div className="mt-auto flex flex-col gap-2">
+            {url && (
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md bg-white/10 px-3 py-2 text-center text-xs font-medium transition hover:bg-white/20"
+              >
+                Open {noun} in new tab
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={deleting}
+              className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md bg-red-500/15 px-3 py-2 text-xs font-medium text-red-300 transition hover:bg-red-500/25 disabled:cursor-wait disabled:opacity-60"
             >
-              Open {noun} in new tab
-            </a>
-          )}
+              <TrashIcon className="size-3.5" />
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+          </div>
         </aside>
       </div>
     </dialog>

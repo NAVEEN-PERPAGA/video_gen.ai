@@ -1,0 +1,1559 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Runware API - FLUX 3 Image",
+        "summary": "Native 4K image generation and editing with precise multi-reference control",
+        "description": "FLUX 3 Image is Black Forest Labs' image generation and editing model built on the multimodal FLUX 3 backbone shared with FLUX 3 Video. It combines text-to-image synthesis, precise local editing, multi-reference composition, bounding-box placement, and native 4K output. The model preserves identities and fine details across references, supports targeted changes and in-place text editing, and renders accurate typography in text-heavy layouts across a broad range of visual styles.",
+        "version": "1.0.0",
+        "x-model-id": "bfl-flux-3-image",
+        "x-air-id": "bfl:flux@3-image",
+        "x-status": "live",
+        "x-creator": {
+            "id": "black-forest-labs",
+            "name": "Black Forest Labs",
+            "logo": "https://assets.runware.ai/07bfd96d-d2df-4d52-aba5-636fb27874be.png"
+        },
+        "x-capabilities": [
+            "text-to-image",
+            "image-to-image",
+            "edit",
+            "checkpoint"
+        ],
+        "x-modes": [
+            {
+                "id": "text",
+                "inputs": []
+            },
+            {
+                "id": "reference-images",
+                "inputs": [
+                    "referenceImages"
+                ]
+            }
+        ],
+        "x-released-at": "2026-10-01T00:00:00Z",
+        "x-cover-image": "https://assets.runware.ai/covers/bfl-flux-3-image.jpg",
+        "x-examples": "https://runware.ai/docs/models/bfl-flux-3-image/examples.json",
+        "x-pricing": {
+            "currency": "USD",
+            "docs": "https://runware.ai/docs/models-api/pricing",
+            "rates": [
+                {
+                    "amount": 0.041,
+                    "unit": "output",
+                    "label": "0.75K",
+                    "display": "$0.041 per image"
+                },
+                {
+                    "amount": 0.048,
+                    "unit": "output",
+                    "label": "1K",
+                    "display": "$0.048 per image"
+                },
+                {
+                    "amount": 0.1,
+                    "unit": "output",
+                    "label": "2K",
+                    "display": "$0.10 per image"
+                },
+                {
+                    "amount": 0.607,
+                    "unit": "output",
+                    "label": "4K",
+                    "display": "$0.607 per image"
+                }
+            ],
+            "examples": [
+                {
+                    "id": "circular-linen-campaign-key-visual",
+                    "configuration": "bounding-boxes · 1360×768",
+                    "price": 0.024,
+                    "latencyMs": 50189
+                },
+                {
+                    "id": "rare-manuscript-conservator-portrait",
+                    "configuration": "text-to-image · 1360×768",
+                    "price": 0.048,
+                    "latencyMs": 44132
+                },
+                {
+                    "id": "geothermal-utility-campaign-key-visual",
+                    "configuration": "text-to-image · 1360×768",
+                    "price": 0.048,
+                    "latencyMs": 40011
+                },
+                {
+                    "id": "maritime-museum-robot-headshot",
+                    "configuration": "background-replacement · 2K",
+                    "price": 0.05,
+                    "latencyMs": 80172
+                },
+                {
+                    "id": "library-returns-station-catalogue",
+                    "configuration": "reference-bounding-boxes · 2K",
+                    "price": 0.05,
+                    "latencyMs": 59230
+                },
+                {
+                    "id": "grain-inspector-staff-profile-portrait",
+                    "configuration": "identity-preservation · 2K",
+                    "price": 0.05,
+                    "latencyMs": 46423
+                },
+                {
+                    "id": "floating-sauna-social-campaign-post",
+                    "configuration": "reference-to-image · 2K",
+                    "price": 0.1,
+                    "latencyMs": 295841
+                },
+                {
+                    "id": "seed-library-supper-invitation",
+                    "configuration": "reference-to-image · 2K",
+                    "price": 0.1,
+                    "latencyMs": 363076
+                },
+                {
+                    "id": "festival-poster-title-retouch",
+                    "configuration": "local-editing · 4K",
+                    "price": 0.303,
+                    "latencyMs": 99885
+                }
+            ]
+        }
+    },
+    "externalDocs": {
+        "description": "FLUX 3 Image on Runware",
+        "url": "https://runware.ai/docs/models/bfl-flux-3-image"
+    },
+    "servers": [
+        {
+            "url": "https://api.runware.ai/v1",
+            "description": "Runware REST API"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "apiKeyAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "description": "Runware API Key (e.g., Bearer <your-key>)"
+            }
+        },
+        "schemas": {
+            "AuthenticationTask": {
+                "title": "Authentication",
+                "description": "Authenticates a connection using an API key. Can be sent as the first element of the request array as an alternative to using the Authorization header.",
+                "type": "object",
+                "x-response-schema": "https://schemas.runware.ai/responses/utilities/authentication.json",
+                "properties": {
+                    "taskType": {
+                        "title": "Task Type",
+                        "description": "Identifier for the type of task being performed.",
+                        "type": "string",
+                        "const": "authentication"
+                    },
+                    "apiKey": {
+                        "title": "API Key",
+                        "description": "Your Runware API key.",
+                        "type": "string"
+                    },
+                    "connectionSessionUUID": {
+                        "title": "Connection Session UUID",
+                        "description": "Optional session UUID to resume a previous connection and receive any buffered results.",
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "taskType",
+                    "apiKey"
+                ],
+                "additionalProperties": false
+            },
+            "RequestBody": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "x-constraints": [
+                        {
+                            "operation": "width",
+                            "parameters": [
+                                "inputs.referenceImages"
+                            ],
+                            "minimum": 128,
+                            "scope": "each"
+                        },
+                        {
+                            "operation": "height",
+                            "parameters": [
+                                "inputs.referenceImages"
+                            ],
+                            "minimum": 128,
+                            "scope": "each"
+                        }
+                    ],
+                    "properties": {
+                        "model": {
+                            "title": "Model",
+                            "description": "Identifier of the model to use for generation.",
+                            "type": "string",
+                            "const": "bfl:flux@3-image"
+                        },
+                        "inputs": {
+                            "title": "Inputs",
+                            "description": "Input assets for the task.",
+                            "type": "object",
+                            "properties": {
+                                "referenceImages": {
+                                    "title": "Reference Images",
+                                    "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+                                    "type": "array",
+                                    "minItems": 1,
+                                    "items": {
+                                        "title": "Image",
+                                        "description": "Image input (UUID, URL, Data URI, or Base64).",
+                                        "type": "string",
+                                        "anyOf": [
+                                            {
+                                                "format": "uuid"
+                                            },
+                                            {
+                                                "format": "uri"
+                                            },
+                                            {
+                                                "pattern": "^data:image\\/[a-zA-Z]+;base64,[a-zA-Z0-9+/=]+$"
+                                            },
+                                            {
+                                                "pattern": "^[a-zA-Z0-9+/=]+$"
+                                            }
+                                        ]
+                                    },
+                                    "maxItems": 10
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "positivePrompt": {
+                            "title": "Positive Prompt",
+                            "description": "Text prompt describing elements to include in the generated output.",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 32000
+                        },
+                        "width": {
+                            "title": "Width",
+                            "description": "Width of the generated media in pixels.",
+                            "type": "integer",
+                            "default": 1024
+                        },
+                        "height": {
+                            "title": "Height",
+                            "description": "Height of the generated media in pixels.",
+                            "type": "integer",
+                            "default": 1024
+                        },
+                        "resolution": {
+                            "title": "Resolution",
+                            "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input.",
+                            "type": "string",
+                            "enum": [
+                                "0.75K",
+                                "1K",
+                                "2K",
+                                "4K"
+                            ],
+                            "default": "1K"
+                        },
+                        "settings": {
+                            "title": "Settings",
+                            "description": "Global inference settings.",
+                            "type": "object",
+                            "properties": {
+                                "boundingBoxes": {
+                                    "type": "array",
+                                    "title": "Bounding Boxes",
+                                    "description": "Regions that place, move, resize or remove elements.",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "description": {
+                                                "type": "string",
+                                                "title": "Description",
+                                                "description": "What the region holds.",
+                                                "minLength": 1
+                                            },
+                                            "id": {
+                                                "type": "string",
+                                                "title": "ID",
+                                                "description": "Region identifier, unique within the request. Referenced from `positivePrompt` as `<id>`.",
+                                                "minLength": 1
+                                            },
+                                            "referenceIndex": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "title": "Reference Index",
+                                                "description": "Index into `inputs.referenceImages` the element is taken from. Null for a new element.",
+                                                "minimum": 0,
+                                                "maximum": 9
+                                            },
+                                            "sourceBox": {
+                                                "type": [
+                                                    "array",
+                                                    "null"
+                                                ],
+                                                "title": "Source Box",
+                                                "description": "Position of the element inside the reference as [top, left, bottom, right] on a 0 to 1000 scale. Matching `sourceBox` and `targetBox` keep the element in place, different values move or resize it. Null for a new element.",
+                                                "items": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 1000
+                                                },
+                                                "minItems": 4,
+                                                "maxItems": 4
+                                            },
+                                            "targetBox": {
+                                                "type": [
+                                                    "array",
+                                                    "null"
+                                                ],
+                                                "title": "Target Box",
+                                                "description": "Position in the output as [top, left, bottom, right] on a 0 to 1000 scale, whatever the output size. Top must be lower than bottom and left lower than right. Null removes the element, which requires reference images.",
+                                                "items": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 1000
+                                                },
+                                                "minItems": 4,
+                                                "maxItems": 4
+                                            }
+                                        },
+                                        "dependentRequired": {
+                                            "sourceBox": [
+                                                "referenceIndex"
+                                            ]
+                                        },
+                                        "required": [
+                                            "id"
+                                        ],
+                                        "additionalProperties": false
+                                    },
+                                    "minItems": 1
+                                },
+                                "safetyTolerance": {
+                                    "title": "Safety Tolerance",
+                                    "description": "Tolerance level for content moderation. Lower values are stricter; higher values are more permissive.",
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 4,
+                                    "default": 2
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "taskType": {
+                            "title": "Task Type",
+                            "description": "Identifier for the type of task being performed.",
+                            "type": "string",
+                            "const": "imageInference"
+                        },
+                        "taskUUID": {
+                            "title": "Task UUID",
+                            "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task.",
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "webhookURL": {
+                            "title": "Webhook URL",
+                            "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available.",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "includeCost": {
+                            "title": "Include Cost",
+                            "description": "Include task cost in the response.",
+                            "type": "boolean"
+                        },
+                        "numberResults": {
+                            "title": "Number of Results",
+                            "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "maximum": 20
+                        },
+                        "uploadEndpoint": {
+                            "title": "Upload Endpoint",
+                            "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials.\n\n**Common use cases:**\n\n- **Cloud storage**: Upload directly to S3 buckets, Google Cloud Storage, or Azure Blob Storage using presigned URLs.\n- **CDN integration**: Upload to content delivery networks for immediate distribution.\n\n```text\n// S3 presigned URL for secure upload\nhttps://your-bucket.s3.amazonaws.com/generated/content.mp4?X-Amz-Signature=abc123&X-Amz-Expires=3600\n\n// Google Cloud Storage presigned URL\nhttps://storage.googleapis.com/your-bucket/content.jpg?X-Goog-Signature=xyz789\n\n// Custom storage endpoint\nhttps://storage.example.com/uploads/generated-image.jpg\n```\n\nThe content data will be sent as the request body to the specified URL when generation is complete.\n\n[Read full documentation](https://runware.ai/docs/models/bfl-flux-3-image#uploadEndpoint)",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "ttl": {
+                            "title": "TTL",
+                            "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`.",
+                            "type": "integer",
+                            "minimum": 60
+                        },
+                        "outputType": {
+                            "title": "Output Type",
+                            "description": "Image output type.",
+                            "type": "string",
+                            "enum": [
+                                "URL",
+                                "base64Data",
+                                "dataURI"
+                            ],
+                            "default": "URL"
+                        },
+                        "outputFormat": {
+                            "title": "Output Format",
+                            "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities.\n\n- \\`JPG\\`: Best for photorealistic images with smaller file sizes (no transparency).\n- \\`PNG\\`: Lossless compression, supports high quality and transparency (alpha channel).\n- \\`WEBP\\`: Modern format providing superior compression and transparency support.\n- \\`MP4\\`: Widely supported video container (H.264), recommended for general use.\n- \\`WEBM\\`: Optimized for web delivery.\n- \\`MOV\\`: QuickTime format, common in professional workflows (Apple ecosystem).\n- \\`GIF\\`: Animated image format (no audio), suitable for short loops or previews.\n- \\`MP3\\`: Compressed audio, smaller file size.\n- \\`WAV\\`: Uncompressed, high-quality audio.\n- \\`FLAC\\`: Lossless compression.\n- \\`OGG\\`: Open-source compressed audio format (Vorbis codec).\n- \\`SVG\\`: Scalable Vector Graphics.\n- \\`TIFF\\`: High-quality output supporting layers.\n- \\`GLB\\`: Binary glTF format for 3D models, including geometry, textures, and PBR materials.\n\n> [!NOTE]\n> \\*\\*Transparency\\*\\*: If you are using features like background removal or LayerDiffuse that require transparency, you must select a format that supports an alpha channel (e.g., \\`PNG\\`, \\`WEBP\\`, \\`TIFF\\`). \\`JPG\\` does not support transparency.\n\n[Read full documentation](https://runware.ai/docs/models/bfl-flux-3-image#outputFormat)",
+                            "type": "string",
+                            "enum": [
+                                "JPG",
+                                "PNG",
+                                "WEBP"
+                            ],
+                            "default": "JPG"
+                        },
+                        "outputQuality": {
+                            "title": "Output Quality",
+                            "description": "Compression quality of the output. Higher values preserve quality but increase file size.",
+                            "type": "integer",
+                            "minimum": 20,
+                            "maximum": 99,
+                            "default": 95
+                        },
+                        "deliveryMethod": {
+                            "title": "Delivery Method",
+                            "description": "Determines how the API delivers task results.",
+                            "type": "string",
+                            "oneOf": [
+                                {
+                                    "const": "sync",
+                                    "description": "Returns complete results directly in the API response."
+                                },
+                                {
+                                    "const": "async",
+                                    "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse."
+                                }
+                            ],
+                            "default": "sync"
+                        },
+                        "safety": {
+                            "type": "object",
+                            "title": "Safety Settings",
+                            "description": "Content safety checking configuration for image generation.",
+                            "properties": {
+                                "checkContent": {
+                                    "title": "Check Content",
+                                    "description": "Enable or disable content safety checking. Increases total generation time.",
+                                    "type": "boolean"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "advancedFeatures": {
+                            "title": "Advanced Features",
+                            "description": "Model-specific advanced configuration options.",
+                            "type": "object",
+                            "properties": {
+                                "watermark": {
+                                    "title": "Watermark",
+                                    "description": "Configuration object for adding watermarks to generated videos. Watermarks can be applied using either text or image content with customizable positioning and appearance. You must provide either `text` or `image` content for the watermark, but not both.\n\n**Text watermark**:\n\n```json\n\"advancedFeatures\": {\n  \"watermark\": {\n    \"text\": \"© 2025 Company\",\n    \"displayPosition\": \"bottom-right\",\n    \"opacity\": 0.6,\n    \"fontColor\": \"#ffffff\",\n    \"bgColor\": \"#000000\"\n  }\n}\n```\n\n**Image watermark**:\n\n```json\n\"advancedFeatures\": {\n  \"watermark\": {\n    \"image\": \"c64351d5-4c59-42f7-95e1-eace013eddab\",\n    \"displayPosition\": \"top-left\",\n    \"opacity\": 0.6\n  }\n}\n```\n\n**Tiled watermark**:\n\n```json\n\"advancedFeatures\": {\n  \"watermark\": {\n    \"text\": \"PREVIEW\",\n    \"tiled\": true,\n    \"opacity\": 0.4,\n    \"fontColor\": \"#cccccc\"\n  }\n}\n```\n\n[Read full documentation](https://runware.ai/docs/models/bfl-flux-3-image#watermark)",
+                                    "type": "object",
+                                    "properties": {
+                                        "text": {
+                                            "title": "Watermark Text",
+                                            "description": "Watermark text.",
+                                            "type": "string",
+                                            "minLength": 2,
+                                            "maxLength": 32
+                                        },
+                                        "image": {
+                                            "title": "Watermark Image",
+                                            "description": "Watermark image (UUID, URL, Data URI, or Base64).",
+                                            "type": "string",
+                                            "anyOf": [
+                                                {
+                                                    "format": "uuid"
+                                                },
+                                                {
+                                                    "format": "uri"
+                                                },
+                                                {
+                                                    "pattern": "^data:image\\/[a-zA-Z]+;base64,[a-zA-Z0-9+/=]+$"
+                                                },
+                                                {
+                                                    "pattern": "^[a-zA-Z0-9+/=]+$"
+                                                }
+                                            ]
+                                        },
+                                        "displayPosition": {
+                                            "title": "Display Position",
+                                            "description": "Watermark position.",
+                                            "type": "string",
+                                            "enum": [
+                                                "top-left",
+                                                "top-center",
+                                                "top-right",
+                                                "center-left",
+                                                "center-center",
+                                                "center-right",
+                                                "bottom-left",
+                                                "bottom-center",
+                                                "bottom-right",
+                                                "tiled"
+                                            ]
+                                        },
+                                        "opacity": {
+                                            "title": "Watermark Opacity",
+                                            "description": "Watermark opacity.",
+                                            "type": "number",
+                                            "multipleOf": 0.01,
+                                            "minimum": 0.1,
+                                            "maximum": 1
+                                        },
+                                        "fontColor": {
+                                            "title": "Font Color",
+                                            "description": "Text color in hex format.",
+                                            "type": "string",
+                                            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                        },
+                                        "bgColor": {
+                                            "title": "Background Color",
+                                            "description": "Background color in hex format.",
+                                            "type": "string",
+                                            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                        }
+                                    },
+                                    "oneOf": [
+                                        {
+                                            "required": [
+                                                "text"
+                                            ]
+                                        },
+                                        {
+                                            "required": [
+                                                "image"
+                                            ]
+                                        }
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "required": [
+                        "positivePrompt",
+                        "taskType",
+                        "taskUUID",
+                        "model"
+                    ],
+                    "allOf": [
+                        {
+                            "dependentRequired": {
+                                "width": [
+                                    "height"
+                                ],
+                                "height": [
+                                    "width"
+                                ]
+                            }
+                        },
+                        {
+                            "not": {
+                                "allOf": [
+                                    {
+                                        "required": [
+                                            "resolution"
+                                        ]
+                                    },
+                                    {
+                                        "anyOf": [
+                                            {
+                                                "required": [
+                                                    "width"
+                                                ]
+                                            },
+                                            {
+                                                "required": [
+                                                    "height"
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "width"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "height"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "then": {
+                                "oneOf": [
+                                    {
+                                        "title": "0.75K (~21:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1168
+                                            },
+                                            "height": {
+                                                "const": 496
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (2:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1088
+                                            },
+                                            "height": {
+                                                "const": 544
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (16:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1024
+                                            },
+                                            "height": {
+                                                "const": 576
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~3:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 944
+                                            },
+                                            "height": {
+                                                "const": 624
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~7:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 912
+                                            },
+                                            "height": {
+                                                "const": 656
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~4:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 880
+                                            },
+                                            "height": {
+                                                "const": 672
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~5:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 864
+                                            },
+                                            "height": {
+                                                "const": 688
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (1:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 768
+                                            },
+                                            "height": {
+                                                "const": 768
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~4:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 688
+                                            },
+                                            "height": {
+                                                "const": 864
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~3:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 672
+                                            },
+                                            "height": {
+                                                "const": 880
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~5:7)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 656
+                                            },
+                                            "height": {
+                                                "const": 912
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~2:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 624
+                                            },
+                                            "height": {
+                                                "const": 944
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (9:16)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 576
+                                            },
+                                            "height": {
+                                                "const": 1024
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (1:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 544
+                                            },
+                                            "height": {
+                                                "const": 1088
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "0.75K (~9:21)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 496
+                                            },
+                                            "height": {
+                                                "const": 1168
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (21:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1568
+                                            },
+                                            "height": {
+                                                "const": 672
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (2:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1440
+                                            },
+                                            "height": {
+                                                "const": 720
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~16:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1360
+                                            },
+                                            "height": {
+                                                "const": 768
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (3:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1248
+                                            },
+                                            "height": {
+                                                "const": 832
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~7:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1216
+                                            },
+                                            "height": {
+                                                "const": 864
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~4:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1184
+                                            },
+                                            "height": {
+                                                "const": 880
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~5:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1152
+                                            },
+                                            "height": {
+                                                "const": 912
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (1:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1024
+                                            },
+                                            "height": {
+                                                "const": 1024
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~4:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 912
+                                            },
+                                            "height": {
+                                                "const": 1152
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~3:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 880
+                                            },
+                                            "height": {
+                                                "const": 1184
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~5:7)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 864
+                                            },
+                                            "height": {
+                                                "const": 1216
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (2:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 832
+                                            },
+                                            "height": {
+                                                "const": 1248
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (~9:16)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 768
+                                            },
+                                            "height": {
+                                                "const": 1360
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (1:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 720
+                                            },
+                                            "height": {
+                                                "const": 1440
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "1K (9:21)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 672
+                                            },
+                                            "height": {
+                                                "const": 1568
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (21:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 3136
+                                            },
+                                            "height": {
+                                                "const": 1344
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~2:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2896
+                                            },
+                                            "height": {
+                                                "const": 1440
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~16:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2736
+                                            },
+                                            "height": {
+                                                "const": 1536
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~3:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2512
+                                            },
+                                            "height": {
+                                                "const": 1664
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~7:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2416
+                                            },
+                                            "height": {
+                                                "const": 1728
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (4:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2368
+                                            },
+                                            "height": {
+                                                "const": 1776
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~5:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2288
+                                            },
+                                            "height": {
+                                                "const": 1824
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (1:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2048
+                                            },
+                                            "height": {
+                                                "const": 2048
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~4:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1824
+                                            },
+                                            "height": {
+                                                "const": 2288
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (3:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1776
+                                            },
+                                            "height": {
+                                                "const": 2368
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~5:7)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1728
+                                            },
+                                            "height": {
+                                                "const": 2416
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~2:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1664
+                                            },
+                                            "height": {
+                                                "const": 2512
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~9:16)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1536
+                                            },
+                                            "height": {
+                                                "const": 2736
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (~1:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1440
+                                            },
+                                            "height": {
+                                                "const": 2896
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "2K (9:21)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 1344
+                                            },
+                                            "height": {
+                                                "const": 3136
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~21:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 6256
+                                            },
+                                            "height": {
+                                                "const": 2688
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (2:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 5792
+                                            },
+                                            "height": {
+                                                "const": 2896
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~16:9)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 5456
+                                            },
+                                            "height": {
+                                                "const": 3072
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~3:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 5024
+                                            },
+                                            "height": {
+                                                "const": 3344
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~7:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 4848
+                                            },
+                                            "height": {
+                                                "const": 3456
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (4:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 4736
+                                            },
+                                            "height": {
+                                                "const": 3552
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~5:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 4576
+                                            },
+                                            "height": {
+                                                "const": 3664
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (1:1)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 4096
+                                            },
+                                            "height": {
+                                                "const": 4096
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~4:5)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 3664
+                                            },
+                                            "height": {
+                                                "const": 4576
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (3:4)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 3552
+                                            },
+                                            "height": {
+                                                "const": 4736
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~5:7)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 3456
+                                            },
+                                            "height": {
+                                                "const": 4848
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~2:3)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 3344
+                                            },
+                                            "height": {
+                                                "const": 5024
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~9:16)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 3072
+                                            },
+                                            "height": {
+                                                "const": 5456
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (1:2)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2896
+                                            },
+                                            "height": {
+                                                "const": 5792
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "4K (~9:21)",
+                                        "properties": {
+                                            "width": {
+                                                "const": 2688
+                                            },
+                                            "height": {
+                                                "const": 6256
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "required": [
+                                    "resolution"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "inputs": {
+                                        "required": [
+                                            "referenceImages"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "inputs"
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "not": {
+                                    "properties": {
+                                        "inputs": {
+                                            "required": [
+                                                "referenceImages"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "inputs"
+                                    ]
+                                }
+                            },
+                            "then": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "boundingBoxes": {
+                                                "items": {
+                                                    "properties": {
+                                                        "referenceIndex": false,
+                                                        "sourceBox": false,
+                                                        "targetBox": {
+                                                            "type": "array"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "targetBox"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "additionalProperties": false
+                },
+                "description": "You must always POST an array of task objects."
+            },
+            "ResponseBody": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "title": "Image Response",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "taskType": {
+                                    "title": "Task Type",
+                                    "description": "Identifier for the type of task this response belongs to.",
+                                    "type": "string",
+                                    "const": "imageInference"
+                                },
+                                "taskUUID": {
+                                    "title": "Task UUID",
+                                    "description": "UUID v4 identifier echoed from the original request, used to match async responses to their tasks.",
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "cost": {
+                                    "title": "Cost",
+                                    "description": "Task cost in USD. Present when `includeCost` is set to `true` in the request.",
+                                    "type": "number"
+                                },
+                                "imageUUID": {
+                                    "title": "Image UUID",
+                                    "description": "UUID of the output image.",
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "imageURL": {
+                                    "title": "Image URL",
+                                    "description": "URL of the output image.",
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "imageBase64Data": {
+                                    "title": "Image Base64 Data",
+                                    "description": "Base64-encoded image data.",
+                                    "type": "string"
+                                },
+                                "imageDataURI": {
+                                    "title": "Image Data URI",
+                                    "description": "Data URI of the output image.",
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "seed": {
+                                    "title": "Seed",
+                                    "description": "The seed used for generation. If none was provided, shows the randomly generated seed.",
+                                    "type": "integer"
+                                },
+                                "NSFWContent": {
+                                    "title": "NSFW Content",
+                                    "description": "Flag indicating if NSFW content was detected.",
+                                    "type": "boolean"
+                                }
+                            },
+                            "required": [
+                                "taskType",
+                                "taskUUID",
+                                "imageUUID"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "title": "Error Response",
+                "description": "Standard error response returned by the Runware API.",
+                "type": "object",
+                "properties": {
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "code",
+                                "message"
+                            ],
+                            "additionalProperties": true,
+                            "properties": {
+                                "code": {
+                                    "type": "string",
+                                    "description": "A short identifier for the error (e.g., invalidApiKey, timeoutProvider)."
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "description": "A human-readable explanation of what went wrong."
+                                },
+                                "parameter": {
+                                    "type": "string",
+                                    "description": "The request parameter related to the error, if applicable."
+                                },
+                                "taskType": {
+                                    "type": "string",
+                                    "description": "The task type of the request that failed."
+                                },
+                                "taskUUID": {
+                                    "type": "string",
+                                    "description": "The unique identifier of the failed request."
+                                },
+                                "documentation": {
+                                    "type": "string",
+                                    "description": "A link to relevant documentation."
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "errors"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "paths": {
+        "/": {
+            "post": {
+                "summary": "Run FLUX 3 Image",
+                "description": "FLUX 3 Image is Black Forest Labs' image generation and editing model built on the multimodal FLUX 3 backbone shared with FLUX 3 Video. It combines text-to-image synthesis, precise local editing, multi-reference composition, bounding-box placement, and native 4K output. The model preserves identities and fine details across references, supports targeted changes and in-place text editing, and renders accurate typography in text-heavy layouts across a broad range of visual styles.",
+                "operationId": "run_bfl_flux_3_image",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequestBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — Missing or invalid parameters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — No valid API key provided.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required — Insufficient account balance.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — The API key lacks permissions for this request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests — Rate limit exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error — Something went wrong on Runware's end.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable — Temporarily unavailable (maintenance or capacity).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKeyAuth": []
+        }
+    ]
+}

@@ -1,0 +1,1333 @@
+{
+  "name": "FLUX 3 Image",
+  "organisation": "Black Forest Labs",
+  "provider": "runware",
+  "value": "bfl:flux@3-image",
+  "air_id": "bfl:flux@3-image",
+  "href": "/models/image/black-forest-labs/bfl-flux-3-image",
+  "paid": true,
+  "type": "image",
+  "capabilities": [
+    "text-to-image",
+    "image-to-image",
+    "edit"
+  ],
+  "description": "FLUX 3 Image is Black Forest Labs' image generation and editing model built on the multimodal FLUX 3 backbone shared with FLUX 3 Video. It combines text-to-image synthesis, precise local editing, multi-reference composition, bounding-box placement, and native 4K output. The model preserves identities and fine details across references, supports targeted changes and in-place text editing, and renders accurate typography in text-heavy layouts across a broad range of visual styles.",
+  "schema": "https://runware.ai/docs/models/bfl-flux-3-image",
+  "resolutions": [
+    {
+      "label": "0.75K (~21:9)",
+      "width": 1168,
+      "height": 496
+    },
+    {
+      "label": "0.75K (2:1)",
+      "width": 1088,
+      "height": 544
+    },
+    {
+      "label": "0.75K (16:9)",
+      "width": 1024,
+      "height": 576
+    },
+    {
+      "label": "0.75K (~3:2)",
+      "width": 944,
+      "height": 624
+    },
+    {
+      "label": "0.75K (~7:5)",
+      "width": 912,
+      "height": 656
+    },
+    {
+      "label": "0.75K (~4:3)",
+      "width": 880,
+      "height": 672
+    },
+    {
+      "label": "0.75K (~5:4)",
+      "width": 864,
+      "height": 688
+    },
+    {
+      "label": "0.75K (1:1)",
+      "width": 768,
+      "height": 768
+    },
+    {
+      "label": "0.75K (~4:5)",
+      "width": 688,
+      "height": 864
+    },
+    {
+      "label": "0.75K (~3:4)",
+      "width": 672,
+      "height": 880
+    },
+    {
+      "label": "0.75K (~5:7)",
+      "width": 656,
+      "height": 912
+    },
+    {
+      "label": "0.75K (~2:3)",
+      "width": 624,
+      "height": 944
+    },
+    {
+      "label": "0.75K (9:16)",
+      "width": 576,
+      "height": 1024
+    },
+    {
+      "label": "0.75K (1:2)",
+      "width": 544,
+      "height": 1088
+    },
+    {
+      "label": "0.75K (~9:21)",
+      "width": 496,
+      "height": 1168
+    },
+    {
+      "label": "1K (21:9)",
+      "width": 1568,
+      "height": 672
+    },
+    {
+      "label": "1K (2:1)",
+      "width": 1440,
+      "height": 720
+    },
+    {
+      "label": "1K (~16:9)",
+      "width": 1360,
+      "height": 768
+    },
+    {
+      "label": "1K (3:2)",
+      "width": 1248,
+      "height": 832
+    },
+    {
+      "label": "1K (~7:5)",
+      "width": 1216,
+      "height": 864
+    },
+    {
+      "label": "1K (~4:3)",
+      "width": 1184,
+      "height": 880
+    },
+    {
+      "label": "1K (~5:4)",
+      "width": 1152,
+      "height": 912
+    },
+    {
+      "label": "1K (1:1)",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "label": "1K (~4:5)",
+      "width": 912,
+      "height": 1152
+    },
+    {
+      "label": "1K (~3:4)",
+      "width": 880,
+      "height": 1184
+    },
+    {
+      "label": "1K (~5:7)",
+      "width": 864,
+      "height": 1216
+    },
+    {
+      "label": "1K (2:3)",
+      "width": 832,
+      "height": 1248
+    },
+    {
+      "label": "1K (~9:16)",
+      "width": 768,
+      "height": 1360
+    },
+    {
+      "label": "1K (1:2)",
+      "width": 720,
+      "height": 1440
+    },
+    {
+      "label": "1K (9:21)",
+      "width": 672,
+      "height": 1568
+    },
+    {
+      "label": "2K (21:9)",
+      "width": 3136,
+      "height": 1344
+    },
+    {
+      "label": "2K (~2:1)",
+      "width": 2896,
+      "height": 1440
+    },
+    {
+      "label": "2K (~16:9)",
+      "width": 2736,
+      "height": 1536
+    },
+    {
+      "label": "2K (~3:2)",
+      "width": 2512,
+      "height": 1664
+    },
+    {
+      "label": "2K (~7:5)",
+      "width": 2416,
+      "height": 1728
+    },
+    {
+      "label": "2K (4:3)",
+      "width": 2368,
+      "height": 1776
+    },
+    {
+      "label": "2K (~5:4)",
+      "width": 2288,
+      "height": 1824
+    },
+    {
+      "label": "2K (1:1)",
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "label": "2K (~4:5)",
+      "width": 1824,
+      "height": 2288
+    },
+    {
+      "label": "2K (3:4)",
+      "width": 1776,
+      "height": 2368
+    },
+    {
+      "label": "2K (~5:7)",
+      "width": 1728,
+      "height": 2416
+    },
+    {
+      "label": "2K (~2:3)",
+      "width": 1664,
+      "height": 2512
+    },
+    {
+      "label": "2K (~9:16)",
+      "width": 1536,
+      "height": 2736
+    },
+    {
+      "label": "2K (~1:2)",
+      "width": 1440,
+      "height": 2896
+    },
+    {
+      "label": "2K (9:21)",
+      "width": 1344,
+      "height": 3136
+    },
+    {
+      "label": "4K (~21:9)",
+      "width": 6256,
+      "height": 2688
+    },
+    {
+      "label": "4K (2:1)",
+      "width": 5792,
+      "height": 2896
+    },
+    {
+      "label": "4K (~16:9)",
+      "width": 5456,
+      "height": 3072
+    },
+    {
+      "label": "4K (~3:2)",
+      "width": 5024,
+      "height": 3344
+    },
+    {
+      "label": "4K (~7:5)",
+      "width": 4848,
+      "height": 3456
+    },
+    {
+      "label": "4K (4:3)",
+      "width": 4736,
+      "height": 3552
+    },
+    {
+      "label": "4K (~5:4)",
+      "width": 4576,
+      "height": 3664
+    },
+    {
+      "label": "4K (1:1)",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "label": "4K (~4:5)",
+      "width": 3664,
+      "height": 4576
+    },
+    {
+      "label": "4K (3:4)",
+      "width": 3552,
+      "height": 4736
+    },
+    {
+      "label": "4K (~5:7)",
+      "width": 3456,
+      "height": 4848
+    },
+    {
+      "label": "4K (~2:3)",
+      "width": 3344,
+      "height": 5024
+    },
+    {
+      "label": "4K (~9:16)",
+      "width": 3072,
+      "height": 5456
+    },
+    {
+      "label": "4K (1:2)",
+      "width": 2896,
+      "height": 5792
+    },
+    {
+      "label": "4K (~9:21)",
+      "width": 2688,
+      "height": 6256
+    }
+  ],
+  "pricing": {
+    "perImage": {
+      "0.75K": 0.041,
+      "1K": 0.048,
+      "2K": 0.1,
+      "4K": 0.607
+    },
+    "source": "https://runware.ai/docs/models/bfl-flux-3-image",
+    "checked": "2026-09-30"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Choose either a resolution preset or an exact size, not both.",
+    "Width × height must be one of the supported sizes.",
+    "A resolution preset needs a reference image.",
+    "Without reference images, bounding boxes can only set a target box."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "required": [
+              "resolution"
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "width"
+                ]
+              },
+              {
+                "required": [
+                  "height"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 1168
+              },
+              "height": {
+                "const": 496
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1088
+              },
+              "height": {
+                "const": 544
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1024
+              },
+              "height": {
+                "const": 576
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 944
+              },
+              "height": {
+                "const": 624
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 912
+              },
+              "height": {
+                "const": 656
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 880
+              },
+              "height": {
+                "const": 672
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 864
+              },
+              "height": {
+                "const": 688
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 768
+              },
+              "height": {
+                "const": 768
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 688
+              },
+              "height": {
+                "const": 864
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 672
+              },
+              "height": {
+                "const": 880
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 656
+              },
+              "height": {
+                "const": 912
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 624
+              },
+              "height": {
+                "const": 944
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 576
+              },
+              "height": {
+                "const": 1024
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 544
+              },
+              "height": {
+                "const": 1088
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 496
+              },
+              "height": {
+                "const": 1168
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1568
+              },
+              "height": {
+                "const": 672
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1440
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1360
+              },
+              "height": {
+                "const": 768
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1248
+              },
+              "height": {
+                "const": 832
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1216
+              },
+              "height": {
+                "const": 864
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1184
+              },
+              "height": {
+                "const": 880
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1152
+              },
+              "height": {
+                "const": 912
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1024
+              },
+              "height": {
+                "const": 1024
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 912
+              },
+              "height": {
+                "const": 1152
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 880
+              },
+              "height": {
+                "const": 1184
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 864
+              },
+              "height": {
+                "const": 1216
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 832
+              },
+              "height": {
+                "const": 1248
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 768
+              },
+              "height": {
+                "const": 1360
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 1440
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 672
+              },
+              "height": {
+                "const": 1568
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3136
+              },
+              "height": {
+                "const": 1344
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2896
+              },
+              "height": {
+                "const": 1440
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2736
+              },
+              "height": {
+                "const": 1536
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2512
+              },
+              "height": {
+                "const": 1664
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2416
+              },
+              "height": {
+                "const": 1728
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2368
+              },
+              "height": {
+                "const": 1776
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2288
+              },
+              "height": {
+                "const": 1824
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2048
+              },
+              "height": {
+                "const": 2048
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1824
+              },
+              "height": {
+                "const": 2288
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1776
+              },
+              "height": {
+                "const": 2368
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1728
+              },
+              "height": {
+                "const": 2416
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1664
+              },
+              "height": {
+                "const": 2512
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1536
+              },
+              "height": {
+                "const": 2736
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1440
+              },
+              "height": {
+                "const": 2896
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1344
+              },
+              "height": {
+                "const": 3136
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 6256
+              },
+              "height": {
+                "const": 2688
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 5792
+              },
+              "height": {
+                "const": 2896
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 5456
+              },
+              "height": {
+                "const": 3072
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 5024
+              },
+              "height": {
+                "const": 3344
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4848
+              },
+              "height": {
+                "const": 3456
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4736
+              },
+              "height": {
+                "const": 3552
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4576
+              },
+              "height": {
+                "const": 3664
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4096
+              },
+              "height": {
+                "const": 4096
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3664
+              },
+              "height": {
+                "const": 4576
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3552
+              },
+              "height": {
+                "const": 4736
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3456
+              },
+              "height": {
+                "const": 4848
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3344
+              },
+              "height": {
+                "const": 5024
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3072
+              },
+              "height": {
+                "const": 5456
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2896
+              },
+              "height": {
+                "const": 5792
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2688
+              },
+              "height": {
+                "const": 6256
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "inputs": {
+              "required": [
+                "referenceImages"
+              ]
+            }
+          },
+          "required": [
+            "inputs"
+          ]
+        }
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "boundingBoxes": {
+                "items": {
+                  "properties": {
+                    "referenceIndex": false,
+                    "sourceBox": false,
+                    "targetBox": {
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "targetBox"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "bfl:flux@3-image",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "imageInference",
+      "description": "Identifier for the type of task being performed."
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 32000,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "default": 1024,
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "default": 1024,
+      "description": "Height of the generated media in pixels."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": [
+        "0.75K",
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "default": "1K",
+      "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Global inference settings.",
+      "properties": {
+        "boundingBoxes": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Regions that place, move, resize or remove elements.",
+          "items": {
+            "type": "object",
+            "description": "Setting sourceBox also requires referenceIndex.",
+            "properties": {
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "description": "What the region holds."
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Region identifier, unique within the request. Referenced from `positivePrompt` as `<id>`."
+              },
+              "referenceIndex": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 9,
+                "description": "Index into `inputs.referenceImages` the element is taken from. Null for a new element."
+              },
+              "sourceBox": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "Position of the element inside the reference as [top, left, bottom, right] on a 0 to 1000 scale. Matching `sourceBox` and `targetBox` keep the element in place, different values move or resize it. Null for a new element.",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              },
+              "targetBox": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "Position in the output as [top, left, bottom, right] on a 0 to 1000 scale, whatever the output size. Top must be lower than bottom and left lower than right. Null removes the element, which requires reference images.",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "safetyTolerance": {
+          "type": "integer",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 4,
+          "description": "Tolerance level for content moderation. Lower values are stricter; higher values are more permissive."
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input assets for the task.",
+      "properties": {
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for image generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL",
+        "base64Data",
+        "dataURI"
+      ],
+      "default": "URL",
+      "description": "Image output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "JPG",
+        "PNG",
+        "WEBP"
+      ],
+      "default": "JPG",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "sync",
+      "oneOf": [
+        {
+          "const": "sync",
+          "description": "Returns complete results directly in the API response."
+        },
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    },
+    "advancedFeatures": {
+      "type": "object",
+      "description": "Model-specific advanced configuration options.",
+      "properties": {
+        "watermark": {
+          "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "text"
+              ]
+            },
+            {
+              "required": [
+                "image"
+              ]
+            }
+          ],
+          "description": "Configuration object for adding watermarks to generated videos. Watermarks can be applied using either text or image content with customizable positioning and appearance. You must provide either `text` or `image` content for the watermark, but not both.",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 32,
+              "description": "Watermark text."
+            },
+            "image": {
+              "type": "string",
+              "description": "Watermark image (UUID, URL, Data URI, or Base64)."
+            },
+            "displayPosition": {
+              "type": "string",
+              "enum": [
+                "top-left",
+                "top-center",
+                "top-right",
+                "center-left",
+                "center-center",
+                "center-right",
+                "bottom-left",
+                "bottom-center",
+                "bottom-right",
+                "tiled"
+              ],
+              "description": "Watermark position."
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1,
+              "multipleOf": 0.01,
+              "description": "Watermark opacity."
+            },
+            "fontColor": {
+              "type": "string",
+              "description": "Text color in hex format."
+            },
+            "bgColor": {
+              "type": "string",
+              "description": "Background color in hex format."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import bflFlux2Klein9b from "./bfl-flux-2-klein-9b.json";
+import bflFlux3Image from "./bfl-flux-3-image.json";
 import googleNanoBanana2Lite from "./google-nano-banana-2-lite.json";
 import googleNanoBanana2 from "./google-nano-banana-2.json";
 import metaMuseImage from "./meta-muse-image.json";
@@ -8,6 +9,7 @@ import xaiGrokImagineImage20 from "./xai-grok-imagine-image-2-0.json";
 
 export const runwareImageModels = [
   bflFlux2Klein9b,
+  bflFlux3Image,
   googleNanoBanana2Lite,
   googleNanoBanana2,
   metaMuseImage,
@@ -18,6 +20,7 @@ export const runwareImageModels = [
 
 export {
   bflFlux2Klein9b,
+  bflFlux3Image,
   googleNanoBanana2Lite,
   googleNanoBanana2,
   metaMuseImage,

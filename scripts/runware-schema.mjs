@@ -23,7 +23,7 @@ const PASSTHROUGH = [
 // Keys dropped on purpose (documentation or covered by `rules`/`conditions`).
 const DROPPED = new Set([
   "title", "$id", "additionalProperties", "contains", "dependentSchemas", "pattern", "examples",
-  "x-order",
+  "x-order", "dependentRequired",
 ]);
 const unknownKeys = new Set();
 
@@ -53,6 +53,12 @@ function constraintNotes(node) {
       throw new Error(`Unknown dependentSchemas: ${JSON.stringify(node.dependentSchemas)}`);
     }
     notes.push("Use either frame or timestamp, not both.");
+  }
+  if (node.dependentRequired) {
+    // FLUX 3 bounding boxes: a sourceBox points into a reference image.
+    for (const [key, needs] of Object.entries(node.dependentRequired)) {
+      notes.push(`Setting ${key} also requires ${needs.join(", ")}.`);
+    }
   }
   if (node.allOf) {
     // FLUX accelerator options: step vs percentage pairs, and one cache type at a time.

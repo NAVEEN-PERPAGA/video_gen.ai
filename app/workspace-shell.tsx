@@ -66,7 +66,7 @@ export async function WorkspaceShell({
 
   return (
     <>
-      <header className="sticky top-0 z-10 border-b border-black/10 bg-background dark:border-white/15">
+      <header className="sticky top-0 z-10 bg-background">
         <div className="flex h-14 items-center gap-4 px-4">
           <SiteLogo className="text-sm font-semibold tracking-tight" />
           {/* min-w-0 lets the workspace strip shrink and scroll instead of pushing the avatar off-screen. */}

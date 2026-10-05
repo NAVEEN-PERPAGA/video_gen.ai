@@ -10,6 +10,7 @@ import minimaxH3Fast from "./minimax-h3-fast.json";
 import minimaxH3MaxTurbo from "./minimax-h3-max-turbo.json";
 import minimaxH3Max from "./minimax-h3-max.json";
 import minimaxH3 from "./minimax-h3.json";
+import xaiGrokImagineVideo15Lite from "./xai-grok-imagine-video-1-5-lite.json";
 import xaiGrokImagineVideo15 from "./xai-grok-imagine-video-1-5.json";
 
 export const runwareModels = [
@@ -25,6 +26,7 @@ export const runwareModels = [
   minimaxH3MaxTurbo,
   minimaxH3Max,
   minimaxH3,
+  xaiGrokImagineVideo15Lite,
   xaiGrokImagineVideo15,
 ];
 
@@ -41,6 +43,7 @@ export {
   minimaxH3MaxTurbo,
   minimaxH3Max,
   minimaxH3,
+  xaiGrokImagineVideo15Lite,
   xaiGrokImagineVideo15,
 };
 

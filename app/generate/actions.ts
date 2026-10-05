@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { ApiError, apiFetch, apiFetchPage, errorMessages } from "@/lib/api";
+import { ApiError, apiFetch, apiFetchPage, apiSend, errorMessages } from "@/lib/api";
 import { getModel, type MediaType } from "@/lib/runware/models";
 import { buildTask, type ComposerValues, validateTask } from "@/lib/runware/request";
 import type { Upload } from "@/lib/uploads";
@@ -107,6 +107,19 @@ export async function getGeneration(workspaceId: number, generationId: number): 
     return { generation: await apiFetch<Generation>(`/workspaces/${workspaceId}/generations/${generationId}`) };
   } catch (err) {
     return { errors: errorMessages(err, "Could not check the generation.") };
+  }
+}
+
+/**
+ * Deletes a generation. Members can delete their own; admins and owners can
+ * delete anyone's (the API enforces this).
+ */
+export async function deleteGeneration(workspaceId: number, generationId: number): Promise<{ error?: string }> {
+  try {
+    await apiSend(`/workspaces/${workspaceId}/generations/${generationId}`, { method: "DELETE" });
+    return {};
+  } catch (err) {
+    return { error: errorMessages(err, "Could not delete the generation.").join(" ") };
   }
 }
 

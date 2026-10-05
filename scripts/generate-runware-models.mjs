@@ -76,6 +76,10 @@ const PRICING = {
     perSecond: { "480p": 0.08, "720p": 0.14, "1080p": 0.25 },
     perInputImage: { price: 0.01, free: 0, kinds: ["frameImages", "referenceImages"] },
   },
+  "xai-grok-imagine-video-1-5-lite": {
+    perSecond: { "480p": 0.02, "720p": 0.03, "1080p": 0.14 },
+    perInputImage: { price: 0.01, free: 0, kinds: ["frameImages"] },
+  },
 };
 
 // One entry per `allOf` condition, in the same order, so a failed condition
@@ -187,6 +191,12 @@ const RULES = {
     RES_XOR,
     PRESET,
     "A resolution preset needs a first frame.",
+  ],
+  "xai-grok-imagine-video-1-5-lite": [
+    PAIR,
+    "With a first frame, use Auto size or a resolution preset; without one, pick an exact size.",
+    RES_XOR,
+    PRESET,
   ],
 };
 

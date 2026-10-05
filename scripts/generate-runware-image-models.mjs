@@ -27,6 +27,7 @@ const PRICING = {
     approximate: true,
     note: "Priced at 1024×1024 with 4 steps; larger sizes, more steps and reference images cost more.",
   },
+  "bfl-flux-3-image": { perImage: { "0.75K": 0.041, "1K": 0.048, "2K": 0.1, "4K": 0.607 } },
   "google-nano-banana-2": {
     perImage: { "0.5K": 0.04657, "1K": 0.06895, "2K": 0.10255, "4K": 0.15295 },
     perInputImage: { price: 0.00028, free: 0, kinds: ["referenceImages"] },
@@ -67,6 +68,13 @@ const GPT_IMAGE = [
 
 const RULES = {
   "bfl-flux-2-klein-9b": [PAIR, "Use either acceleration or accelerator options, not both."],
+  "bfl-flux-3-image": [
+    PAIR,
+    RES_XOR,
+    PRESET,
+    PRESET_NEEDS_REFERENCE,
+    "Without reference images, bounding boxes can only set a target box.",
+  ],
   "google-nano-banana-2": [PAIR, RES_XOR, PRESET, PRESET_NEEDS_REFERENCE],
   "google-nano-banana-2-lite": [PAIR, SIZE_WITHOUT_REFERENCE, RES_XOR, PRESET, PRESET_NEEDS_REFERENCE],
   "meta-muse-image": [PAIR, RES_XOR, PRESET_NEEDS_REFERENCE, PRESET],

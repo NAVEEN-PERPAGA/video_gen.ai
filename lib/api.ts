@@ -10,6 +10,11 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   return body.data;
 }
 
+/** Sends a request whose success response has no body (204), e.g. a DELETE. */
+export async function apiSend(path: string, init: RequestInit): Promise<void> {
+  await apiRequest<void>(path, init);
+}
+
 export type Cursor = string | number | null;
 
 /**
@@ -96,6 +101,7 @@ async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
       body?.error?.details,
     );
   }
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
