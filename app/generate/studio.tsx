@@ -107,7 +107,8 @@ export function Studio({
   return (
     <>
       {workspaceId !== null && (
-        <section aria-labelledby="generations-heading" className="flex flex-col gap-4">
+        // At least the viewport below the header (h-14) and main's pt-12, so the page's article starts below the fold.
+        <section aria-labelledby="generations-heading" className="flex min-h-[calc(100dvh-6.5rem)] flex-col gap-4">
           {/* h2: every page that shows the studio has its own h1. Screen-reader only. */}
           <h2 id="generations-heading" className="sr-only">
             Generations

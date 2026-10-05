@@ -14,8 +14,7 @@ import {
 } from "react";
 import { signInWithGoogle } from "@/app/auth/actions";
 import { type GenerateState, type Generation, generate, getGeneration } from "@/app/generate/actions";
-import type { AgentProvider } from "@/app/generate/agent-actions";
-import { AGENT_PROVIDERS, AgentPanel, providerLabel, useAgentSession } from "@/app/generate/agent-panel";
+import { AgentPanel, providerLabel, useAgentSession } from "@/app/generate/agent-panel";
 import { Dropdown, type DropdownOption } from "@/app/generate/dropdown";
 import {
   AlertIcon,
@@ -555,13 +554,6 @@ export function VideoComposer({
                     setNotice([]);
                   }}
                 />
-                {agentMode && (
-                  <ProviderSwitch
-                    provider={agent.session?.provider ?? agent.provider}
-                    locked={agent.session !== null}
-                    onChange={agent.setProvider}
-                  />
-                )}
                 {!agentMode && (
                   <>
                     <ModeSwitch
@@ -723,44 +715,6 @@ function ModeSwitch({ type, onChange }: { type: MediaType; onChange: (type: Medi
         >
           <MediaIcon media={t} className="size-4" />
           {t === "video" ? "Video" : "Image"}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/** Which model runs the agent. `locked` once a conversation has started: its provider can't change. */
-function ProviderSwitch({
-  provider,
-  locked,
-  onChange,
-}: {
-  provider: AgentProvider;
-  locked: boolean;
-  onChange: (provider: AgentProvider) => void;
-}) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label="Agent model"
-      title={locked ? "Start a new chat to switch the agent's model" : "The model that runs the agent"}
-      className="flex h-9 shrink-0 items-center rounded-xl bg-white/[0.05] p-0.5"
-    >
-      {AGENT_PROVIDERS.map((p) => (
-        <button
-          key={p.id}
-          type="button"
-          role="radio"
-          aria-checked={provider === p.id}
-          disabled={locked}
-          onClick={() => onChange(p.id)}
-          className={`flex h-8 cursor-pointer items-center rounded-[10px] px-2.5 text-[13px] font-semibold transition duration-150 active:scale-[0.96] disabled:cursor-not-allowed ${
-            provider === p.id
-              ? "bg-indigo-500/25 text-indigo-100"
-              : "text-slate-400 enabled:hover:text-white disabled:opacity-40"
-          }`}
-        >
-          {p.label}
         </button>
       ))}
     </div>
