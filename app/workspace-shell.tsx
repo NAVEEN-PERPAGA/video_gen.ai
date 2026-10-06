@@ -7,7 +7,9 @@ import { GoogleSignInButton } from "@/app/google-sign-in-button";
 import { SiteFooter } from "@/app/site-footer";
 import { SiteLogo } from "@/app/site-logo";
 import { UserMenu } from "@/app/user-menu";
+import { DeleteWorkspaceButton } from "@/app/workspaces/delete-workspace-button";
 import { NewWorkspaceButton } from "@/app/workspaces/new-workspace-button";
+import { RenameWorkspaceButton } from "@/app/workspaces/rename-workspace-button";
 import { apiFetchAll } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 
@@ -79,15 +81,30 @@ export async function WorkspaceShell({
                     aria-current={ws.id === active?.id ? "page" : undefined}
                     className={`flex h-9 max-w-48 items-center gap-2 rounded-md px-3 text-sm transition ${
                       ws.id === active?.id
-                        ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/25 dark:text-white"
-                        : "bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.1]"
+                        ? "bg-indigo-600 font-semibold text-white dark:bg-indigo-500"
+                        : "bg-black/[0.04] font-medium text-zinc-600 hover:bg-black/[0.08] hover:text-foreground dark:bg-white/[0.06] dark:text-zinc-400 dark:hover:bg-white/[0.1]"
                     }`}
                   >
-                    <span className="truncate font-medium">{ws.name}</span>
+                    {/* Filled dot for the selected workspace, hollow for the rest, so the selection doesn't rely on colour alone. */}
+                    <span
+                      aria-hidden="true"
+                      className={`size-1.5 shrink-0 rounded-full ${
+                        ws.id === active?.id ? "bg-white" : "border border-current opacity-60"
+                      }`}
+                    />
+                    <span className="truncate">{ws.name}</span>
                   </Link>
                 </li>
               ))}
             </ul>
+            {/* Renaming is limited to owners and admins (the API enforces it too). */}
+            {active && active.role !== "member" && (
+              <RenameWorkspaceButton key={`rename-${active.id}`} workspaceId={active.id} name={active.name} />
+            )}
+            {/* Only the owner can delete (the API enforces it too). */}
+            {active?.role === "owner" && (
+              <DeleteWorkspaceButton key={`delete-${active.id}`} workspaceId={active.id} name={active.name} />
+            )}
             {signedIn && <NewWorkspaceButton />}
           </nav>
 
