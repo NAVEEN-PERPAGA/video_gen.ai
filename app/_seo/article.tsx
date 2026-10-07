@@ -31,12 +31,21 @@ export function PlainHeader() {
     <header className="sticky top-0 z-10 border-b border-black/10 bg-background dark:border-white/15">
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-4 px-4">
         <SiteLogo className="text-sm font-semibold tracking-tight" />
-        <Link
-          href="/"
-          className="flex h-9 items-center rounded-md bg-indigo-600 px-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
-        >
-          Try the AI video generator
-        </Link>
+        <nav aria-label="Site" className="flex items-center gap-2">
+          <Link
+            href="/pricing"
+            className="flex h-9 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:text-foreground dark:text-zinc-400"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/"
+            className="flex h-9 items-center rounded-md bg-indigo-600 px-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+          >
+            <span className="sm:hidden">Try it</span>
+            <span className="hidden sm:inline">Try the AI video generator</span>
+          </Link>
+        </nav>
       </div>
     </header>
   );

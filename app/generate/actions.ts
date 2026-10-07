@@ -26,7 +26,14 @@ export interface Generation {
   createdAt: string;
 }
 
-export type GenerateState = { errors?: string[]; generation?: Generation } | undefined;
+export type GenerateState =
+  | {
+      errors?: string[];
+      generation?: Generation;
+      /** The wallet can't cover the generation (402): offer to buy credits. */
+      needsCredits?: boolean;
+    }
+  | undefined;
 
 /**
  * Task fields node_scalable sets itself and rejects if the client sends them
@@ -73,6 +80,8 @@ export async function generate(
     });
     return { generation };
   } catch (err) {
+    // The 402's message already says what's needed; its details are just the numbers.
+    if (err instanceof ApiError && err.status === 402) return { errors: [err.message], needsCredits: true };
     return { errors: errorMessages(err, "Could not start the generation.") };
   }
 }

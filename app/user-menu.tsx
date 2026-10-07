@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { logout } from "@/app/auth/actions";
 import { useDismiss } from "@/lib/use-dismiss";
@@ -52,6 +53,21 @@ export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
             {displayName && <p className="truncate text-sm font-medium">{displayName}</p>}
             {email && <p className="truncate text-xs text-zinc-600 dark:text-zinc-400">{email}</p>}
           </div>
+          <div className="my-1 h-px bg-black/10 dark:bg-white/15" />
+          <Link
+            href="/billing"
+            role="menuitem"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            Billing &amp; credits
+          </Link>
+          <Link
+            href="/pricing"
+            role="menuitem"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            Pricing
+          </Link>
           <div className="my-1 h-px bg-black/10 dark:bg-white/15" />
           <form action={logout}>
             <button

@@ -42,6 +42,7 @@ export const COMPANY = {
 } as const;
 
 export const companyLinks = [
+  { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
   { href: "/privacy", label: "Privacy Policy" },

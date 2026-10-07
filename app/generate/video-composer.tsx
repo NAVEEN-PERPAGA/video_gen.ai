@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   type ComponentType,
   type ReactNode,
@@ -1914,11 +1915,21 @@ function ResultBanner({ result, onClose }: { result: NonNullable<GenerateState>;
         <XIcon className="size-4" />
       </button>
       {!generation ? (
-        <ul className="list-inside list-disc space-y-0.5">
-          {result.errors?.map((e) => (
-            <li key={e}>{e}</li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-2">
+          <ul className="list-inside list-disc space-y-0.5">
+            {result.errors?.map((e) => (
+              <li key={e}>{e}</li>
+            ))}
+          </ul>
+          {result.needsCredits && (
+            <Link
+              href="/pricing"
+              className="self-start rounded-md bg-indigo-600 px-3 py-1.5 font-medium text-white transition hover:bg-indigo-500"
+            >
+              Buy credits
+            </Link>
+          )}
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           <p className="flex items-center gap-1.5 font-medium">
