@@ -33,6 +33,11 @@ const PRICING = {
     perInputImage: { price: 0.00028, free: 0, kinds: ["referenceImages"] },
     note: "Grounded search adds $0.14.",
   },
+  "google-nano-banana-2-1": {
+    perImage: { "1K": 0.0341, "2K": 0.0524, "4K": 0.0756 },
+    approximate: true,
+    note: "Billed per token ($30 per 1M image output tokens); reference inputs and grounded search cost more.",
+  },
   "google-nano-banana-2-lite": {
     perImage: { "1K": 0.0336 },
     approximate: true,
@@ -76,6 +81,7 @@ const RULES = {
     "Without reference images, bounding boxes can only set a target box.",
   ],
   "google-nano-banana-2": [PAIR, RES_XOR, PRESET, PRESET_NEEDS_REFERENCE],
+  "google-nano-banana-2-1": [PAIR, RES_XOR, PRESET, PRESET_NEEDS_REFERENCE],
   "google-nano-banana-2-lite": [PAIR, SIZE_WITHOUT_REFERENCE, RES_XOR, PRESET, PRESET_NEEDS_REFERENCE],
   "meta-muse-image": [PAIR, RES_XOR, PRESET_NEEDS_REFERENCE, PRESET],
   "openai-gpt-image-2-5-flare": GPT_IMAGE,

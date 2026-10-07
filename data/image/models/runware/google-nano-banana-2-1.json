@@ -1,0 +1,1020 @@
+{
+  "name": "Nano Banana 2.1",
+  "organisation": "Google",
+  "provider": "runware",
+  "value": "google:nano-banana@2.1",
+  "air_id": "google:nano-banana@2.1",
+  "href": "/models/image/google/google-nano-banana-2-1",
+  "paid": true,
+  "type": "image",
+  "capabilities": [
+    "text-to-image",
+    "image-to-image",
+    "video-to-image",
+    "edit"
+  ],
+  "description": "Nano Banana 2.1 is Google's updated image generation and editing model in the Nano Banana 2 family. It improves graphic composition and subject consistency, and it follows complex prompts and edit instructions more accurately. It works from text alone or from as many as fourteen reference images plus one reference video, and it can ground a generation in live web and image search so the result reflects current facts and real visual references. It generates at 1K, 2K and 4K, with three levels of thinking that trade speed for reasoning depth, which suits layout-heavy design work, recurring characters and products, and precise multi-step edits.",
+  "schema": "https://runware.ai/docs/models/google-nano-banana-2-1",
+  "resolutions": [
+    {
+      "label": "1K (1:1)",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "label": "1K (3:2)",
+      "width": 1264,
+      "height": 848
+    },
+    {
+      "label": "1K (2:3)",
+      "width": 848,
+      "height": 1264
+    },
+    {
+      "label": "1K (4:3)",
+      "width": 1200,
+      "height": 896
+    },
+    {
+      "label": "1K (3:4)",
+      "width": 896,
+      "height": 1200
+    },
+    {
+      "label": "1K (4:5)",
+      "width": 928,
+      "height": 1152
+    },
+    {
+      "label": "1K (5:4)",
+      "width": 1152,
+      "height": 928
+    },
+    {
+      "label": "1K (9:16)",
+      "width": 768,
+      "height": 1376
+    },
+    {
+      "label": "1K (16:9)",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "label": "1K (21:9)",
+      "width": 1584,
+      "height": 672
+    },
+    {
+      "label": "1K (4:1)",
+      "width": 2064,
+      "height": 512
+    },
+    {
+      "label": "1K (1:4)",
+      "width": 512,
+      "height": 2064
+    },
+    {
+      "label": "1K (8:1)",
+      "width": 2928,
+      "height": 352
+    },
+    {
+      "label": "1K (1:8)",
+      "width": 352,
+      "height": 2928
+    },
+    {
+      "label": "2K (1:1)",
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "label": "2K (3:2)",
+      "width": 2528,
+      "height": 1696
+    },
+    {
+      "label": "2K (2:3)",
+      "width": 1696,
+      "height": 2528
+    },
+    {
+      "label": "2K (4:3)",
+      "width": 2400,
+      "height": 1792
+    },
+    {
+      "label": "2K (3:4)",
+      "width": 1792,
+      "height": 2400
+    },
+    {
+      "label": "2K (4:5)",
+      "width": 1856,
+      "height": 2304
+    },
+    {
+      "label": "2K (5:4)",
+      "width": 2304,
+      "height": 1856
+    },
+    {
+      "label": "2K (9:16)",
+      "width": 1536,
+      "height": 2752
+    },
+    {
+      "label": "2K (16:9)",
+      "width": 2752,
+      "height": 1536
+    },
+    {
+      "label": "2K (21:9)",
+      "width": 3168,
+      "height": 1344
+    },
+    {
+      "label": "2K (4:1)",
+      "width": 4128,
+      "height": 1024
+    },
+    {
+      "label": "2K (1:4)",
+      "width": 1024,
+      "height": 4128
+    },
+    {
+      "label": "2K (8:1)",
+      "width": 5856,
+      "height": 704
+    },
+    {
+      "label": "2K (1:8)",
+      "width": 704,
+      "height": 5856
+    },
+    {
+      "label": "4K (1:1)",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "label": "4K (3:2)",
+      "width": 5056,
+      "height": 3392
+    },
+    {
+      "label": "4K (2:3)",
+      "width": 3392,
+      "height": 5056
+    },
+    {
+      "label": "4K (4:3)",
+      "width": 4800,
+      "height": 3584
+    },
+    {
+      "label": "4K (3:4)",
+      "width": 3584,
+      "height": 4800
+    },
+    {
+      "label": "4K (4:5)",
+      "width": 3712,
+      "height": 4608
+    },
+    {
+      "label": "4K (5:4)",
+      "width": 4608,
+      "height": 3712
+    },
+    {
+      "label": "4K (9:16)",
+      "width": 3072,
+      "height": 5504
+    },
+    {
+      "label": "4K (16:9)",
+      "width": 5504,
+      "height": 3072
+    },
+    {
+      "label": "4K (21:9)",
+      "width": 6336,
+      "height": 2688
+    },
+    {
+      "label": "4K (4:1)",
+      "width": 8256,
+      "height": 2048
+    },
+    {
+      "label": "4K (1:4)",
+      "width": 2048,
+      "height": 8256
+    },
+    {
+      "label": "4K (8:1)",
+      "width": 11712,
+      "height": 1408
+    },
+    {
+      "label": "4K (1:8)",
+      "width": 1408,
+      "height": 11712
+    }
+  ],
+  "pricing": {
+    "perImage": {
+      "1K": 0.0341,
+      "2K": 0.0524,
+      "4K": 0.0756
+    },
+    "approximate": true,
+    "note": "Billed per token ($30 per 1M image output tokens); reference inputs and grounded search cost more.",
+    "source": "https://runware.ai/docs/models/google-nano-banana-2-1",
+    "checked": "2026-09-30"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Choose either a resolution preset or an exact size, not both.",
+    "Width × height must be one of the supported sizes.",
+    "A resolution preset needs a reference image."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "required": [
+              "resolution"
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "width"
+                ]
+              },
+              {
+                "required": [
+                  "height"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 1024
+              },
+              "height": {
+                "const": 1024
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1264
+              },
+              "height": {
+                "const": 848
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 848
+              },
+              "height": {
+                "const": 1264
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1200
+              },
+              "height": {
+                "const": 896
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 896
+              },
+              "height": {
+                "const": 1200
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 928
+              },
+              "height": {
+                "const": 1152
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1152
+              },
+              "height": {
+                "const": 928
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 768
+              },
+              "height": {
+                "const": 1376
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1376
+              },
+              "height": {
+                "const": 768
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1584
+              },
+              "height": {
+                "const": 672
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2064
+              },
+              "height": {
+                "const": 512
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 512
+              },
+              "height": {
+                "const": 2064
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2928
+              },
+              "height": {
+                "const": 352
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 352
+              },
+              "height": {
+                "const": 2928
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2048
+              },
+              "height": {
+                "const": 2048
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2528
+              },
+              "height": {
+                "const": 1696
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1696
+              },
+              "height": {
+                "const": 2528
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2400
+              },
+              "height": {
+                "const": 1792
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1792
+              },
+              "height": {
+                "const": 2400
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1856
+              },
+              "height": {
+                "const": 2304
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2304
+              },
+              "height": {
+                "const": 1856
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1536
+              },
+              "height": {
+                "const": 2752
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2752
+              },
+              "height": {
+                "const": 1536
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3168
+              },
+              "height": {
+                "const": 1344
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4128
+              },
+              "height": {
+                "const": 1024
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1024
+              },
+              "height": {
+                "const": 4128
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 5856
+              },
+              "height": {
+                "const": 704
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 704
+              },
+              "height": {
+                "const": 5856
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4096
+              },
+              "height": {
+                "const": 4096
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 5056
+              },
+              "height": {
+                "const": 3392
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3392
+              },
+              "height": {
+                "const": 5056
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4800
+              },
+              "height": {
+                "const": 3584
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3584
+              },
+              "height": {
+                "const": 4800
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3712
+              },
+              "height": {
+                "const": 4608
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 4608
+              },
+              "height": {
+                "const": 3712
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 3072
+              },
+              "height": {
+                "const": 5504
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 5504
+              },
+              "height": {
+                "const": 3072
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 6336
+              },
+              "height": {
+                "const": 2688
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 8256
+              },
+              "height": {
+                "const": 2048
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2048
+              },
+              "height": {
+                "const": 8256
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 11712
+              },
+              "height": {
+                "const": 1408
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1408
+              },
+              "height": {
+                "const": 11712
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "google:nano-banana@2.1",
+      "description": "Identifier of the model to use for generation."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "imageInference",
+      "description": "Identifier for the type of task being performed."
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 45000,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "description": "Height of the generated media in pixels."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647,
+      "description": "Random seed for reproducible generation. When not provided, a random seed is generated in the unsigned 32-bit range."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Global inference settings.",
+      "properties": {
+        "systemPrompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50000,
+          "description": "System-level instruction that guides the model's behavior and output style across the entire generation."
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "multipleOf": 0.01,
+          "description": "Controls randomness in generation. Lower values produce more deterministic outputs, higher values increase variation and creativity."
+        },
+        "topP": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "multipleOf": 0.01,
+          "description": "Nucleus sampling parameter that controls diversity by limiting the probability mass. Lower values make outputs more focused, higher values increase diversity."
+        },
+        "imageSearch": {
+          "type": "boolean",
+          "description": "Enable image search grounding to incorporate visual references from the web into image generation."
+        },
+        "safetyTolerance": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "none",
+            "off"
+          ],
+          "default": "none",
+          "description": "Safety filter tolerance level. Use `off` to use Google's defaults."
+        },
+        "thinkingLevel": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "medium",
+            "high"
+          ],
+          "default": "minimal",
+          "description": "Controls the depth of internal reasoning the model performs before generating a response."
+        },
+        "webSearch": {
+          "type": "boolean",
+          "description": "Enable live web search grounding to incorporate real-world, up-to-date information into image generation."
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input assets for the task.",
+      "properties": {
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 14,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        },
+        "referenceVideos": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "List of reference videos (UUID, URL, or public YouTube URL).",
+          "items": {
+            "type": "string",
+            "description": "Video input (UUID or URL)."
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for image generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL",
+        "base64Data",
+        "dataURI"
+      ],
+      "default": "URL",
+      "description": "Image output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "JPG",
+        "PNG",
+        "WEBP"
+      ],
+      "default": "JPG",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "sync",
+      "oneOf": [
+        {
+          "const": "sync",
+          "description": "Returns complete results directly in the API response."
+        },
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    },
+    "advancedFeatures": {
+      "type": "object",
+      "description": "Model-specific advanced configuration options.",
+      "properties": {
+        "watermark": {
+          "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "text"
+              ]
+            },
+            {
+              "required": [
+                "image"
+              ]
+            }
+          ],
+          "description": "Configuration object for adding watermarks to generated videos. Watermarks can be applied using either text or image content with customizable positioning and appearance. You must provide either `text` or `image` content for the watermark, but not both.",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 32,
+              "description": "Watermark text."
+            },
+            "image": {
+              "type": "string",
+              "description": "Watermark image (UUID, URL, Data URI, or Base64)."
+            },
+            "displayPosition": {
+              "type": "string",
+              "enum": [
+                "top-left",
+                "top-center",
+                "top-right",
+                "center-left",
+                "center-center",
+                "center-right",
+                "bottom-left",
+                "bottom-center",
+                "bottom-right",
+                "tiled"
+              ],
+              "description": "Watermark position."
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1,
+              "multipleOf": 0.01,
+              "description": "Watermark opacity."
+            },
+            "fontColor": {
+              "type": "string",
+              "description": "Text color in hex format."
+            },
+            "bgColor": {
+              "type": "string",
+              "description": "Background color in hex format."
+            }
+          }
+        }
+      }
+    }
+  }
+}
