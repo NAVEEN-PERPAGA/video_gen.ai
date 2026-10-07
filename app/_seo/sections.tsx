@@ -88,3 +88,40 @@ export function FaqList({ faqs }: { faqs: Faq[] }) {
     </div>
   );
 }
+
+/** A plain HTML table, so the comparison is crawlable (and eligible for table snippets). */
+export function Table({ head, rows, caption }: { head: string[]; rows: string[][]; caption?: string }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/15">
+      <table className="w-full text-left text-sm">
+        {caption && <caption className="sr-only">{caption}</caption>}
+        <thead className="bg-black/[0.03] text-zinc-600 dark:bg-white/[0.04] dark:text-zinc-400">
+          <tr>
+            {head.map((h) => (
+              <th key={h} scope="col" className="px-4 py-3 font-medium whitespace-nowrap">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-black/10 dark:divide-white/15">
+          {rows.map((row) => (
+            <tr key={row[0]}>
+              {row.map((cell, i) =>
+                i === 0 ? (
+                  <th key={i} scope="row" className="px-4 py-3 font-medium whitespace-nowrap">
+                    {cell}
+                  </th>
+                ) : (
+                  <td key={i} className="px-4 py-3 whitespace-nowrap text-zinc-700 dark:text-zinc-300">
+                    {cell}
+                  </td>
+                ),
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

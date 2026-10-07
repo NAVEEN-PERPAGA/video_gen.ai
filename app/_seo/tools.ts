@@ -1,4 +1,6 @@
+import { cheapestPerSecond, usd } from "@/app/_seo/models";
 import type { ToolContent } from "@/app/_seo/tool-page";
+import { TIERS } from "@/lib/plans";
 
 /**
  * Copy for the tool landing pages (keyword plan: ai-video-keyword-plan.md, section 4).
@@ -20,10 +22,10 @@ const PRICING_FAQ = {
 
 export const home: ToolContent = {
   path: "/",
-  title: "Free AI Video Generator – Text & Image to Video",
+  title: "AI Video Generator – Seedance, Wan, Gemini & More",
   description:
-    "Free AI video generator: turn text, images or audio into video with Seedance, Wan, LTX, MiniMax and Gemini models. Sign up free and see every clip's cost upfront.",
-  h1: "Free AI Video Generator: Text, Image and Audio to Video",
+    "AI video generator with every top model in one studio: Seedance, Wan, LTX, MiniMax and Gemini. Turn text, images or audio into video, up to 4K. Free sign-up.",
+  h1: "AI Video Generator: Every Top Model, From Text, Images or Audio",
   intro:
     "VideoGenEditor is an AI video generator that puts today's leading video models in one browser tab. Type a prompt, drop in a photo or attach a song, and get a finished clip with motion, camera moves and native sound. Sign up free, compare models side by side, and see what each video costs before you make it.",
   preset: {},
@@ -83,6 +85,11 @@ export const home: ToolContent = {
       ],
     },
   ],
+  models: {
+    title: "AI video models compared",
+    intro:
+      "Every model in the studio at a glance: the longest clip it makes in one generation, its highest resolution, its starting price per second of video, and what you can start from. Prices rise with resolution, and the composer shows the exact estimate for your settings.",
+  },
   useCases: {
     title: "Popular uses",
     items: [
@@ -105,6 +112,22 @@ export const home: ToolContent = {
     {
       q: "Can I use the videos commercially?",
       a: "Each model is offered under its provider's terms, and in general you can use the videos you generate in your own projects, including commercial ones. Avoid prompts that copy real people, brands or copyrighted characters.",
+    },
+    {
+      q: "How much does an AI video cost?",
+      a: `You pay per second of video, at a rate set by the model and resolution. Rates start at ${usd(cheapestPerSecond)} a second, so a 5-second draft can cost about ${usd(cheapestPerSecond * 5)}, while 1080p and 4K clips on premium models cost more. Credits come with [plans](/pricing) from $${Math.min(...TIERS.map((t) => t.price.month))} a month or as a one-time purchase, they never expire, and failed generations aren't charged.`,
+    },
+    {
+      q: "Which AI video generators make videos with sound?",
+      a: "Seedance 2.5, Wan 3.0, FLUX 3 Video, LTX-2.5 Fast, LTX-2.3 Fast, Gemini Omni Flash 1.1 and Grok Imagine Video 1.5 Lite can generate synchronized audio (ambience, sound effects and short spoken lines) in the same pass as the picture. Describe the sound you want in the prompt.",
+    },
+    {
+      q: "Can I make 4K AI videos?",
+      a: "Yes. Gemini Omni Flash 1.1 and LTX-2.5 Fast output up to 4K, LTX-2.3 Fast goes up to 2K, and MiniMax H3 up to 1440p. Most other models make 720p or 1080p. Higher resolutions cost more per second, so many creators draft at 720p first.",
+    },
+    {
+      q: "Is VideoGenEditor an alternative to Sora, Veo or Kling?",
+      a: "It's a different approach. Instead of one company's model, VideoGenEditor gives you Seedance (ByteDance), Wan (Alibaba), Gemini Omni Flash (Google), MiniMax, LTX, FLUX and Grok in one place, with pay-per-clip pricing. If a single model doesn't suit a shot, you can try another without a new subscription. See our [best free AI video generators](/blog/best-free-ai-video-generators) guide for how other tools compare.",
     },
     {
       q: "Do I need to install anything?",

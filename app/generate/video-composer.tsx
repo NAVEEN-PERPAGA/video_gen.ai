@@ -545,6 +545,15 @@ export function VideoComposer({
 
             <div className="flex items-end gap-2">
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                {!agentMode && (
+                  <>
+                    <ModelPicker model={model} onChange={selectModel} />
+                    <ModeSwitch
+                      type={model.type}
+                      onChange={(type) => type !== model.type && selectModel(lastModelIds.current[type])}
+                    />
+                  </>
+                )}
                 <TogglePill
                   icon={SparklesIcon}
                   label="Agent"
@@ -557,11 +566,6 @@ export function VideoComposer({
                 />
                 {!agentMode && (
                   <>
-                    <ModeSwitch
-                      type={model.type}
-                      onChange={(type) => type !== model.type && selectModel(lastModelIds.current[type])}
-                    />
-                    <ModelPicker model={model} onChange={selectModel} />
                     {kinds.length > 0 && (
                       <AttachMenu
                         model={model}

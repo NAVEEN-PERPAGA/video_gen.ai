@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { PlainHeader } from "@/app/_seo/article";
 import { Bullets, Paragraphs } from "@/app/_seo/sections";
 import { SiteFooter } from "@/app/site-footer";
+import { OG_IMAGE } from "@/lib/site";
 
 /** When the legal pages last changed. Bump it with every edit to their text. */
 export const LEGAL_UPDATED = "2026-09-28";
@@ -12,7 +13,8 @@ export function companyMetadata(path: string, title: string, description: string
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { title, description, url: path, type: "website" },
+    openGraph: { title, description, url: path, type: "website", images: [OG_IMAGE] },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 

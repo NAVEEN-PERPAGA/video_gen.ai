@@ -4,6 +4,12 @@ export const SITE_NAME = "VideoGenEditor";
 export const SITE_DISPLAY_NAME = "Video Gen Editor";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://videogeneditor.com").replace(/\/$/, "");
 
+/**
+ * The shared social preview (app/opengraph-image.tsx). Pages that set their
+ * own `openGraph` replace the inherited one, so they list it explicitly.
+ */
+export const OG_IMAGE = { url: "/opengraph-image", width: 1200, height: 630, alt: `${SITE_NAME}: AI video generator` };
+
 export function absoluteUrl(path: string) {
   return `${SITE_URL}${path === "/" ? "" : path}`;
 }
@@ -13,7 +19,7 @@ export function absoluteUrl(path: string) {
  * lastModified: bump it by hand only when the page's content changes.
  */
 export const toolLinks = [
-  { href: "/", label: "AI Video Generator", updated: "2026-09-28" },
+  { href: "/", label: "AI Video Generator", updated: "2026-10-07" },
   { href: "/text-to-video", label: "Text to Video", updated: "2026-09-28" },
   { href: "/image-to-video", label: "Image to Video", updated: "2026-09-28" },
   { href: "/ai-video-editor", label: "AI Video Editor", updated: "2026-09-28" },

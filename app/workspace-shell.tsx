@@ -15,7 +15,14 @@ import { RenameWorkspaceButton } from "@/app/workspaces/rename-workspace-button"
 import { apiFetchAll } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 
-type WorkspaceRole = "owner" | "admin" | "member";
+const SITE_NAV = [
+  { href: "/text-to-video", label: "Text to Video" },
+  { href: "/image-to-video", label: "Image to Video" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/blog", label: "Guides" },
+];
+
+type WorkspaceRole ="owner" | "admin" | "member";
 
 interface Workspace {
   id: number;
@@ -110,6 +117,22 @@ export async function WorkspaceShell({
             )}
             {signedIn && <NewWorkspaceButton />}
           </nav>
+
+          {/* Signed out (as search engines are), the header links the main pages instead of workspaces. */}
+          {!signedIn && (
+            <nav aria-label="Site" className="hidden items-center gap-1 sm:flex">
+              {SITE_NAV.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  aria-current={l.href === path ? "page" : undefined}
+                  className="flex h-9 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:text-foreground aria-[current=page]:text-foreground dark:text-zinc-400"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {signedIn ? (
             <>

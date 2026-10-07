@@ -3,9 +3,11 @@ import Link from "next/link";
 import type { ComposerPreset } from "@/app/generate/video-composer";
 import { type Faq, faqPageLd, JsonLd } from "@/app/_seo/json-ld";
 import { plainText, RichText } from "@/app/_seo/rich-text";
-import { Bullets, Cards, FaqList, Paragraphs, Section, Steps } from "@/app/_seo/sections";
+import { modelSpecs, usd } from "@/app/_seo/models";
+import { Bullets, Cards, FaqList, Paragraphs, Section, Steps, Table } from "@/app/_seo/sections";
 import { WorkspaceShell } from "@/app/workspace-shell";
-import { absoluteUrl, SITE_NAME, toolLinks } from "@/lib/site";
+import { TIERS } from "@/lib/plans";
+import { absoluteUrl, OG_IMAGE, SITE_NAME, toolLinks } from "@/lib/site";
 
 /** The copy of one tool landing page; see app/_seo/tools.ts. */
 export interface ToolContent {
@@ -20,6 +22,8 @@ export interface ToolContent {
   preset: ComposerPreset;
   howTo: { title: string; steps: { title: string; body: string }[] };
   sections: { title: string; paragraphs?: string[]; bullets?: string[] }[];
+  /** A comparison table of every video model, built from the model files. */
+  models?: { title: string; intro: string };
   useCases: { title: string; items: { title: string; body: string }[] };
   faqs: Faq[];
   /** Other tool pages to point to, by path. */
@@ -31,7 +35,7 @@ export function toolMetadata(tool: ToolContent): Metadata {
     title: { absolute: tool.title },
     description: tool.description,
     alternates: { canonical: tool.path },
-    openGraph: { title: tool.title, description: tool.description, url: tool.path, type: "website" },
+    openGraph: { title: tool.title, description: tool.description, url: tool.path, type: "website", images: [OG_IMAGE] },
     twitter: { card: "summary_large_image", title: tool.title, description: tool.description },
   };
 }
@@ -74,8 +78,39 @@ export function ToolPage({
           url: absoluteUrl(tool.path),
           applicationCategory: "MultimediaApplication",
           operatingSystem: "Web",
+          offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: "USD",
+            lowPrice: Math.min(...TIERS.map((t) => t.price.month)),
+            highPrice: Math.max(...TIERS.map((t) => t.price.month)),
+            offerCount: TIERS.length,
+            url: absoluteUrl("/pricing"),
+          },
         }}
       />
+      {tool.path === "/" && (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": absoluteUrl("/#organization"),
+                name: SITE_NAME,
+                url: absoluteUrl("/"),
+                logo: absoluteUrl("/logo.png"),
+              },
+              {
+                "@type": "WebSite",
+                "@id": absoluteUrl("/#website"),
+                name: SITE_NAME,
+                url: absoluteUrl("/"),
+                publisher: { "@id": absoluteUrl("/#organization") },
+              },
+            ],
+          }}
+        />
+      )}
       <JsonLd data={faqPageLd(tool.faqs)} />
 
       <article className="mt-8 flex max-w-3xl flex-col gap-14">
@@ -89,6 +124,24 @@ export function ToolPage({
             {s.bullets && <Bullets items={s.bullets} />}
           </Section>
         ))}
+
+        {tool.models && (
+          <Section id="models" title={tool.models.title}>
+            <Paragraphs items={[tool.models.intro]} />
+            <Table
+              caption="AI video models compared"
+              head={["Model", "Made by", "Max length", "Max resolution", "Starts from", "Inputs"]}
+              rows={modelSpecs.map((m) => [
+                m.name,
+                m.maker,
+                m.maxSeconds ? `${m.maxSeconds}s` : "–",
+                m.maxResolution ?? "–",
+                m.fromPerSecond ? `${usd(m.fromPerSecond)}/s` : "–",
+                m.inputs.join(", "),
+              ])}
+            />
+          </Section>
+        )}
 
         <Section id="use-cases" title={tool.useCases.title}>
           <Cards items={tool.useCases.items} />

@@ -6,7 +6,7 @@ import { type Faq, faqPageLd, JsonLd } from "@/app/_seo/json-ld";
 import { FaqList, Section } from "@/app/_seo/sections";
 import { SiteFooter } from "@/app/site-footer";
 import { SiteLogo } from "@/app/site-logo";
-import { absoluteUrl, SITE_NAME } from "@/lib/site";
+import { absoluteUrl, OG_IMAGE, SITE_NAME } from "@/lib/site";
 
 export function articleMetadata(article: ArticleInfo): Metadata {
   return {
@@ -20,6 +20,7 @@ export function articleMetadata(article: ArticleInfo): Metadata {
       type: "article",
       publishedTime: article.published,
       modifiedTime: article.updated,
+      images: [OG_IMAGE],
     },
     twitter: { card: "summary_large_image", title: article.title, description: article.description },
   };
