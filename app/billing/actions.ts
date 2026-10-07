@@ -37,6 +37,15 @@ export async function startCheckout(_: BillingActionState, formData: FormData): 
   redirect(checkoutUrl);
 }
 
+/** The caller's spendable credits (USD), or null when signed out or the API can't be reached. */
+export async function getAvailableCredits(): Promise<number | null> {
+  try {
+    return (await apiFetch<{ available: number }>("/me/credits")).available;
+  } catch {
+    return null;
+  }
+}
+
 /** Sends the browser to Dodo's customer portal: cancel or change the plan, update the card, invoices. */
 export async function openBillingPortal(): Promise<BillingActionState> {
   let url: string;

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { getAvailableCredits } from "@/app/billing/actions";
+import { CreditsBadge } from "@/app/credits-badge";
 import { listGenerations } from "@/app/generate/actions";
 import { Studio } from "@/app/generate/studio";
 import type { ComposerPreset } from "@/app/generate/video-composer";
@@ -53,9 +55,10 @@ export async function WorkspaceShell({
 
   let workspaces: Workspace[] = [];
   let apiError: string | null = null;
+  let credits: number | null = null;
   if (signedIn) {
     try {
-      workspaces = await apiFetchAll<Workspace>("/workspaces");
+      [workspaces, credits] = await Promise.all([apiFetchAll<Workspace>("/workspaces"), getAvailableCredits()]);
     } catch (err) {
       apiError = err instanceof Error ? err.message : String(err);
     }
@@ -109,7 +112,10 @@ export async function WorkspaceShell({
           </nav>
 
           {signedIn ? (
-            <UserMenu email={email} displayName={displayName} avatarUrl={avatarUrl} />
+            <>
+              <CreditsBadge initial={credits} />
+              <UserMenu email={email} displayName={displayName} avatarUrl={avatarUrl} />
+            </>
           ) : (
             <GoogleSignInButton next={path} />
           )}

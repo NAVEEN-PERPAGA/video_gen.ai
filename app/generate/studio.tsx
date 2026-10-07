@@ -10,6 +10,7 @@ import {
 } from "@/app/generate/actions";
 import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, XIcon } from "@/app/generate/icons";
 import { type ComposerPreset, POLL_INTERVAL_MS, VideoComposer } from "@/app/generate/video-composer";
+import { notifyCreditsChanged } from "@/lib/credits-events";
 import { getModel } from "@/lib/runware/models";
 
 /**
@@ -69,6 +70,17 @@ export function Studio({
     }, POLL_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [processingIds, workspaceId, upsert]);
+
+  // A new generation holds credits and a finished one is charged (or released):
+  // either changes the newest id or the processing set, so refresh the header balance.
+  // Loading older pages changes neither.
+  const creditKey = `${generations.reduce((max, g) => Math.max(max, g.id), 0)}|${processingIds}`;
+  const lastCreditKey = useRef(creditKey);
+  useEffect(() => {
+    if (lastCreditKey.current === creditKey) return;
+    lastCreditKey.current = creditKey;
+    notifyCreditsChanged();
+  }, [creditKey]);
 
   async function remove(generation: Generation) {
     if (workspaceId === null) return;
