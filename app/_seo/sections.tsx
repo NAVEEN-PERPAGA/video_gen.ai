@@ -89,7 +89,7 @@ export function FaqList({ faqs }: { faqs: Faq[] }) {
   );
 }
 
-/** A plain HTML table, so the comparison is crawlable (and eligible for table snippets). */
+/** A plain HTML table, so the comparison is crawlable (and eligible for table snippets). Cells may hold [links](/path). */
 export function Table({ head, rows, caption }: { head: string[]; rows: string[][]; caption?: string }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/15">
@@ -110,11 +110,11 @@ export function Table({ head, rows, caption }: { head: string[]; rows: string[][
               {row.map((cell, i) =>
                 i === 0 ? (
                   <th key={i} scope="row" className="px-4 py-3 font-medium whitespace-nowrap">
-                    {cell}
+                    <RichText text={cell} />
                   </th>
                 ) : (
                   <td key={i} className="px-4 py-3 whitespace-nowrap text-zinc-700 dark:text-zinc-300">
-                    {cell}
+                    <RichText text={cell} />
                   </td>
                 ),
               )}

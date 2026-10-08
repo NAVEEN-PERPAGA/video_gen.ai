@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 const SITE_NAV = [
   { href: "/text-to-video", label: "Text to Video" },
   { href: "/image-to-video", label: "Image to Video" },
+  { href: "/models", label: "Models" },
   { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Guides" },
 ];

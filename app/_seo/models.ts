@@ -5,9 +5,12 @@ import { type RunwareModel, videoModels } from "@/lib/runware/models";
  * comparison table and the cost answers stay true when a model file changes.
  */
 export interface ModelSpec {
+  /** The model's AIR id, e.g. "bytedance:seedance@2.5". */
+  id: string;
   name: string;
   maker: string;
-  /** Longest clip in one generation, in seconds. */
+  /** Shortest and longest clip in one generation, in seconds. */
+  minSeconds: number | null;
   maxSeconds: number | null;
   /** Highest output tier, e.g. "1080p" or "4K". */
   maxResolution: string | null;
@@ -23,12 +26,21 @@ const INPUTS: [capability: string, label: string][] = [
   ["audio-to-video", "Audio"],
 ];
 
-function maxSeconds(model: RunwareModel): number | null {
+function durations(model: RunwareModel): number[] {
   const d = model.input.duration;
-  if (!d) return null;
+  if (!d) return [];
   const options = [d, ...(d.oneOf ?? [])];
-  const values = options.flatMap((o) => [o.maximum, ...(o.enum ?? [])]).filter((n) => typeof n === "number");
+  return options.flatMap((o) => [o.minimum, o.maximum, ...(o.enum ?? [])]).filter((n) => typeof n === "number");
+}
+
+function maxSeconds(model: RunwareModel): number | null {
+  const values = durations(model);
   return values.length > 0 ? Math.max(...values) : null;
+}
+
+function minSeconds(model: RunwareModel): number | null {
+  const values = durations(model);
+  return values.length > 0 ? Math.min(...values) : null;
 }
 
 /** "4K" and "2K" by their pixel height, "720p" by its number. */
@@ -53,8 +65,10 @@ function fromPerSecond(model: RunwareModel): number | null {
 }
 
 export const modelSpecs: ModelSpec[] = videoModels.map((m) => ({
+  id: m.value,
   name: m.name,
   maker: m.organisation,
+  minSeconds: minSeconds(m),
   maxSeconds: maxSeconds(m),
   maxResolution: maxResolution(m),
   inputs: INPUTS.filter(([c]) => m.capabilities.includes(c)).map(([, label]) => label),
@@ -66,4 +80,38 @@ export const cheapestPerSecond = Math.min(...modelSpecs.flatMap((s) => (s.fromPe
 
 export function usd(n: number) {
   return `$${n < 1 ? n.toFixed(3).replace(/0$/, "") : n.toFixed(2)}`;
+}
+
+/** A video model by its AIR id; throws so a renamed model fails the build instead of a page. */
+export function videoModel(id: string): RunwareModel {
+  const model = videoModels.find((m) => m.value === id);
+  if (!model) throw new Error(`Unknown video model ${id}`);
+  return model;
+}
+
+/** Published price per second of output at one tier ("*" rates apply to every tier). */
+export function perSecond(id: string, tier: string): number {
+  const rates = videoModel(id).pricing?.perSecond ?? {};
+  const rate = rates[tier] ?? rates["*"];
+  if (rate === undefined) throw new Error(`No ${tier} price for ${id}`);
+  return rate;
+}
+
+/** The model's output tiers, lowest first, with their per-second rates. */
+export function priceTiers(model: RunwareModel): { tier: string; perSecond: number }[] {
+  const rates = model.pricing?.perSecond ?? {};
+  const fromSizes = (model.resolutions ?? []).map((r) => /^(\d+p|[24]K)/i.exec(r.label)?.[1]).filter((t) => t !== undefined);
+  const tiers = [...new Set(fromSizes.length > 0 ? fromSizes : Object.keys(rates).filter((t) => t !== "*"))];
+  return tiers
+    .sort((a, b) => tierHeight(a) - tierHeight(b))
+    .flatMap((tier) => {
+      const rate = rates[tier] ?? rates["*"];
+      return rate === undefined ? [] : [{ tier, perSecond: rate }];
+    });
+}
+
+/** Aspect ratios from the size presets, e.g. ["16:9", "9:16"]; empty when the model takes any size. */
+export function aspectRatios(model: RunwareModel): string[] {
+  const ratios = (model.resolutions ?? []).map((r) => /\(~?([\d:]+)\)/.exec(r.label)?.[1]).filter((r) => r !== undefined);
+  return [...new Set(ratios)];
 }

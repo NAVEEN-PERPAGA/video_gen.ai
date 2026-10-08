@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { modelPageBySlug } from "@/app/_seo/model-pages";
 import { tools } from "@/app/_seo/tools";
 import { WorkspaceShell } from "@/app/workspace-shell";
 
@@ -9,20 +10,28 @@ export const metadata: Metadata = {
 
 /**
  * The studio: workspaces, gallery and composer. Tool pages link here with
- * ?tool=<their slug> (and ?prompt= from their prompt box) to open the
- * composer with that page's preset.
+ * ?tool=<their slug>, model pages with ?model=<model slug>, and both send
+ * ?prompt= from their prompt box, to open the composer ready to go.
  */
 export default async function GeneratePage({ searchParams }: PageProps<"/generate">) {
-  const { tool, prompt } = await searchParams;
+  const { tool, model, prompt } = await searchParams;
   const content = typeof tool === "string" ? tools.find((t) => t.path === `/${tool}`) : undefined;
+  const modelPage = typeof model === "string" ? modelPageBySlug(model) : undefined;
   const text = typeof prompt === "string" ? prompt.trim() : "";
 
   return (
     <WorkspaceShell
       path="/generate"
-      query={content ? { tool: content.path.slice(1) } : {}}
+      query={{
+        ...(content && { tool: content.path.slice(1) }),
+        ...(modelPage && { model: modelPage.slug }),
+      }}
       searchParams={searchParams}
-      preset={{ ...content?.preset, ...(text && { prompt: text }) }}
+      preset={{
+        ...content?.preset,
+        ...(modelPage && { modelId: modelPage.id }),
+        ...(text && { prompt: text }),
+      }}
     />
   );
 }

@@ -73,6 +73,7 @@ export function ModelPicker({ model, onChange }: { model: RunwareModel; onChange
         <ChevronDownIcon className={`size-4 text-slate-400 transition ${open ? "rotate-180" : ""}`} />
       </button>
 
+
       {open && (
         <div
           role="listbox"

@@ -34,6 +34,12 @@ export function PlainHeader() {
         <SiteLogo className="text-sm font-semibold tracking-tight" />
         <nav aria-label="Site" className="flex items-center gap-2">
           <Link
+            href="/models"
+            className="flex h-9 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:text-foreground dark:text-zinc-400"
+          >
+            Models
+          </Link>
+          <Link
             href="/pricing"
             className="flex h-9 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:text-foreground dark:text-zinc-400"
           >

@@ -4,8 +4,8 @@ import type { ComposerPreset } from "@/app/generate/video-composer";
 import { PlainHeader } from "@/app/_seo/article";
 import { type Faq, faqPageLd, JsonLd } from "@/app/_seo/json-ld";
 import { plainText, RichText } from "@/app/_seo/rich-text";
-import { modelSpecs, usd } from "@/app/_seo/models";
-import { Bullets, Cards, FaqList, Paragraphs, Section, Steps, Table } from "@/app/_seo/sections";
+import { ModelTable } from "@/app/_seo/model-table";
+import { Bullets, Cards, FaqList, Paragraphs, Section, Steps } from "@/app/_seo/sections";
 import { SiteFooter } from "@/app/site-footer";
 import { TIERS } from "@/lib/plans";
 import { absoluteUrl, OG_IMAGE, SITE_NAME, toolLinks } from "@/lib/site";
@@ -63,7 +63,10 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
           </p>
         </div>
 
-        <PromptBox tool={tool} />
+        <PromptBox
+          hidden={tool.path === "/" ? {} : { tool: tool.path.slice(1) }}
+          placeholder={tool.preset.placeholder}
+        />
 
         <JsonLd
           data={{
@@ -124,18 +127,7 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
           {tool.models && (
             <Section id="models" title={tool.models.title}>
               <Paragraphs items={[tool.models.intro]} />
-              <Table
-                caption="AI video models compared"
-                head={["Model", "Made by", "Max length", "Max resolution", "Starts from", "Inputs"]}
-                rows={modelSpecs.map((m) => [
-                  m.name,
-                  m.maker,
-                  m.maxSeconds ? `${m.maxSeconds}s` : "–",
-                  m.maxResolution ?? "–",
-                  m.fromPerSecond ? `${usd(m.fromPerSecond)}/s` : "–",
-                  m.inputs.join(", "),
-                ])}
-              />
+              <ModelTable />
             </Section>
           )}
 
@@ -172,16 +164,18 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
 
 /**
  * A plain GET form (no client JavaScript): submitting opens the studio with
- * this tool's preset and the typed prompt filled in.
+ * the typed prompt filled in. `hidden` picks the preset, e.g. { tool } or { model }.
  */
-function PromptBox({ tool }: { tool: ToolContent }) {
+export function PromptBox({ hidden = {}, placeholder }: { hidden?: Record<string, string>; placeholder?: string }) {
   return (
     <form
       action="/generate"
       method="get"
       className="flex max-w-3xl flex-col gap-3 rounded-2xl border border-black/10 bg-white p-3 shadow-sm focus-within:border-indigo-400 dark:border-white/15 dark:bg-zinc-900"
     >
-      {tool.path !== "/" && <input type="hidden" name="tool" value={tool.path.slice(1)} />}
+      {Object.entries(hidden).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
       <label htmlFor="prompt" className="sr-only">
         Describe your video
       </label>
@@ -190,7 +184,7 @@ function PromptBox({ tool }: { tool: ToolContent }) {
         name="prompt"
         rows={3}
         maxLength={2000}
-        placeholder={tool.preset.placeholder ?? "Describe the video you want to make…"}
+        placeholder={placeholder ?? "Describe the video you want to make…"}
         className="w-full resize-none bg-transparent px-2 py-1 text-base outline-none placeholder:text-zinc-500"
       />
       <div className="flex items-center justify-between gap-3">

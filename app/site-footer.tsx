@@ -1,13 +1,25 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { modelPages } from "@/app/_seo/model-pages";
 import { blogLinks, companyLinks, toolLinks } from "@/lib/site";
 
-/** Links every tool page, guide and company page, so each is reachable (and crawlable) from every other. */
+const modelLinks = modelPages.map((m) => ({ href: `/models/${m.slug}`, label: m.name }));
+
+/** Links every tool page, model page, guide and company page, so each is reachable (and crawlable) from every other. */
 export function SiteFooter({ className = "" }: { className?: string }) {
   return (
     <footer className={`border-t border-black/10 dark:border-white/15 ${className}`}>
-      <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-10 text-sm sm:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-10 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <LinkColumn label="Tools" title="Tools" links={toolLinks} />
+        <LinkColumn
+          label="Models"
+          title={
+            <Link href="/models" className="hover:underline">
+              Models
+            </Link>
+          }
+          links={modelLinks}
+        />
         <LinkColumn
           label="Guides"
           title={

@@ -1,3 +1,4 @@
+import { modelPages } from "@/app/_seo/model-pages";
 import { cheapestPerSecond, modelSpecs, usd } from "@/app/_seo/models";
 import type { ToolContent } from "@/app/_seo/tool-page";
 import { TIERS } from "@/lib/plans";
@@ -20,6 +21,10 @@ const SEEDANCE_25 = "bytedance:seedance@2.5";
 /** A 3-second 360p test on Gemini Omni Flash, the studio's default model and settings. */
 const QUICK_TEST = usd(3 * (modelSpecs.find((m) => m.name === "Gemini Omni Flash 1.1")?.fromPerSecond ?? cheapestPerSecond));
 const LOWEST_PLAN = Math.min(...TIERS.map((t) => t.price.month));
+
+/** "[Seedance 2.5](/models/seedance-2-5), … and [X](/models/x)": every model that generates sound. */
+const audioModels = modelPages.filter((m) => m.audio).map((m) => `[${m.name}](/models/${m.slug})`);
+const AUDIO_MODELS = `${audioModels.slice(0, -1).join(", ")} and ${audioModels.at(-1)}`;
 
 /** One answer about cost, shared by every page, so it's changed in one place. */
 const PRICING_FAQ = {
@@ -128,7 +133,7 @@ export const home: ToolContent = {
     },
     {
       q: "Which AI video generators make videos with sound?",
-      a: "Seedance 2.5, Wan 3.0, FLUX 3 Video, LTX-2.5 Fast, LTX-2.3 Fast, Gemini Omni Flash 1.1 and Grok Imagine Video 1.5 Lite can all generate synchronized audio (ambience, sound effects and short spoken lines) in the same pass as the picture. Just describe the sound you want in the prompt.",
+      a: `${AUDIO_MODELS} can all generate synchronized audio (ambience, sound effects and short spoken lines) in the same pass as the picture. Just describe the sound you want in the prompt.`,
     },
     {
       q: "Can I make 4K AI videos?",
