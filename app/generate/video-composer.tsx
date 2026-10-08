@@ -222,6 +222,8 @@ export const POLL_INTERVAL_MS = 5000;
 
 /** How a tool page opens the composer: its model, prompt hint and settings (e.g. Seedance's "extend"). */
 export interface ComposerPreset {
+  /** Text typed on the landing page before opening the studio. */
+  prompt?: string;
   modelId?: string;
   placeholder?: string;
   settings?: ComposerValues["settings"];
@@ -229,7 +231,11 @@ export interface ComposerPreset {
 
 function presetValues(model: RunwareModel, preset?: ComposerPreset): ComposerValues {
   const values = initialValues(model);
-  return { ...values, settings: { ...values.settings, ...preset?.settings } };
+  return {
+    ...values,
+    prompt: preset?.prompt ?? values.prompt,
+    settings: { ...values.settings, ...preset?.settings },
+  };
 }
 
 /**

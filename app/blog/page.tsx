@@ -6,7 +6,7 @@ import { SiteFooter } from "@/app/site-footer";
 
 export const metadata: Metadata = {
   title: "AI Video Guides",
-  description: "Guides to making videos with AI: prompts, models, free tools and step-by-step tutorials.",
+  description: "Practical guides to making videos with AI: writing prompts, choosing a model, free options, and step-by-step walkthroughs.",
   alternates: { canonical: "/blog" },
 };
 

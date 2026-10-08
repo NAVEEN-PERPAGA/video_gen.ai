@@ -40,7 +40,7 @@ export function PlainHeader() {
             Pricing
           </Link>
           <Link
-            href="/"
+            href="/generate"
             className="flex h-9 items-center rounded-md bg-indigo-600 px-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
           >
             <span className="sm:hidden">Try it</span>
@@ -103,7 +103,7 @@ export function Article({ article, faqs, children }: { article: ArticleInfo; faq
               generate it.
             </p>
             <Link
-              href="/"
+              href="/generate"
               className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
             >
               Open the AI video generator

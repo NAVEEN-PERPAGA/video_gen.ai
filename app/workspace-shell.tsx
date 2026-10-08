@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { getAvailableCredits } from "@/app/billing/actions";
 import { CreditsBadge } from "@/app/credits-badge";
 import { listGenerations } from "@/app/generate/actions";
@@ -32,23 +31,21 @@ interface Workspace {
 }
 
 /**
- * The studio page frame shared by the dashboard and every tool page: header
- * with the workspace strip, the selected workspace's generations with the
- * composer, then `hero`, `children` (the page's article) and the footer.
- * `path` is the page's own URL, so switching workspaces stays on it.
+ * The studio (/generate): header with the workspace strip, the selected
+ * workspace's generations with the composer, and the footer. `path` is the
+ * page's own URL and `query` the parameters to keep (e.g. the tool preset),
+ * so switching workspaces stays on it.
  */
 export async function WorkspaceShell({
   path,
+  query = {},
   searchParams,
   preset,
-  hero,
-  children,
 }: {
   path: string;
+  query?: Record<string, string>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
   preset?: ComposerPreset;
-  hero?: ReactNode;
-  children?: ReactNode;
 }) {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
@@ -87,7 +84,7 @@ export async function WorkspaceShell({
               {workspaces.map((ws) => (
                 <li key={ws.id} className="shrink-0">
                   <Link
-                    href={`${path}?workspace=${ws.id}`}
+                    href={{ pathname: path, query: { ...query, workspace: ws.id } }}
                     aria-current={ws.id === active?.id ? "page" : undefined}
                     className={`flex h-9 max-w-48 items-center gap-2 rounded-md px-3 text-sm transition ${
                       ws.id === active?.id
@@ -118,7 +115,7 @@ export async function WorkspaceShell({
             {signedIn && <NewWorkspaceButton />}
           </nav>
 
-          {/* Signed out (as search engines are), the header links the main pages instead of workspaces. */}
+          {/* Signed out, the header links the main pages instead of workspaces. */}
           {!signedIn && (
             <nav aria-label="Site" className="hidden items-center gap-1 sm:flex">
               {SITE_NAV.map((l) => (
@@ -140,12 +137,13 @@ export async function WorkspaceShell({
               <UserMenu email={email} displayName={displayName} avatarUrl={avatarUrl} />
             </>
           ) : (
-            <GoogleSignInButton next={path} />
+            <GoogleSignInButton next={Object.keys(query).length ? `${path}?${new URLSearchParams(query)}` : path} />
           )}
         </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 pt-12 pb-16">
+        <h1 className="sr-only">Studio</h1>
         {!signedIn ? null : apiError ? (
           <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-300">
             Could not load your workspaces: {apiError}
@@ -159,11 +157,7 @@ export async function WorkspaceShell({
           )
         )}
 
-        {/*
-          Generations come first. Keyed so switching workspaces starts from that
-          workspace's first page. Signed out (as search engines are), the gallery
-          isn't shown and the hero leads the page.
-        */}
+        {/* Keyed so switching workspaces starts from that workspace's first page. */}
         <Studio
           key={active?.id ?? "none"}
           workspaceId={active?.id ?? null}
@@ -171,10 +165,6 @@ export async function WorkspaceShell({
           signedIn={signedIn}
           preset={preset}
         />
-
-        {hero}
-
-        {children}
       </main>
 
       {/* The composer is pinned to the bottom of the window, so the footer leaves room for it. */}

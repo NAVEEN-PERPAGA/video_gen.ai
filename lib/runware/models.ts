@@ -60,7 +60,7 @@ const allModels = [...videoModels, ...imageModels];
 /** The model each mode opens with. */
 export const defaultModelIds: Record<MediaType, string> = {
   video: "google:gemini@omni-flash-1.1",
-  image: "google:4@3",
+  image: "google:nano-banana@2.1",
 };
 
 /** A video or image model by its AIR id. */

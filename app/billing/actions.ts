@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { apiFetch, errorMessages } from "@/lib/api";
-import { checkoutItem, type Interval, TIERS } from "@/lib/plans";
+import { checkoutItem, type Interval, parsePlanId, type Tier, TIERS } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
 
 export type BillingActionState = { error?: string } | undefined;
@@ -41,6 +41,20 @@ export async function startCheckout(_: BillingActionState, formData: FormData): 
 export async function getAvailableCredits(): Promise<number | null> {
   try {
     return (await apiFetch<{ available: number }>("/me/credits")).available;
+  } catch {
+    return null;
+  }
+}
+
+/** The caller's subscribed tier and interval, or null when signed out, not subscribed, or the API can't be reached. */
+export async function getCurrentPlan(): Promise<{ tierId: Tier["id"]; interval: "month" | "year" } | null> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getClaims();
+  if (!auth?.claims) return null;
+  try {
+    const subscription = await apiFetch<{ planId: string } | null>("/me/credits/subscription");
+    const parsed = subscription && parsePlanId(subscription.planId);
+    return parsed ? { tierId: parsed.tier.id, interval: parsed.interval } : null;
   } catch {
     return null;
   }

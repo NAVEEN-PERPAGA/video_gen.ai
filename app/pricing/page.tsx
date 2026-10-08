@@ -2,11 +2,10 @@ import { PlainHeader } from "@/app/_seo/article";
 import { companyMetadata } from "@/app/_seo/company-page";
 import { type Faq, faqPageLd, JsonLd } from "@/app/_seo/json-ld";
 import { FaqList, Section } from "@/app/_seo/sections";
-import { getSubscription, isSignedIn } from "@/app/billing/data";
 import { SiteFooter } from "@/app/site-footer";
-import { parsePlanId, TIERS } from "@/lib/plans";
+import { TIERS } from "@/lib/plans";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
-import { type CurrentPlan, PlanPicker } from "./plan-picker";
+import { PlanPicker } from "./plan-picker";
 
 export const metadata = companyMetadata(
   "/pricing",
@@ -37,12 +36,7 @@ const FAQS: Faq[] = [
   },
 ];
 
-export default async function PricingPage() {
-  const signedIn = await isSignedIn();
-  const subscription = signedIn ? await getSubscription() : null;
-  const parsed = subscription && parsePlanId(subscription.planId);
-  const current: CurrentPlan | null = parsed ? { tierId: parsed.tier.id, interval: parsed.interval } : null;
-
+export default function PricingPage() {
   return (
     <>
       <PlainHeader />
@@ -71,7 +65,7 @@ export default async function PricingPage() {
           </p>
         </header>
 
-        <PlanPicker current={current} />
+        <PlanPicker />
 
         <div className="mx-auto w-full max-w-3xl">
           <Section id="faq" title="Frequently asked questions">

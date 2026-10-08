@@ -19,14 +19,14 @@ export function absoluteUrl(path: string) {
  * lastModified: bump it by hand only when the page's content changes.
  */
 export const toolLinks = [
-  { href: "/", label: "AI Video Generator", updated: "2026-10-07" },
-  { href: "/text-to-video", label: "Text to Video", updated: "2026-09-28" },
-  { href: "/image-to-video", label: "Image to Video", updated: "2026-09-28" },
-  { href: "/ai-video-editor", label: "AI Video Editor", updated: "2026-09-28" },
-  { href: "/ai-video-extender", label: "AI Video Extender", updated: "2026-09-28" },
-  { href: "/ai-music-video-generator", label: "AI Music Video Generator", updated: "2026-09-28" },
-  { href: "/lyric-video-generator", label: "Lyric Video Generator", updated: "2026-09-28" },
-  { href: "/ai-ugc-video-generator", label: "AI UGC Video Generator", updated: "2026-09-28" },
+  { href: "/", label: "AI Video Generator", updated: "2026-10-08" },
+  { href: "/text-to-video", label: "Text to Video", updated: "2026-10-08" },
+  { href: "/image-to-video", label: "Image to Video", updated: "2026-10-08" },
+  { href: "/ai-video-editor", label: "AI Video Editor", updated: "2026-10-08" },
+  { href: "/ai-video-extender", label: "AI Video Extender", updated: "2026-10-08" },
+  { href: "/ai-music-video-generator", label: "AI Music Video Generator", updated: "2026-10-08" },
+  { href: "/lyric-video-generator", label: "Lyric Video Generator", updated: "2026-10-08" },
+  { href: "/ai-ugc-video-generator", label: "AI UGC Video Generator", updated: "2026-10-08" },
 ] as const;
 
 export const blogLinks = [

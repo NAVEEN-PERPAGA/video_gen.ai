@@ -37,11 +37,14 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims);
 
-  // Signed-out visitors may browse everything (the dashboard shows them what
-  // they can do); the API itself refuses their requests.
-  if (signedIn && request.nextUrl.pathname === "/login") {
+  // Signed-out visitors may browse everything (the studio shows them what
+  // they can do); the API itself refuses their requests. Signed-in users skip
+  // the home landing page and the login page and go straight to the studio,
+  // so the landing pages stay static for everyone else.
+  const { pathname } = request.nextUrl;
+  if (signedIn && (pathname === "/" || pathname === "/login")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/generate";
     url.search = "";
     return redirectWithCookies(url, response);
   }

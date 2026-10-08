@@ -1,7 +1,7 @@
 "use client";
 
-import { type ReactNode, useActionState, useState } from "react";
-import { type BillingActionState, openBillingPortal, startCheckout } from "@/app/billing/actions";
+import { type ReactNode, useActionState, useEffect, useState } from "react";
+import { type BillingActionState, getCurrentPlan, openBillingPortal, startCheckout } from "@/app/billing/actions";
 import { creditsFor, formatUsd, type Interval, type Tier, TIERS, yearlySavings } from "@/lib/plans";
 
 export interface CurrentPlan {
@@ -17,9 +17,25 @@ const INTERVAL_TABS: { id: Interval; label: string }[] = [
 
 const BEST_SAVINGS = Math.max(...TIERS.map(yearlySavings));
 
-/** Billing interval switch and the three tier cards. */
-export function PlanPicker({ current }: { current: CurrentPlan | null }) {
-  const [interval, setBillingInterval] = useState<Interval>(current?.interval ?? "month");
+/**
+ * Billing interval switch and the three tier cards. The page is static, so
+ * the signed-in user's current plan is fetched after it loads.
+ */
+export function PlanPicker() {
+  const [current, setCurrent] = useState<CurrentPlan | null>(null);
+  const [interval, setBillingInterval] = useState<Interval>("month");
+
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentPlan().then((plan) => {
+      if (cancelled || !plan) return;
+      setCurrent(plan);
+      setBillingInterval(plan.interval);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-10">

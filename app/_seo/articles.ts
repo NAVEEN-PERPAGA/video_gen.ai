@@ -14,9 +14,9 @@ export const bestFreeGenerators: ArticleInfo = {
   title: "10 Best Free AI Video Generators in 2026",
   h1: "The 10 Best Free AI Video Generators in 2026",
   description:
-    "The best free AI video generators compared: what each one is good at, what its free plan gets you, and the catches (watermarks, limits, commercial use).",
+    "The best free AI video generators, compared honestly: what each one is good at, what the free plan really gets you, and the catches to watch for.",
   published: "2026-09-28",
-  updated: "2026-09-28",
+  updated: "2026-10-08",
 };
 
 export const howToMakeAiVideo: ArticleInfo = {
@@ -24,9 +24,9 @@ export const howToMakeAiVideo: ArticleInfo = {
   title: "How to Make an AI Video (Free, Step by Step)",
   h1: "How to Make an AI Video: A Free, Step-by-Step Guide",
   description:
-    "How to make an AI video from text, a photo or a song: writing prompts, picking a model, generating for free, and making an AI tribute video, step by step.",
+    "How to make an AI video from text, a photo or a song: write a prompt that works, pick the right model, keep costs down, and put the clips together.",
   published: "2026-09-28",
-  updated: "2026-09-28",
+  updated: "2026-10-08",
 };
 
 export const articles = [bestFreeGenerators, howToMakeAiVideo];

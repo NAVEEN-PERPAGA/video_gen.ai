@@ -3,7 +3,7 @@ import { home } from "@/app/_seo/tools";
 
 export const metadata = toolMetadata(home);
 
-/** The studio (workspaces, gallery and composer), with the AI video generator landing copy around it. */
-export default function DashboardPage({ searchParams }: PageProps<"/">) {
-  return <ToolPage tool={home} searchParams={searchParams} />;
+/** The AI video generator landing page; the studio itself is at /generate. */
+export default function HomePage() {
+  return <ToolPage tool={home} />;
 }

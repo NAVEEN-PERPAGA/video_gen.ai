@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ComposerPreset } from "@/app/generate/video-composer";
+import { PlainHeader } from "@/app/_seo/article";
 import { type Faq, faqPageLd, JsonLd } from "@/app/_seo/json-ld";
 import { plainText, RichText } from "@/app/_seo/rich-text";
 import { modelSpecs, usd } from "@/app/_seo/models";
 import { Bullets, Cards, FaqList, Paragraphs, Section, Steps, Table } from "@/app/_seo/sections";
-import { WorkspaceShell } from "@/app/workspace-shell";
+import { SiteFooter } from "@/app/site-footer";
 import { TIERS } from "@/lib/plans";
 import { absoluteUrl, OG_IMAGE, SITE_NAME, toolLinks } from "@/lib/site";
 
@@ -41,133 +42,166 @@ export function toolMetadata(tool: ToolContent): Metadata {
 }
 
 /**
- * A tool landing page: keyword H1 and intro, the working studio preset for
- * this tool, then a how-to, feature sections, use cases, FAQ and related tools.
+ * A tool landing page, prerendered with no auth or data fetching so it's
+ * static and fast: keyword H1 and intro, a prompt box that opens the studio
+ * (/generate) with this tool's preset, then a how-to, feature sections, use
+ * cases, FAQ and related tools.
  */
-export function ToolPage({
-  tool,
-  searchParams,
-}: {
-  tool: ToolContent;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export function ToolPage({ tool }: { tool: ToolContent }) {
   const related = tool.related
     .map((href) => toolLinks.find((l) => l.href === href))
     .filter((l) => l !== undefined);
 
   return (
-    <WorkspaceShell
-      path={tool.path}
-      searchParams={searchParams}
-      preset={tool.preset}
-      hero={
+    <>
+      <PlainHeader />
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 pt-12 pb-16">
         <div className="flex flex-col gap-4">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{tool.h1}</h1>
           <p className="max-w-3xl text-lg leading-8 text-zinc-700 dark:text-zinc-300">
             <RichText text={tool.intro} />
           </p>
         </div>
-      }
-    >
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: `${SITE_NAME}: ${tool.h1}`,
-          description: plainText(tool.description),
-          url: absoluteUrl(tool.path),
-          applicationCategory: "MultimediaApplication",
-          operatingSystem: "Web",
-          offers: {
-            "@type": "AggregateOffer",
-            priceCurrency: "USD",
-            lowPrice: Math.min(...TIERS.map((t) => t.price.month)),
-            highPrice: Math.max(...TIERS.map((t) => t.price.month)),
-            offerCount: TIERS.length,
-            url: absoluteUrl("/pricing"),
-          },
-        }}
-      />
-      {tool.path === "/" && (
+
+        <PromptBox tool={tool} />
+
         <JsonLd
           data={{
             "@context": "https://schema.org",
-            "@graph": [
-              {
-                "@type": "Organization",
-                "@id": absoluteUrl("/#organization"),
-                name: SITE_NAME,
-                url: absoluteUrl("/"),
-                logo: absoluteUrl("/logo.png"),
-              },
-              {
-                "@type": "WebSite",
-                "@id": absoluteUrl("/#website"),
-                name: SITE_NAME,
-                url: absoluteUrl("/"),
-                publisher: { "@id": absoluteUrl("/#organization") },
-              },
-            ],
+            "@type": "SoftwareApplication",
+            name: `${SITE_NAME}: ${tool.h1}`,
+            description: plainText(tool.description),
+            url: absoluteUrl(tool.path),
+            applicationCategory: "MultimediaApplication",
+            operatingSystem: "Web",
+            offers: {
+              "@type": "AggregateOffer",
+              priceCurrency: "USD",
+              lowPrice: Math.min(...TIERS.map((t) => t.price.month)),
+              highPrice: Math.max(...TIERS.map((t) => t.price.month)),
+              offerCount: TIERS.length,
+              url: absoluteUrl("/pricing"),
+            },
           }}
         />
-      )}
-      <JsonLd data={faqPageLd(tool.faqs)} />
-
-      <article className="mt-8 flex max-w-3xl flex-col gap-14">
-        <Section id="how-to" title={tool.howTo.title}>
-          <Steps steps={tool.howTo.steps} />
-        </Section>
-
-        {tool.sections.map((s) => (
-          <Section key={s.title} title={s.title}>
-            {s.paragraphs && <Paragraphs items={s.paragraphs} />}
-            {s.bullets && <Bullets items={s.bullets} />}
-          </Section>
-        ))}
-
-        {tool.models && (
-          <Section id="models" title={tool.models.title}>
-            <Paragraphs items={[tool.models.intro]} />
-            <Table
-              caption="AI video models compared"
-              head={["Model", "Made by", "Max length", "Max resolution", "Starts from", "Inputs"]}
-              rows={modelSpecs.map((m) => [
-                m.name,
-                m.maker,
-                m.maxSeconds ? `${m.maxSeconds}s` : "–",
-                m.maxResolution ?? "–",
-                m.fromPerSecond ? `${usd(m.fromPerSecond)}/s` : "–",
-                m.inputs.join(", "),
-              ])}
-            />
-          </Section>
+        {tool.path === "/" && (
+          <JsonLd
+            data={{
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": absoluteUrl("/#organization"),
+                  name: SITE_NAME,
+                  url: absoluteUrl("/"),
+                  logo: absoluteUrl("/logo.png"),
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": absoluteUrl("/#website"),
+                  name: SITE_NAME,
+                  url: absoluteUrl("/"),
+                  publisher: { "@id": absoluteUrl("/#organization") },
+                },
+              ],
+            }}
+          />
         )}
+        <JsonLd data={faqPageLd(tool.faqs)} />
 
-        <Section id="use-cases" title={tool.useCases.title}>
-          <Cards items={tool.useCases.items} />
-        </Section>
-
-        <Section id="faq" title="Frequently asked questions">
-          <FaqList faqs={tool.faqs} />
-        </Section>
-
-        {related.length > 0 && (
-          <Section id="related" title="More AI video tools">
-            <ul className="flex flex-wrap gap-2">
-              {related.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="inline-flex rounded-full border border-black/10 px-4 py-2 text-sm font-medium transition hover:border-indigo-400 hover:text-indigo-700 dark:border-white/15 dark:hover:text-indigo-300"
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        <article className="mt-8 flex max-w-3xl flex-col gap-14">
+          <Section id="how-to" title={tool.howTo.title}>
+            <Steps steps={tool.howTo.steps} />
           </Section>
-        )}
-      </article>
-    </WorkspaceShell>
+
+          {tool.sections.map((s) => (
+            <Section key={s.title} title={s.title}>
+              {s.paragraphs && <Paragraphs items={s.paragraphs} />}
+              {s.bullets && <Bullets items={s.bullets} />}
+            </Section>
+          ))}
+
+          {tool.models && (
+            <Section id="models" title={tool.models.title}>
+              <Paragraphs items={[tool.models.intro]} />
+              <Table
+                caption="AI video models compared"
+                head={["Model", "Made by", "Max length", "Max resolution", "Starts from", "Inputs"]}
+                rows={modelSpecs.map((m) => [
+                  m.name,
+                  m.maker,
+                  m.maxSeconds ? `${m.maxSeconds}s` : "–",
+                  m.maxResolution ?? "–",
+                  m.fromPerSecond ? `${usd(m.fromPerSecond)}/s` : "–",
+                  m.inputs.join(", "),
+                ])}
+              />
+            </Section>
+          )}
+
+          <Section id="use-cases" title={tool.useCases.title}>
+            <Cards items={tool.useCases.items} />
+          </Section>
+
+          <Section id="faq" title="Frequently asked questions">
+            <FaqList faqs={tool.faqs} />
+          </Section>
+
+          {related.length > 0 && (
+            <Section id="related" title="More AI video tools">
+              <ul className="flex flex-wrap gap-2">
+                {related.map((l) => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="inline-flex rounded-full border border-black/10 px-4 py-2 text-sm font-medium transition hover:border-indigo-400 hover:text-indigo-700 dark:border-white/15 dark:hover:text-indigo-300"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+        </article>
+      </main>
+      <SiteFooter className="pb-12" />
+    </>
+  );
+}
+
+/**
+ * A plain GET form (no client JavaScript): submitting opens the studio with
+ * this tool's preset and the typed prompt filled in.
+ */
+function PromptBox({ tool }: { tool: ToolContent }) {
+  return (
+    <form
+      action="/generate"
+      method="get"
+      className="flex max-w-3xl flex-col gap-3 rounded-2xl border border-black/10 bg-white p-3 shadow-sm focus-within:border-indigo-400 dark:border-white/15 dark:bg-zinc-900"
+    >
+      {tool.path !== "/" && <input type="hidden" name="tool" value={tool.path.slice(1)} />}
+      <label htmlFor="prompt" className="sr-only">
+        Describe your video
+      </label>
+      <textarea
+        id="prompt"
+        name="prompt"
+        rows={3}
+        maxLength={2000}
+        placeholder={tool.preset.placeholder ?? "Describe the video you want to make…"}
+        className="w-full resize-none bg-transparent px-2 py-1 text-base outline-none placeholder:text-zinc-500"
+      />
+      <div className="flex items-center justify-between gap-3">
+        <p className="px-2 text-sm text-zinc-600 dark:text-zinc-400">Free sign-up · see the cost before you generate</p>
+        <button
+          type="submit"
+          className="flex h-10 shrink-0 cursor-pointer items-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+        >
+          Generate video
+        </button>
+      </div>
+    </form>
   );
 }
