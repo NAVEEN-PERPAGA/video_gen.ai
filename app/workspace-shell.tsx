@@ -134,6 +134,12 @@ export async function WorkspaceShell({
 
           {signedIn ? (
             <>
+              <Link
+                href={active ? { pathname: "/edit", query: { workspace: active.id } } : "/edit"}
+                className="hidden h-9 shrink-0 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:bg-black/[0.04] hover:text-foreground sm:flex dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+              >
+                Editor
+              </Link>
               <CreditsBadge initial={credits} />
               <UserMenu email={email} displayName={displayName} avatarUrl={avatarUrl} />
             </>

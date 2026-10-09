@@ -16,8 +16,15 @@ export interface Generation {
   model: string | null;
   videoUrls: string[];
   imageUrls: string[];
-  /** For Runware tasks (images too), `{ taskType, request }` where `request` is the task that was sent. */
-  videoMetadata: { request?: { positivePrompt?: string } } & Record<string, unknown>;
+  /**
+   * For Runware tasks (images too), `{ taskType, request }` where `request` is the task that was sent.
+   * For video editor exports, `{ taskType: "render", project }`: the project it was rendered from.
+   */
+  videoMetadata: {
+    taskType?: string;
+    request?: { positivePrompt?: string };
+    project?: { id: number; name: string };
+  } & Record<string, unknown>;
   /** Why the task failed (or partly failed). */
   error: string | null;
   /** Provider cost in USD, when reported. */

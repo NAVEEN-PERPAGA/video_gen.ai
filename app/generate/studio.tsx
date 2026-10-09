@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { createProject } from "@/app/edit/actions";
 import {
   deleteGeneration,
   type Generation,
@@ -8,9 +11,12 @@ import {
   getGeneration,
   listGenerations,
 } from "@/app/generate/actions";
-import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, XIcon } from "@/app/generate/icons";
+import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, ScissorsIcon, TrashIcon, XIcon } from "@/app/generate/icons";
 import { type ComposerPreset, POLL_INTERVAL_MS, VideoComposer } from "@/app/generate/video-composer";
 import { notifyCreditsChanged } from "@/lib/credits-events";
+import { imageClip, videoClip } from "@/lib/editor/edit";
+import { aspectFor, probeMedia } from "@/lib/editor/media";
+import { emptyTimeline } from "@/lib/editor/timeline";
 import { getModel } from "@/lib/runware/models";
 
 /**
@@ -40,6 +46,9 @@ export function Studio({
   const openIndex = generations.findIndex((g) => g.id === openId);
   /** Generations with a delete request in flight. */
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
+  const router = useRouter();
+  /** A generation being opened in the video editor. */
+  const [openingInEditor, setOpeningInEditor] = useState(false);
 
   /** Adds a new generation at the top, or updates one already listed. */
   const upsert = useCallback((generation: Generation) => {
@@ -100,6 +109,34 @@ export function Studio({
       return (generations[index + 1] ?? generations[index - 1])?.id ?? null;
     });
     setGenerations((list) => list.filter((g) => g.id !== generation.id));
+  }
+
+  /**
+   * Starts a video editor project holding this output, shaped like it, and
+   * opens it. A video's length is measured here, from its metadata.
+   */
+  async function openInEditor(generation: Generation, index: number) {
+    const url = outputsOf(generation)[index];
+    if (workspaceId === null || !url) return;
+    setOpeningInEditor(true);
+    try {
+      const isImage = generation.mediaType === "image";
+      const info = await probeMedia(url, isImage ? "image" : "video");
+      const media = { type: "generation" as const, id: generation.id, index };
+      const clip = isImage ? imageClip(media) : videoClip(media, info.duration);
+      // Project names are one line, without control characters (the API checks).
+      const name = (promptOf(generation) ?? "").replace(/\s+/g, " ").trim().slice(0, 60) || "Untitled project";
+      const result = await createProject(workspaceId, name, { ...emptyTimeline(aspectFor(info)), clips: [clip] });
+      if (result.error !== undefined) {
+        setError(result.error);
+        return;
+      }
+      router.push(`/edit/${result.project.id}?workspace=${workspaceId}`);
+    } catch (err) {
+      setError(err instanceof Error ? `Couldn't open it in the editor: ${err.message}` : "Couldn't open it in the editor.");
+    } finally {
+      setOpeningInEditor(false);
+    }
   }
 
   function loadMore() {
@@ -185,6 +222,9 @@ export function Studio({
           onClose={() => setOpenId(null)}
           onDelete={() => remove(generations[openIndex])}
           deleting={deletingIds.includes(generations[openIndex].id)}
+          workspaceId={workspaceId}
+          onOpenInEditor={(index) => openInEditor(generations[openIndex], index)}
+          openingInEditor={openingInEditor}
         />
       )}
 
@@ -194,7 +234,8 @@ export function Studio({
 }
 
 function promptOf(g: Generation) {
-  return g.videoMetadata?.request?.positivePrompt;
+  const { request, project } = g.videoMetadata ?? {};
+  return request?.positivePrompt ?? (project ? `Edited video: ${project.name}` : undefined);
 }
 
 /** The generated files: videos or images, depending on the generation. */
@@ -317,6 +358,9 @@ function GenerationViewer({
   onClose,
   onDelete,
   deleting,
+  workspaceId,
+  onOpenInEditor,
+  openingInEditor,
 }: {
   generation: Generation;
   position: string;
@@ -325,6 +369,10 @@ function GenerationViewer({
   onClose: () => void;
   onDelete: () => void;
   deleting: boolean;
+  workspaceId: number | null;
+  /** Opens the shown output (by index) in the video editor. */
+  onOpenInEditor: (index: number) => void;
+  openingInEditor: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [videoIndex, setVideoIndex] = useState(0);
@@ -480,6 +528,28 @@ function GenerationViewer({
             )}
           </dl>
           <div className="mt-auto flex flex-col gap-2">
+            {/* An editor export goes back to its project; anything else starts a new one. */}
+            {g.videoMetadata?.project && workspaceId !== null ? (
+              <Link
+                href={`/edit/${g.videoMetadata.project.id}?workspace=${workspaceId}`}
+                className="flex items-center justify-center gap-1.5 rounded-md bg-indigo-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-400"
+              >
+                <ScissorsIcon className="size-3.5" />
+                Edit the project
+              </Link>
+            ) : (
+              url && (
+                <button
+                  type="button"
+                  onClick={() => onOpenInEditor(outputs.indexOf(url))}
+                  disabled={openingInEditor}
+                  className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md bg-indigo-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-wait disabled:opacity-60"
+                >
+                  <ScissorsIcon className="size-3.5" />
+                  {openingInEditor ? "Opening…" : "Open in editor"}
+                </button>
+              )
+            )}
             {url && (
               <a
                 href={url}

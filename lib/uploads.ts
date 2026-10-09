@@ -3,12 +3,12 @@
  * with, shared by the Route Handlers under app/api and the browser.
  */
 
-/** An image or video file stored in the workspace (Cloudflare R2). */
+/** An image, video or audio file stored in the workspace (Cloudflare R2). */
 export interface Upload {
   id: number;
   workspaceId: number;
   /** From the content type; null for a type the API no longer recognises. */
-  kind: "video" | "image" | null;
+  kind: "video" | "image" | "audio" | null;
   fileName: string;
   contentType: string;
   sizeBytes: number;

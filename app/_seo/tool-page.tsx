@@ -67,6 +67,15 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
           hidden={tool.path === "/" ? {} : { tool: tool.path.slice(1) }}
           placeholder={tool.preset.placeholder}
         />
+        {tool.path === "/ai-video-editor" && (
+          <p className="-mt-4 text-sm text-zinc-600 dark:text-zinc-400">
+            Want to cut clips together, add captions or music?{" "}
+            <Link href="/edit" className="font-medium text-indigo-700 underline underline-offset-2 dark:text-indigo-300">
+              Open the timeline editor
+            </Link>
+            .
+          </p>
+        )}
 
         <JsonLd
           data={{

@@ -1,7 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 import type { MediaKind } from "@/lib/runware/request";
 
-/** Small stroke icons (24px grid, currentColor) used by the composer. */
+/** Small stroke icons (24px grid, currentColor) used by the composer and the video editor. */
 function Icon({ children, ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -183,6 +183,43 @@ export const TrashIcon = (p: P) => (
   <Icon {...p}>
     <path d="M4.5 7h15M9.5 7V4.5h5V7" />
     <path d="M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12M10 11v5.5M14 11v5.5" />
+  </Icon>
+);
+
+// --- Video editor (app/edit) ---------------------------------------------------------
+export const PauseIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M8 5.5v13M16 5.5v13" strokeWidth={3} />
+  </Icon>
+);
+export const ScissorsIcon = (p: P) => (
+  <Icon {...p}>
+    <circle cx="6.5" cy="6.5" r="2.5" />
+    <circle cx="6.5" cy="17.5" r="2.5" />
+    <path d="M8.5 8 19.5 18M8.5 16 19.5 6" />
+  </Icon>
+);
+export const UndoIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M9 14 4.5 9.5 9 5" />
+    <path d="M4.5 9.5h10a5 5 0 0 1 0 10H11" />
+  </Icon>
+);
+export const RedoIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="m15 14 4.5-4.5L15 5" />
+    <path d="M19.5 9.5h-10a5 5 0 0 0 0 10H13" />
+  </Icon>
+);
+export const TextIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M5 7V5h14v2M12 5v14M9 19h6" />
+  </Icon>
+);
+export const DownloadIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M12 4.5v11M7.5 11 12 15.5 16.5 11" />
+    <path d="M4.5 15v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" />
   </Icon>
 );
 
