@@ -19,11 +19,13 @@ export interface Generation {
   /**
    * For Runware tasks (images too), `{ taskType, request }` where `request` is the task that was sent.
    * For video editor exports, `{ taskType: "render", project }`: the project it was rendered from.
+   * `source` is the generation whose video was the input (e.g. the clip it extends).
    */
   videoMetadata: {
     taskType?: string;
-    request?: { positivePrompt?: string };
+    request?: { positivePrompt?: string; settings?: { operation?: string }; duration?: number | string };
     project?: { id: number; name: string };
+    source?: { generationId: number; index: number };
   } & Record<string, unknown>;
   /** Why the task failed (or partly failed). */
   error: string | null;
@@ -80,6 +82,16 @@ export async function generate(
   if (errors.length > 0) return { errors };
 
   const body = Object.fromEntries(Object.entries(task).filter(([key]) => !SERVER_FIELDS[model.type].includes(key)));
+  // An earlier generation's clip (e.g. one being extended): the API looks up a
+  // fresh URL for it and links the new generation to it.
+  const source = model.type === "video" ? values.assets.video?.[0]?.generation : undefined;
+  if (source) {
+    const inputs = { ...(body.inputs as Record<string, unknown>) };
+    delete inputs.video;
+    body.source = { generationId: source.id, index: source.index };
+    if (Object.keys(inputs).length > 0) body.inputs = inputs;
+    else delete body.inputs;
+  }
   try {
     const generation = await apiFetch<Generation>(`/workspaces/${workspaceId}/generations/${model.type}`, {
       method: "POST",

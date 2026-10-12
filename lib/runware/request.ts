@@ -40,6 +40,8 @@ export interface AssetItem {
   progress?: number;
   /** Why the upload failed. */
   uploadError?: string;
+  /** An earlier generation's output (e.g. a clip to extend); the API resolves its URL when generating. */
+  generation?: { id: number; index: number };
 }
 
 /** Whether an item is a file still on its way to storage. */

@@ -10,7 +10,7 @@ import { PlanPicker } from "./plan-picker";
 export const metadata = companyMetadata(
   "/pricing",
   "Pricing: AI Video & Image Generator Plans",
-  `${SITE_NAME} plans from $9 a month: credits for every leading AI video and image model. Save up to 56% yearly, or buy credits once with no subscription.`,
+  `${SITE_NAME} plans from $9 a month: credits for every leading AI video and image model. Subscribe monthly, or buy credits once with no subscription.`,
 );
 
 const FAQS: Faq[] = [
@@ -19,8 +19,8 @@ const FAQS: Faq[] = [
     a: "Credits are dollars in your account. Each generation uses credits based on the model, length, resolution and settings you choose, and the estimated cost is shown before you generate. If a generation fails, you aren't charged.",
   },
   {
-    q: "What's the difference between monthly, yearly and one-time?",
-    a: "Monthly plans add the plan's credits every month. Yearly plans add all 12 months of credits at once, at a lower price. One-time purchases add one month's worth of credits with no subscription.",
+    q: "What's the difference between monthly and one-time?",
+    a: "Monthly plans add the plan's credits every month until you cancel. One-time purchases add the same credits once, with no subscription.",
   },
   {
     q: "Do unused credits expire?",
@@ -60,7 +60,7 @@ export default function PricingPage() {
         <header className="mx-auto flex max-w-2xl flex-col items-center gap-3 text-center">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing for every model</h1>
           <p className="text-zinc-600 dark:text-zinc-400">
-            Pick a plan for monthly credits, save with yearly billing, or buy credits once. Every plan works with
+            Pick a plan for monthly credits, or buy credits once. Every plan works with
             every image and video model, and you see the cost before each generation.
           </p>
         </header>

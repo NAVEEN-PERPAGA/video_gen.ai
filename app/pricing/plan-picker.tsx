@@ -2,20 +2,16 @@
 
 import { type ReactNode, useActionState, useEffect, useState } from "react";
 import { type BillingActionState, getCurrentPlan, openBillingPortal, startCheckout } from "@/app/billing/actions";
-import { creditsFor, formatUsd, type Interval, type Tier, TIERS, yearlySavings } from "@/lib/plans";
+import { formatUsd, type Interval, type Tier, TIERS } from "@/lib/plans";
 
 export interface CurrentPlan {
   tierId: Tier["id"];
-  interval: "month" | "year";
 }
 
 const INTERVAL_TABS: { id: Interval; label: string }[] = [
   { id: "month", label: "Monthly" },
-  { id: "year", label: "Yearly" },
   { id: "once", label: "One-time" },
 ];
-
-const BEST_SAVINGS = Math.max(...TIERS.map(yearlySavings));
 
 /**
  * Billing interval switch and the three tier cards. The page is static, so
@@ -30,7 +26,7 @@ export function PlanPicker() {
     getCurrentPlan().then((plan) => {
       if (cancelled || !plan) return;
       setCurrent(plan);
-      setBillingInterval(plan.interval);
+      setBillingInterval("month");
     });
     return () => {
       cancelled = true;
@@ -60,11 +56,6 @@ export function PlanPicker() {
               }`}
             >
               {tab.label}
-              {tab.id === "year" && (
-                <span className="rounded bg-emerald-600/10 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">
-                  -{BEST_SAVINGS}%
-                </span>
-              )}
             </button>
           );
         })}
@@ -81,8 +72,7 @@ export function PlanPicker() {
 
 function PlanCard({ tier, interval, current }: { tier: Tier; interval: Interval; current: CurrentPlan | null }) {
   const price = tier.price[interval];
-  const credits = creditsFor(tier, interval);
-  const isCurrent = current?.tierId === tier.id && current.interval === interval;
+  const isCurrent = current?.tierId === tier.id && interval === "month";
   // One subscription at a time: switching plans goes through Dodo's portal.
   const changesPlan = current !== null && interval !== "once" && !isCurrent;
 
@@ -111,30 +101,21 @@ function PlanCard({ tier, interval, current }: { tier: Tier; interval: Interval;
       <div className="flex flex-col gap-1">
         <p className="flex items-baseline gap-1.5">
           <span className="text-4xl font-semibold tracking-tight tabular-nums">
-            {formatUsd(interval === "year" ? price / 12 : price)}
+            {formatUsd(price)}
           </span>
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
             {interval === "once" ? "one time" : "/ month"}
           </span>
         </p>
         <p className="h-5 text-sm text-zinc-600 dark:text-zinc-400">
-          {interval === "year" && (
-            <>
-              Billed {formatUsd(price)} yearly ·{" "}
-              <span className="font-medium text-emerald-700 dark:text-emerald-300">save {yearlySavings(tier)}%</span>
-            </>
-          )}
-          {interval === "month" && "Billed monthly"}
-          {interval === "once" && "No subscription"}
+          {interval === "month" ? "Billed monthly" : "No subscription"}
         </p>
       </div>
 
       <ul className="flex flex-1 flex-col gap-2.5 text-sm">
         <Feature>
-          <strong className="font-semibold">{formatUsd(credits)} in credits</strong>{" "}
-          {interval === "month" && "every month"}
-          {interval === "year" && `up front (${formatUsd(tier.monthlyCredits)} × 12 months)`}
-          {interval === "once" && "to use any time"}
+          <strong className="font-semibold">{formatUsd(tier.monthlyCredits)} in credits</strong>{" "}
+          {interval === "month" ? "every month" : "to use any time"}
         </Feature>
         <Feature>Every image and video model</Feature>
         <Feature>See the cost before each generation</Feature>

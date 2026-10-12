@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type BillingActionState = { error?: string } | undefined;
 
-const INTERVALS: readonly Interval[] = ["month", "year", "once"];
+const INTERVALS: readonly Interval[] = ["month", "once"];
 
 /**
  * Starts a Dodo checkout for a tier at an interval and sends the browser to
@@ -46,15 +46,15 @@ export async function getAvailableCredits(): Promise<number | null> {
   }
 }
 
-/** The caller's subscribed tier and interval, or null when signed out, not subscribed, or the API can't be reached. */
-export async function getCurrentPlan(): Promise<{ tierId: Tier["id"]; interval: "month" | "year" } | null> {
+/** The caller's subscribed tier, or null when signed out, not subscribed, or the API can't be reached. */
+export async function getCurrentPlan(): Promise<{ tierId: Tier["id"] } | null> {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   if (!auth?.claims) return null;
   try {
     const subscription = await apiFetch<{ planId: string } | null>("/me/credits/subscription");
-    const parsed = subscription && parsePlanId(subscription.planId);
-    return parsed ? { tierId: parsed.tier.id, interval: parsed.interval } : null;
+    const tier = subscription && parsePlanId(subscription.planId);
+    return tier ? { tierId: tier.id } : null;
   } catch {
     return null;
   }

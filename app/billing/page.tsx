@@ -175,19 +175,15 @@ function SubscriptionSummary({ subscription }: { subscription: Subscription | nu
       </p>
     );
   }
-  const plan = parsePlanId(subscription.planId);
-  const name = plan
-    ? `${plan.tier.name} ${plan.interval === "month" ? "Monthly" : "Yearly"}`
-    : subscription.planId;
+  const tier = parsePlanId(subscription.planId);
+  const name = tier ? `${tier.name} Monthly` : subscription.planId;
   const date = subscription.nextBillingAt && formatDate(subscription.nextBillingAt);
   return (
     <div className="flex flex-col gap-1.5">
       <p className="text-2xl font-semibold tracking-tight">{name}</p>
-      {plan && (
+      {tier && (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {formatUsd(plan.tier.price[plan.interval])} / {plan.interval} ·{" "}
-          {formatUsd(plan.interval === "year" ? plan.tier.monthlyCredits * 12 : plan.tier.monthlyCredits)} in
-          credits each {plan.interval}
+          {formatUsd(tier.price.month)} / month · {formatUsd(tier.monthlyCredits)} in credits each month
         </p>
       )}
       <p className="text-sm">

@@ -11,12 +11,26 @@ import {
   getGeneration,
   listGenerations,
 } from "@/app/generate/actions";
-import { AlertIcon, ChevronLeftIcon, ChevronRightIcon, ScissorsIcon, TrashIcon, XIcon } from "@/app/generate/icons";
-import { type ComposerPreset, POLL_INTERVAL_MS, VideoComposer } from "@/app/generate/video-composer";
+import {
+  AlertIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  FilmIcon,
+  ScissorsIcon,
+  TrashIcon,
+  XIcon,
+} from "@/app/generate/icons";
+import {
+  type ComposerHandle,
+  type ComposerPreset,
+  POLL_INTERVAL_MS,
+  VideoComposer,
+} from "@/app/generate/video-composer";
 import { notifyCreditsChanged } from "@/lib/credits-events";
 import { imageClip, videoClip } from "@/lib/editor/edit";
 import { aspectFor, probeMedia } from "@/lib/editor/media";
 import { emptyTimeline } from "@/lib/editor/timeline";
+import { GEMINI_EXTEND } from "@/lib/runware/extend";
 import { getModel } from "@/lib/runware/models";
 
 /**
@@ -49,6 +63,20 @@ export function Studio({
   const router = useRouter();
   /** A generation being opened in the video editor. */
   const [openingInEditor, setOpeningInEditor] = useState(false);
+  const composerRef = useRef<ComposerHandle>(null);
+
+  /** Closes the viewer and loads this output into the composer as the clip to extend. */
+  function extend(generation: Generation, index: number) {
+    const url = generation.videoUrls[index];
+    if (!url) return;
+    setOpenId(null);
+    composerRef.current?.extend({
+      generationId: generation.id,
+      index,
+      url,
+      name: promptOf(generation)?.slice(0, 40) || `Generation ${generation.id}`,
+    });
+  }
 
   /** Adds a new generation at the top, or updates one already listed. */
   const upsert = useCallback((generation: Generation) => {
@@ -225,10 +253,19 @@ export function Studio({
           workspaceId={workspaceId}
           onOpenInEditor={(index) => openInEditor(generations[openIndex], index)}
           openingInEditor={openingInEditor}
+          onExtend={(index) => extend(generations[openIndex], index)}
+          onOpenSource={(id) => setOpenId(id)}
+          hasSource={(id) => generations.some((g) => g.id === id)}
         />
       )}
 
-      <VideoComposer workspaceId={workspaceId} signedIn={signedIn} onGeneration={upsert} preset={preset} />
+      <VideoComposer
+        ref={composerRef}
+        workspaceId={workspaceId}
+        signedIn={signedIn}
+        onGeneration={upsert}
+        preset={preset}
+      />
     </>
   );
 }
@@ -361,6 +398,9 @@ function GenerationViewer({
   workspaceId,
   onOpenInEditor,
   openingInEditor,
+  onExtend,
+  onOpenSource,
+  hasSource,
 }: {
   generation: Generation;
   position: string;
@@ -373,6 +413,12 @@ function GenerationViewer({
   /** Opens the shown output (by index) in the video editor. */
   onOpenInEditor: (index: number) => void;
   openingInEditor: boolean;
+  /** Loads the shown video (by index) into the composer to extend it. */
+  onExtend: (index: number) => void;
+  /** Shows another generation in the viewer: the one this was made from. */
+  onOpenSource: (generationId: number) => void;
+  /** Whether a generation is loaded in the gallery (so it can be shown). */
+  hasSource: (generationId: number) => boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [videoIndex, setVideoIndex] = useState(0);
@@ -388,6 +434,11 @@ function GenerationViewer({
   const url = outputs[videoIndex] ?? outputs[0];
   const prompt = promptOf(g);
   const modelName = modelNameOf(g);
+  const { source, request } = g.videoMetadata ?? {};
+  // Seedance says so; Gemini extends (rather than edits) when given a duration.
+  const extended =
+    request?.settings?.operation === "extend" ||
+    (g.model === GEMINI_EXTEND && request?.duration !== undefined);
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -526,8 +577,37 @@ function GenerationViewer({
                 <dd>${g.cost.toFixed(4)}</dd>
               </>
             )}
+            {source && (
+              <>
+                <dt className="text-zinc-500">{extended ? "Extended from" : "Made from"}</dt>
+                <dd>
+                  {hasSource(source.generationId) ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenSource(source.generationId)}
+                      className="cursor-pointer text-indigo-300 underline-offset-2 hover:underline"
+                    >
+                      Generation #{source.generationId}
+                    </button>
+                  ) : (
+                    `Generation #${source.generationId}`
+                  )}
+                </dd>
+              </>
+            )}
           </dl>
           <div className="mt-auto flex flex-col gap-2">
+            {!isImage && url && g.status === "completed" && (
+              <button
+                type="button"
+                onClick={() => onExtend(outputs.indexOf(url))}
+                title="Continue this clip past its last frame"
+                className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md bg-white/10 px-3 py-2 text-xs font-semibold transition hover:bg-white/20"
+              >
+                <FilmIcon className="size-3.5" />
+                Extend video
+              </button>
+            )}
             {/* An editor export goes back to its project; anything else starts a new one. */}
             {g.videoMetadata?.project && workspaceId !== null ? (
               <Link

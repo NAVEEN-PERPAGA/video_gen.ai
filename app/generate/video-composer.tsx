@@ -8,6 +8,7 @@ import {
   type SVGProps,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -70,6 +71,15 @@ import {
   sizeOptions,
   UPLOAD_TYPES,
 } from "@/lib/runware/request";
+import {
+  asExtension,
+  canExtend,
+  fitOperation,
+  isExtending,
+  SEEDANCE_EXTEND,
+  type VideoOperation,
+  withOperation,
+} from "@/lib/runware/extend";
 import { type CostEstimate, estimateCost, formatCost } from "@/lib/runware/pricing";
 import {
   convertTags,
@@ -199,17 +209,22 @@ function carryOver(model: RunwareModel, prev: ComposerValues, prevModel: Runware
       }));
     }
   }
+  // An extension stays one on the other extender (each has its own extend switch); any other clip is edited.
+  if (canExtend(model) && next.assets.video?.length) {
+    return withOperation(model, next, isExtending(prevModel, prev) ? "extend" : "edit");
+  }
   return autoAdjust(model, next);
 }
 
 function modeLabel(model: RunwareModel, v: ComposerValues) {
+  if (isExtending(model, v)) return "Extend video";
   const kinds = assetKinds(model).filter((k) => v.assets[k.key]?.length);
   if (model.type === "image") {
     if (kinds.some((k) => k.key === "maskImage")) return "Inpaint";
     return kinds.length > 0 ? "Image to image" : "Text to image";
   }
   if (kinds.some((k) => k.key === "draftCache")) return "Finalise draft";
-  if (kinds.some((k) => k.key === "video")) return "Video to video";
+  if (kinds.some((k) => k.key === "video")) return canExtend(model) ? "Edit video" : "Video to video";
   if (kinds.some((k) => k.media === "audio")) return "Audio to video";
   if (kinds.some((k) => k.key === "frameImages")) return "Image to video";
   if (kinds.some((k) => k.media === "video")) return "Video reference";
@@ -227,6 +242,12 @@ export interface ComposerPreset {
   modelId?: string;
   placeholder?: string;
   settings?: ComposerValues["settings"];
+}
+
+/** What the page around the composer can ask of it. */
+export interface ComposerHandle {
+  /** Loads an earlier generation's video as the clip to extend, on an extend-capable model. */
+  extend(video: { generationId: number; index: number; url: string; name?: string }): void;
 }
 
 function presetValues(model: RunwareModel, preset?: ComposerPreset): ComposerValues {
@@ -248,11 +269,13 @@ export function VideoComposer({
   signedIn,
   onGeneration,
   preset,
+  ref,
 }: {
   workspaceId: number | null;
   signedIn: boolean;
   onGeneration?: (generation: Generation) => void;
   preset?: ComposerPreset;
+  ref?: RefObject<ComposerHandle | null>;
 }) {
   const [modelId, setModelId] = useState(() =>
     preset?.modelId && getModel(preset.modelId) ? preset.modelId : defaultModelIds.video,
@@ -309,7 +332,9 @@ export function VideoComposer({
   // Removing one renumbers the prompt's tags so they keep pointing at the same files.
   const setAssets = (assets: ComposerValues["assets"]) => {
     setNotice([]);
-    setValues((v) => autoAdjust(model, { ...v, assets, prompt: retagAfterRemoval(model, v.prompt, v.assets, assets) }));
+    setValues((v) =>
+      autoAdjust(model, fitOperation(model, v, { ...v, assets, prompt: retagAfterRemoval(model, v.prompt, v.assets, assets) })),
+    );
   };
 
   // File uploads in flight, by attachment id, so removing one (or leaving) cancels it.
@@ -381,7 +406,8 @@ export function VideoComposer({
     if (item.preview) URL.revokeObjectURL(item.preview);
   }
 
-  async function attachFiles(files: File[], target?: AssetKind) {
+  /** `extend`: the file is the clip to extend (it goes to `target`, the input video). */
+  async function attachFiles(files: File[], target?: AssetKind, extend = false) {
     if (files.length === 0) return;
     if (agentMode) {
       setNotice(["The agent takes text only. Turn Agent off to attach files."]);
@@ -402,10 +428,24 @@ export function VideoComposer({
         const added = items.slice(before[key]?.length ?? 0);
         if (added.length > 0) merged[key] = [...(merged[key] ?? []), ...added];
       }
-      return autoAdjust(model, { ...v, assets: merged });
+      const next = autoAdjust(model, fitOperation(model, v, { ...v, assets: merged }));
+      return extend ? withOperation(model, next, "extend") : next;
     });
     setNotice(problems);
     for (const { id, file } of pending) startUpload(id, file);
+  }
+
+  /** Makes an attached reference video the clip to extend. */
+  function extendAttached(item: AssetItem) {
+    setNotice([]);
+    setValues((v) => {
+      const assets = Object.fromEntries(
+        Object.entries(v.assets).map(([key, items]) => [key, items.filter((i) => i.id !== item.id)]),
+      );
+      assets.video = [item];
+      const prompt = retagAfterRemoval(model, v.prompt, v.assets, assets);
+      return withOperation(model, autoAdjust(model, fitOperation(model, v, { ...v, assets, prompt })), "extend");
+    });
   }
 
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -441,6 +481,23 @@ export function VideoComposer({
     setNotice([]);
   }
 
+  useImperativeHandle(ref, () => ({
+    extend({ generationId, index, url, name }) {
+      // Stay on the chosen model when it can extend; Seedance 2.5 otherwise.
+      const next = canExtend(model) ? model : getModel(SEEDANCE_EXTEND)!;
+      if (next.value !== model.value) lastModelIds.current[model.type] = model.value;
+      // The clip replaces whatever was attached.
+      for (const items of Object.values(values.assets)) items.forEach(discardAsset);
+      const video: AssetItem = { id: newId(), value: url, name, generation: { id: generationId, index } };
+      setModelId(next.value);
+      setValues(asExtension(next, initialValues(next), video));
+      setAgentMode(false);
+      setResult((r) => (r?.generation ? r : undefined));
+      setNotice([]);
+      requestAnimationFrame(() => promptRef.current?.focus());
+    },
+  }));
+
   function submit() {
     if (pending || blockedReason) return;
     if (!signedIn) {
@@ -468,7 +525,10 @@ export function VideoComposer({
   }
 
   const settingFields = Object.entries(input.settings?.properties ?? {});
-  const toolbarSettings = settingFields.filter(([, f]) => f.type === "boolean" || choices(f).length > 0);
+  const toolbarSettings = settingFields.filter(
+    // Seedance's operation is the Edit / Extend switch under the input video.
+    ([key, f]) => (f.type === "boolean" || choices(f).length > 0) && !(key === "operation" && canExtend(model)),
+  );
   const numericSettings = settingFields.filter(([, f]) => f.type === "number" || f.type === "integer");
 
   return (
@@ -524,30 +584,57 @@ export function VideoComposer({
                 setAssets={setAssets}
                 onRemove={discardAsset}
                 onInsertTag={(tag) => insertIntoPrompt(tag)}
+                operation={
+                  canExtend(model)
+                    ? {
+                        value: isExtending(model, values) ? "extend" : "edit",
+                        onChange: (op) => setValues((v) => withOperation(model, v, op)),
+                        onExtendReference: extendAttached,
+                      }
+                    : undefined
+                }
               />
             )}
 
-            <PromptInput
-              model={model}
-              values={values}
-              textareaRef={promptRef}
-              onChange={(prompt) => update({ prompt })}
-              onCaret={(caret) => (promptCaret.current = caret)}
-              onInsertTag={insertIntoPrompt}
-              onSubmit={submit}
-              onPasteFiles={attachFiles}
-              plain={agentMode}
-              maxLength={agentMode ? undefined : promptMax}
-              placeholder={
-                agentMode
-                  ? agent.session
-                    ? "Ask for changes: brighter, another angle, a different background…"
-                    : "Describe what you need, e.g. 2 moody product shots of a perfume bottle"
-                  : model.type === "image"
-                    ? "Describe the image: subject, style, composition, lighting…"
-                    : (preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…")
-              }
-            />
+            <div className="flex items-end gap-1.5">
+              {!agentMode && kinds.length > 0 && (
+                <div className="pb-1">
+                  <AttachMenu
+                    model={model}
+                    kinds={kinds}
+                    values={values}
+                    setAssets={setAssets}
+                    attachFiles={attachFiles}
+                    onSelectModel={selectModel}
+                  />
+                </div>
+              )}
+              <PromptInput
+                model={model}
+                values={values}
+                textareaRef={promptRef}
+                onChange={(prompt) => update({ prompt })}
+                onCaret={(caret) => (promptCaret.current = caret)}
+                onInsertTag={insertIntoPrompt}
+                onSubmit={submit}
+                onPasteFiles={attachFiles}
+                plain={agentMode}
+                maxLength={agentMode ? undefined : promptMax}
+                placeholder={
+                  agentMode
+                    ? agent.session
+                      ? "Ask for changes: brighter, another angle, a different background…"
+                      : "Describe what you need, e.g. 2 moody product shots of a perfume bottle"
+                    : model.type === "image"
+                      ? "Describe the image: subject, style, composition, lighting…"
+                      : isExtending(model, values)
+                        ? "Describe what happens next, e.g. “the car drives into the tunnel…”"
+                        : canExtend(model) && values.assets.video?.length
+                          ? "Describe the change, e.g. “Make it night time and add falling snow”"
+                          : (preset?.placeholder ?? "Describe the shot: subject, motion, camera, lighting, mood…")
+                }
+              />
+            </div>
 
             <div className="flex items-end gap-2">
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
@@ -572,14 +659,10 @@ export function VideoComposer({
                 />
                 {!agentMode && (
                   <>
-                    {kinds.length > 0 && (
-                      <AttachMenu
-                        model={model}
-                        kinds={kinds}
-                        values={values}
-                        setAssets={setAssets}
+                    {canExtend(model) && !values.assets.video?.length && (
+                      <ExtendVideoButton
+                        kind={kinds.find((k) => k.key === "video")!}
                         attachFiles={attachFiles}
-                        onSelectModel={selectModel}
                       />
                     )}
 
@@ -698,7 +781,12 @@ export function VideoComposer({
             <StatusLine
               errors={errors}
               notice={agentMode ? notice : [...notice, ...tagWarnings]}
-              mode={agentMode ? `Agent · ${providerLabel(agent.session?.provider ?? agent.provider)} · images` : modeLabel(model, values)}
+              mode={
+                agentMode
+                  ? `Agent · ${providerLabel(agent.session?.provider ?? agent.provider)} · images`
+                  : // The prompt stays one line, so the tagging tip lives here.
+                    `${modeLabel(model, values)}${tagOptions(model, values).length > 0 ? " · Type @ to reference an attachment" : ""}`
+              }
               length={values.prompt.trim().length}
               max={agentMode ? undefined : promptMax}
             />
@@ -818,7 +906,7 @@ function PromptInput({
   }
 
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex min-w-0 flex-1 flex-col">
       <textarea
         ref={textareaRef}
         value={values.prompt}
@@ -858,13 +946,13 @@ function PromptInput({
           e.preventDefault();
           onPasteFiles(files);
         }}
-        rows={2}
+        rows={1}
         maxLength={maxLength}
-        placeholder={taggable.length > 0 ? `${placeholder} Type @ to reference an attachment.` : placeholder}
+        placeholder={placeholder}
         aria-label="Prompt"
         aria-autocomplete="list"
         aria-controls={open ? "prompt-tags" : undefined}
-        className="max-h-56 min-h-16 resize-none rounded-2xl bg-[#262b40] px-4 py-3 text-[15px] leading-relaxed text-slate-100 ring-1 ring-transparent outline-none transition field-sizing-content placeholder:text-slate-400 hover:bg-[#2b3048] focus:ring-indigo-400/50"
+        className="max-h-56 min-h-11 resize-none rounded-2xl bg-[#262b40] px-4 py-2.5 text-[15px] leading-relaxed text-slate-100 ring-1 ring-transparent outline-none transition field-sizing-content placeholder:text-slate-400 hover:bg-[#2b3048] focus:ring-indigo-400/50"
       />
       {open && (
         <Popover className="w-72">
@@ -1192,7 +1280,7 @@ function AttachMenu({
         title={`Add media · ${kinds.map(assetLimit).join(", ")}`}
         className={`${pillBase} w-9 justify-center px-0 ${open ? pillActive : pillIdle}`}
       >
-        <PlusIcon className={`size-4 transition ${open ? "rotate-45" : ""}`} />
+        <PlusIcon className={`size-5 transition ${open ? "rotate-45" : ""}`} />
       </button>
 
       {open && (
@@ -1355,6 +1443,7 @@ function AssetTray({
   setAssets,
   onRemove,
   onInsertTag,
+  operation,
 }: {
   model: RunwareModel;
   kinds: AssetKind[];
@@ -1364,6 +1453,13 @@ function AssetTray({
   onRemove: (item: AssetItem) => void;
   /** Writes a reference's tag into the prompt. */
   onInsertTag: (tag: string) => void;
+  /** On models that can extend: whether the input video is edited or extended. */
+  operation?: {
+    value: VideoOperation;
+    onChange: (operation: VideoOperation) => void;
+    /** Moves a reference video to the input video, to extend it. */
+    onExtendReference: (item: AssetItem) => void;
+  };
 }) {
   /** The video attachment open in the player. */
   const [playing, setPlaying] = useState<AssetItem | null>(null);
@@ -1412,6 +1508,18 @@ function AssetTray({
                   </span>
                 </div>
               )}
+              {/* References can't be extended; only the input video can. */}
+              {operation && kind.media === "video" && kind.key !== "video" && item.uploadError === undefined && (
+                <button
+                  type="button"
+                  onClick={() => operation.onExtendReference(item)}
+                  title="Extend this video instead of using it as a reference"
+                  className="absolute inset-x-1 bottom-1 flex cursor-pointer items-center justify-center gap-1 rounded-md bg-black/70 py-0.5 text-[10px] font-semibold text-white backdrop-blur transition hover:bg-indigo-600"
+                >
+                  <FilmIcon className="size-3" />
+                  Extend
+                </button>
+              )}
               {isUploading(item) && <UploadProgress progress={item.progress ?? 0} />}
               {item.uploadError !== undefined && (
                 <div
@@ -1432,7 +1540,9 @@ function AssetTray({
                 <XIcon className="size-3" />
               </button>
             </div>
-            {kind.framePositions.length > 0 ? (
+            {kind.key === "video" && operation ? (
+              <OperationSwitch value={operation.value} onChange={operation.onChange} />
+            ) : kind.framePositions.length > 0 ? (
               <Dropdown
                 label="Frame position"
                 value={item.frame ?? ""}
@@ -1469,6 +1579,76 @@ function AssetTray({
       </ul>
       {playing && <VideoPlayerDialog item={playing} onClose={() => setPlaying(null)} />}
     </>
+  );
+}
+
+/**
+ * Picks a video from the device as the clip to extend. A video dropped or
+ * attached the usual way may land in the references instead, which can't be
+ * extended, so this goes straight to the input video.
+ */
+function ExtendVideoButton({
+  kind,
+  attachFiles,
+}: {
+  kind: AssetKind;
+  attachFiles: (files: File[], target: AssetKind, extend: boolean) => Promise<void>;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        ref={fileRef}
+        type="file"
+        hidden
+        accept={kind.accept}
+        onChange={(e) => {
+          const files = [...(e.target.files ?? [])].slice(0, 1);
+          e.target.value = "";
+          attachFiles(files, kind, true);
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        title="Upload a video and continue it past its last frame"
+        className={`${pillBase} ${pillIdle}`}
+      >
+        <FilmIcon className="size-4 text-indigo-300" />
+        Extend video
+      </button>
+    </>
+  );
+}
+
+const OPERATIONS: { value: VideoOperation; label: string; title: string }[] = [
+  { value: "edit", label: "Edit", title: "Change this video with your prompt" },
+  { value: "extend", label: "Extend", title: "Continue this video past its last frame" },
+];
+
+/** Edit / Extend under the input video, on models that can do both. */
+function OperationSwitch({ value, onChange }: { value: VideoOperation; onChange: (operation: VideoOperation) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Input video" className="flex rounded-md bg-white/[0.05] p-0.5">
+      {OPERATIONS.map((o) => {
+        const selected = o.value === value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            title={o.title}
+            onClick={() => onChange(o.value)}
+            className={`flex-1 cursor-pointer rounded py-0.5 text-[11px] font-semibold transition ${
+              selected ? "bg-indigo-500/30 text-indigo-100" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
