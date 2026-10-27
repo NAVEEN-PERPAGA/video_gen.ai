@@ -1,0 +1,627 @@
+{
+  "name": "Kling VIDEO 4.0",
+  "organisation": "Kling AI",
+  "provider": "runware",
+  "value": "klingai:kling-video@4.0",
+  "air_id": "klingai:kling-video@4.0",
+  "href": "/models/video/klingai/klingai-video-4-0",
+  "paid": true,
+  "type": "video",
+  "capabilities": [
+    "text-to-video",
+    "image-to-video",
+    "video-to-video",
+    "edit",
+    "audio"
+  ],
+  "description": "Kling VIDEO 4.0 is a unified video model that generates 1080p clips of up to 30 seconds from text, images, reference videos, and reusable elements. It follows up to 10 keyframes per clip, including first, middle, and last frames, and combines reference images, reference videos, and elements in a single request to hold subjects, style, and motion. It also edits an existing video from a prompt, which suits long narrative shots, storyboard-driven sequences, and reference-driven production work.",
+  "schema": "https://runware.ai/docs/models/klingai-video-4-0",
+  "resolutions": [
+    {
+      "label": "720p (16:9)",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "label": "720p (1:1)",
+      "width": 940,
+      "height": 940
+    },
+    {
+      "label": "720p (9:16)",
+      "width": 720,
+      "height": 1280
+    },
+    {
+      "label": "720p (~21:9)",
+      "width": 1460,
+      "height": 624
+    },
+    {
+      "label": "1080p (16:9)",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "label": "1080p (1:1)",
+      "width": 1440,
+      "height": 1440
+    },
+    {
+      "label": "1080p (9:16)",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "label": "1080p (~21:9)",
+      "width": 2200,
+      "height": 940
+    }
+  ],
+  "pricing": {
+    "perSecond": {
+      "720p": 0.157,
+      "1080p": 0.235
+    },
+    "videoInput": {
+      "720p": 0.188,
+      "1080p": 0.282
+    },
+    "videoInputKinds": [
+      "video",
+      "referenceVideos"
+    ],
+    "source": "https://runware.ai/docs/models/klingai-video-4-0",
+    "checked": "2026-09-24"
+  },
+  "required": [
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Without frame images, reference images, reference videos, elements or an input video, pick an exact size.",
+    "Choose either a resolution preset or an exact size, not both.",
+    "Width × height must be one of the supported sizes.",
+    "A resolution preset needs a frame image, reference image, reference video, element or input video to match.",
+    "Enter a prompt, or add a first frame.",
+    "With reference images, reference videos, elements or an input video, a prompt is required."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "inputs": {
+              "anyOf": [
+                {
+                  "required": [
+                    "frameImages"
+                  ]
+                },
+                {
+                  "required": [
+                    "referenceImages"
+                  ]
+                },
+                {
+                  "required": [
+                    "video"
+                  ]
+                },
+                {
+                  "required": [
+                    "referenceVideos"
+                  ]
+                },
+                {
+                  "required": [
+                    "elements"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "inputs"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "width",
+          "height"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "required": [
+              "resolution"
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "width"
+                ]
+              },
+              {
+                "required": [
+                  "height"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "width"
+            ]
+          },
+          {
+            "required": [
+              "height"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "oneOf": [
+          {
+            "properties": {
+              "width": {
+                "const": 1280
+              },
+              "height": {
+                "const": 720
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 940
+              },
+              "height": {
+                "const": 940
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 720
+              },
+              "height": {
+                "const": 1280
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1460
+              },
+              "height": {
+                "const": 624
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1920
+              },
+              "height": {
+                "const": 1080
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1440
+              },
+              "height": {
+                "const": 1440
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 1080
+              },
+              "height": {
+                "const": 1920
+              }
+            }
+          },
+          {
+            "properties": {
+              "width": {
+                "const": 2200
+              },
+              "height": {
+                "const": 940
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "anyOf": [
+              {
+                "required": [
+                  "frameImages"
+                ]
+              },
+              {
+                "required": [
+                  "referenceImages"
+                ]
+              },
+              {
+                "required": [
+                  "video"
+                ]
+              },
+              {
+                "required": [
+                  "referenceVideos"
+                ]
+              },
+              {
+                "required": [
+                  "elements"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "inputs": {
+              "required": [
+                "frameImages"
+              ]
+            }
+          },
+          "required": [
+            "inputs"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "positivePrompt"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "anyOf": [
+              {
+                "required": [
+                  "referenceImages"
+                ]
+              },
+              {
+                "required": [
+                  "video"
+                ]
+              },
+              {
+                "required": [
+                  "referenceVideos"
+                ]
+              },
+              {
+                "required": [
+                  "elements"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "required": [
+          "positivePrompt"
+        ]
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "klingai:kling-video@4.0",
+      "description": "Send `auto` instead of an AIR identifier to have the model router choose the model for this task. The rest of the request is unchanged, every value you send is kept, and only the parameters you leave out are filled in. See [Model Router](https://runware.ai/docs/models-api/model-router)."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "videoInference",
+      "description": "Identifier for the type of task being performed."
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 26000,
+      "description": "Text prompt describing elements to include in the generated output. Images are referenced as `<<<image_1>>>` and videos as `<<<video_1>>>`. Images are numbered across `frameImages` then `referenceImages`, and videos across `video` then `referenceVideos`. Must satisfy `E / 26000 + N / 11000 <= 1`, where `N` counts the non-ASCII characters and `E` the rest."
+    },
+    "width": {
+      "type": "integer",
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "description": "Height of the generated media in pixels."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": [
+        "720p",
+        "1080p"
+      ],
+      "default": "1080p",
+      "description": "Resolution preset for the output. When used with input media, automatically matches the aspect ratio from the input."
+    },
+    "duration": {
+      "type": "integer",
+      "default": 10,
+      "minimum": 3,
+      "maximum": 30,
+      "description": "Length of the generated video in seconds. The total number of frames produced is determined by duration multiplied by the model's frame rate (fps)."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input assets for the task.",
+      "properties": {
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        },
+        "frameImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "An array of frame-specific image inputs to guide video generation. Each item can be either a plain image input (UUID, URL, Data URI, or Base64) or an object that pairs an image with a target position in the video. Must include at least one image that is not the last frame.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Image input (UUID, URL, Data URI, or Base64)."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "Image input (UUID, URL, Data URI, or Base64)."
+                  },
+                  "frame": {
+                    "oneOf": [
+                      {
+                        "const": "first",
+                        "description": "First frame of the video."
+                      },
+                      {
+                        "const": "last",
+                        "description": "Last frame of the video."
+                      },
+                      {
+                        "const": 0,
+                        "description": "Frame index 0 (first frame)."
+                      },
+                      {
+                        "const": -1,
+                        "description": "Frame index -1 (last frame)."
+                      }
+                    ],
+                    "description": "Target frame position for the image. Supports first and last frame."
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            ]
+          }
+        },
+        "video": {
+          "type": "string",
+          "description": "Video input (UUID or URL). Source video for prompt-based editing."
+        },
+        "referenceVideos": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "description": "List of reference videos (UUID or URL). Videos inside `elements` count toward the limit of 5 input videos and toward the combined duration limit.",
+          "items": {
+            "type": "string",
+            "description": "Video input (UUID or URL)."
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for video generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        },
+        "mode": {
+          "type": "string",
+          "default": "fast",
+          "oneOf": [
+            {
+              "const": "fast",
+              "description": "Checks key frames."
+            },
+            {
+              "const": "full",
+              "description": "Checks all frames."
+            }
+          ],
+          "description": "Safety checking mode for video generation."
+        }
+      }
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "routing": {
+      "type": "object",
+      "description": "Model router options. Only read when `model` is `auto`, and never sent to the model.",
+      "properties": {
+        "preferences": {
+          "type": "object",
+          "description": "Relative importance of each dimension when models are compared. Weights, not thresholds.",
+          "properties": {
+            "quality": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "description": "Importance of one dimension. `0` leaves it out of the decision."
+            },
+            "speed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "description": "Importance of one dimension. `0` leaves it out of the decision."
+            },
+            "cost": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "description": "Importance of one dimension. `0` leaves it out of the decision."
+            }
+          }
+        },
+        "maxPrice": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Upper bound on what this request may cost, in USD. A model whose cost cannot be bounded is not chosen."
+        },
+        "requirements": {
+          "type": "string",
+          "maxLength": 3000,
+          "description": "Conditions the result has to meet, in plain words, such as a style or a feature. A model that cannot meet them is not chosen. Output size is set with width and height rather than described here."
+        }
+      }
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL"
+      ],
+      "default": "URL",
+      "description": "Video output type."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "MP4",
+        "WEBM",
+        "MOV"
+      ],
+      "default": "MP4",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "async",
+      "oneOf": [
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse. Required for long-running tasks like video generation."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    }
+  }
+}

@@ -56,6 +56,12 @@ const PRICING = {
     approximate: true,
     note: "Billed per token ($17.50 per 1M video tokens); input tokens add a little on top.",
   },
+  "klingai-video-4-0": {
+    perSecond: { "720p": 0.157, "1080p": 0.235 },
+    // Reference videos are billed at the video-input rate too (see the reference-to-video example).
+    videoInput: { "720p": 0.188, "1080p": 0.282 },
+    videoInputKinds: ["video", "referenceVideos"],
+  },
   "lightricks-ltx-2-3-fast": { perSecond: { "720p": 0.03, "1080p": 0.06, "2K": 0.12 } },
   "lightricks-ltx-2-5-fast": { perSecond: { "720p": 0.09, "1080p": 0.13, "2K": 0.19, "4K": 0.3 } },
   "minimax-h3": {
@@ -142,6 +148,15 @@ const RULES = {
     "With an input video, don't pick an exact size.",
     PRESET,
   ],
+  "klingai-video-4-0": [
+    PAIR,
+    "Without frame images, reference images, reference videos, elements or an input video, pick an exact size.",
+    RES_XOR,
+    PRESET,
+    "A resolution preset needs a frame image, reference image, reference video, element or input video to match.",
+    "Enter a prompt, or add a first frame.",
+    "With reference images, reference videos, elements or an input video, a prompt is required.",
+  ],
   "lightricks-ltx-2-3-fast": [PAIR],
   "lightricks-ltx-2-5-fast": [
     PAIR,
@@ -207,4 +222,11 @@ const FIELD_ORDER = [
   "duration", "fps", "seed", "numberResults", "speech", "lora", "settings", "inputs", "safety",
 ];
 
-generate({ src: SRC, out: OUT, type: "video", skip: SKIP, pricing: PRICING, checked: CHECKED, rules: RULES, fieldOrder: FIELD_ORDER });
+// Kling elements are objects (frontal image + angles, or a video, plus a voice)
+// that the composer's flat asset lists can't express yet.
+const OMIT_INPUTS = { "klingai-video-4-0": ["elements"] };
+
+generate({
+  src: SRC, out: OUT, type: "video", skip: SKIP, pricing: PRICING, checked: CHECKED, rules: RULES,
+  fieldOrder: FIELD_ORDER, omitInputs: OMIT_INPUTS,
+});

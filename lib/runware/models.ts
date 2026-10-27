@@ -6,6 +6,7 @@ import alibabaLogo from "@/assets/icons/alibaba.svg";
 import bflLogo from "@/assets/icons/blackForestLabs.png";
 import bytedanceLogo from "@/assets/icons/bytedance.svg";
 import googleLogo from "@/assets/icons/google.svg";
+import klingLogo from "@/assets/icons/kling-ai.webp";
 import lightricksLogo from "@/assets/icons/lightricks.png";
 import minimaxLogo from "@/assets/icons/minimax.svg";
 import openaiLogo from "@/assets/icons/openai.svg";
@@ -78,6 +79,7 @@ export const organisationLogos: Record<string, { src: StaticImageData; tile: "li
   "Black Forest Labs": { src: bflLogo, tile: "dark" },
   ByteDance: { src: bytedanceLogo, tile: "light" },
   Google: { src: googleLogo, tile: "light" },
+  "Kling AI": { src: klingLogo, tile: "light" },
   Lightricks: { src: lightricksLogo, tile: "dark" },
   MiniMax: { src: minimaxLogo, tile: "light" },
   OpenAI: { src: openaiLogo, tile: "dark" },

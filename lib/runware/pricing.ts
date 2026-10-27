@@ -14,6 +14,8 @@ export interface ModelPricing {
   /** Image models: price per generated image. */
   perImage?: Record<string, number>;
   videoInput?: Record<string, number>;
+  /** Input kinds billed at the videoInput rate (default: just "video"). */
+  videoInputKinds?: string[];
   draft?: { perSecond: number; videoInput?: number };
   perInputImage?: { price: number; free: number; kinds: string[] };
   inputVideoPerSecond?: number;
@@ -110,7 +112,7 @@ export function estimateCost(model: RunwareModel, v: ComposerValues, now = new D
   }
 
   // Which rate table applies: draft preview, video input (edit/extend), or normal.
-  const hasVideoInput = count("video") > 0;
+  const hasVideoInput = (pricing.videoInputKinds ?? ["video"]).some((k) => count(k) > 0);
   const draft = v.settings.draft === true && pricing.draft;
   let rates: Record<string, number>;
   if (draft) {
