@@ -32,18 +32,25 @@ export function PlainHeader() {
     <header className="sticky top-0 z-10 border-b border-black/10 bg-background dark:border-white/15">
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-4 px-4">
         <SiteLogo className="text-sm font-semibold tracking-tight" />
-        <nav aria-label="Site" className="flex items-center gap-2">
+        <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">
+          {[
+            { href: "/models", label: "Models" },
+            { href: "/pricing", label: "Pricing" },
+            { href: "/blog", label: "Guides" },
+          ].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="hidden h-9 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:text-foreground sm:flex dark:text-zinc-400"
+            >
+              {l.label}
+            </Link>
+          ))}
           <Link
-            href="/models"
+            href="/login"
             className="flex h-9 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:text-foreground dark:text-zinc-400"
           >
-            Models
-          </Link>
-          <Link
-            href="/pricing"
-            className="flex h-9 items-center rounded-md px-3 text-sm font-medium text-zinc-600 transition hover:text-foreground dark:text-zinc-400"
-          >
-            Pricing
+            Log in
           </Link>
           <Link
             href="/generate"

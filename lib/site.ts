@@ -19,7 +19,7 @@ export function absoluteUrl(path: string) {
  * lastModified: bump it by hand only when the page's content changes.
  */
 export const toolLinks = [
-  { href: "/", label: "AI Video Generator", updated: "2026-10-08" },
+  { href: "/", label: "AI Video Generator", updated: "2026-10-27" },
   { href: "/text-to-video", label: "Text to Video", updated: "2026-10-08" },
   { href: "/image-to-video", label: "Image to Video", updated: "2026-10-08" },
   { href: "/ai-video-editor", label: "AI Video Editor", updated: "2026-10-08" },

@@ -26,6 +26,9 @@ const LOWEST_PLAN = Math.min(...TIERS.map((t) => t.price.month));
 const audioModels = modelPages.filter((m) => m.audio).map((m) => `[${m.name}](/models/${m.slug})`);
 const AUDIO_MODELS = `${audioModels.slice(0, -1).join(", ")} and ${audioModels.at(-1)}`;
 
+/** "[Seedance 2.5](/models/seedance-2-5) (ByteDance): summary", one per model page, so new models show up on the home page. */
+const MODEL_BULLETS = modelPages.map((m) => `[${m.name}](/models/${m.slug}) (${m.maker}): ${m.summary}`);
+
 /** One answer about cost, shared by every page, so it's changed in one place. */
 const PRICING_FAQ = {
   q: "Is it free?",
@@ -64,14 +67,7 @@ export const home: ToolContent = {
       paragraphs: [
         "Every video model has its own strengths. One keeps a face steady through a 30-second scene, another is great with fast camera work, another renders in 4K. Most AI video makers give you one model and a subscription. Here you switch models from the same prompt box and your prompt and attachments come with you, so comparing two models takes a click, not two accounts.",
       ],
-      bullets: [
-        "Seedance 2.5 (ByteDance): long, continuous scenes of up to 30 seconds that keep subjects consistent. It can also edit or extend clips you already have.",
-        "Wan 3.0 and Wan 3.0 Prime (Alibaba): take text, images, video and audio as input, and generate sound along with the picture.",
-        "LTX-2.5 Fast and LTX-2.3 Fast (Lightricks): quick, cheap drafts of up to 20 seconds. LTX-2.3 can build a video around your own audio.",
-        "MiniMax H3 (Fast, Max and Max Turbo): cinematic movement from a prompt or a single starting frame.",
-        "Gemini Omni Flash 1.1 (Google): anything from cheap 360p tests to 4K, plus scene extension and start-to-end frame interpolation.",
-        "FLUX 3 Video, HappyHorse 1.1 and Grok Imagine Video 1.5, for other looks and more image-to-video options.",
-      ],
+      bullets: MODEL_BULLETS,
     },
     {
       title: "What you can make",
@@ -140,8 +136,8 @@ export const home: ToolContent = {
       a: "Yes. Gemini Omni Flash 1.1 and LTX-2.5 Fast go up to 4K, LTX-2.3 Fast up to 2K and MiniMax H3 up to 1440p. Most other models top out at 720p or 1080p. 4K costs more per second, so it's worth drafting at a lower resolution first.",
     },
     {
-      q: "Is VideoGenEditor an alternative to Sora, Veo or Kling?",
-      a: "Sort of. Those are single models from single companies. VideoGenEditor gives you Seedance (ByteDance), Wan (Alibaba), Gemini Omni Flash (Google), MiniMax, LTX, FLUX and Grok in one place, and you pay per clip instead of per subscription. If one model can't get a shot right, you try another without signing up anywhere new. Our [best free AI video generators](/blog/best-free-ai-video-generators) guide covers how the others compare.",
+      q: "Is VideoGenEditor an alternative to Sora or Veo?",
+      a: "Sort of. Those are single models from single companies. VideoGenEditor gives you Seedance (ByteDance), Kling, Wan (Alibaba), Gemini Omni Flash (Google), MiniMax, LTX, FLUX and Grok in one place, and you pay per clip instead of per subscription. If one model can't get a shot right, you try another without signing up anywhere new. Our [best free AI video generators](/blog/best-free-ai-video-generators) guide covers how the others compare.",
     },
     {
       q: "Do I need to install anything?",

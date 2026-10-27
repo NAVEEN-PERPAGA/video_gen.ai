@@ -48,10 +48,6 @@ export function toolMetadata(tool: ToolContent): Metadata {
  * cases, FAQ and related tools.
  */
 export function ToolPage({ tool }: { tool: ToolContent }) {
-  const related = tool.related
-    .map((href) => toolLinks.find((l) => l.href === href))
-    .filter((l) => l !== undefined);
-
   return (
     <>
       <PlainHeader />
@@ -63,10 +59,7 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
           </p>
         </div>
 
-        <PromptBox
-          hidden={tool.path === "/" ? {} : { tool: tool.path.slice(1) }}
-          placeholder={tool.preset.placeholder}
-        />
+        <PromptBox hidden={{ tool: tool.path.slice(1) }} placeholder={tool.preset.placeholder} />
         {tool.path === "/ai-video-editor" && (
           <p className="-mt-4 text-sm text-zinc-600 dark:text-zinc-400">
             Want to cut clips together, add captions or music?{" "}
@@ -77,49 +70,7 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
           </p>
         )}
 
-        <JsonLd
-          data={{
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: `${SITE_NAME}: ${tool.h1}`,
-            description: plainText(tool.description),
-            url: absoluteUrl(tool.path),
-            applicationCategory: "MultimediaApplication",
-            operatingSystem: "Web",
-            offers: {
-              "@type": "AggregateOffer",
-              priceCurrency: "USD",
-              lowPrice: Math.min(...TIERS.map((t) => t.price.month)),
-              highPrice: Math.max(...TIERS.map((t) => t.price.month)),
-              offerCount: TIERS.length,
-              url: absoluteUrl("/pricing"),
-            },
-          }}
-        />
-        {tool.path === "/" && (
-          <JsonLd
-            data={{
-              "@context": "https://schema.org",
-              "@graph": [
-                {
-                  "@type": "Organization",
-                  "@id": absoluteUrl("/#organization"),
-                  name: SITE_NAME,
-                  url: absoluteUrl("/"),
-                  logo: absoluteUrl("/logo.png"),
-                },
-                {
-                  "@type": "WebSite",
-                  "@id": absoluteUrl("/#website"),
-                  name: SITE_NAME,
-                  url: absoluteUrl("/"),
-                  publisher: { "@id": absoluteUrl("/#organization") },
-                },
-              ],
-            }}
-          />
-        )}
-        <JsonLd data={faqPageLd(tool.faqs)} />
+        <ToolJsonLd tool={tool} />
 
         <article className="mt-8 flex max-w-3xl flex-col gap-14">
           <Section id="how-to" title={tool.howTo.title}>
@@ -148,22 +99,7 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
             <FaqList faqs={tool.faqs} />
           </Section>
 
-          {related.length > 0 && (
-            <Section id="related" title="More AI video tools">
-              <ul className="flex flex-wrap gap-2">
-                {related.map((l) => (
-                  <li key={l.href}>
-                    <Link
-                      href={l.href}
-                      className="inline-flex rounded-full border border-black/10 px-4 py-2 text-sm font-medium transition hover:border-indigo-400 hover:text-indigo-700 dark:border-white/15 dark:hover:text-indigo-300"
-                    >
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
+          <RelatedTools paths={tool.related} />
         </article>
       </main>
       <SiteFooter className="pb-12" />
@@ -171,25 +107,101 @@ export function ToolPage({ tool }: { tool: ToolContent }) {
   );
 }
 
+/** The page's SoftwareApplication (with plan prices) and FAQPage structured data. */
+export function ToolJsonLd({ tool }: { tool: ToolContent }) {
+  return (
+    <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: `${SITE_NAME}: ${tool.h1}`,
+          description: plainText(tool.description),
+          url: absoluteUrl(tool.path),
+          applicationCategory: "MultimediaApplication",
+          operatingSystem: "Web",
+          offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: "USD",
+            lowPrice: Math.min(...TIERS.map((t) => t.price.month)),
+            highPrice: Math.max(...TIERS.map((t) => t.price.month)),
+            offerCount: TIERS.length,
+            url: absoluteUrl("/pricing"),
+          },
+        }}
+      />
+      <JsonLd data={faqPageLd(tool.faqs)} />
+    </>
+  );
+}
+
+/** Pill links to other tool pages, by path. */
+export function RelatedTools({ paths }: { paths: string[] }) {
+  const related = paths.map((href) => toolLinks.find((l) => l.href === href)).filter((l) => l !== undefined);
+  if (related.length === 0) return null;
+  return (
+    <Section id="related" title="More AI video tools">
+      <ul className="flex flex-wrap gap-2">
+        {related.map((l) => (
+          <li key={l.href}>
+            <Link
+              href={l.href}
+              className="inline-flex rounded-full border border-black/10 px-4 py-2 text-sm font-medium transition hover:border-indigo-400 hover:text-indigo-700 dark:border-white/15 dark:hover:text-indigo-300"
+            >
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
 /**
  * A plain GET form (no client JavaScript): submitting opens the studio with
  * the typed prompt filled in. `hidden` picks the preset, e.g. { tool } or { model }.
+ * `id` must be unique on the page when there's more than one box. `modes` adds
+ * a Video/Image switch (sent as ?mode=); the button label follows it in CSS.
  */
-export function PromptBox({ hidden = {}, placeholder }: { hidden?: Record<string, string>; placeholder?: string }) {
+export function PromptBox({
+  hidden = {},
+  placeholder,
+  id = "prompt",
+  modes = false,
+}: {
+  hidden?: Record<string, string>;
+  placeholder?: string;
+  id?: string;
+  modes?: boolean;
+}) {
   return (
     <form
       action="/generate"
       method="get"
-      className="flex max-w-3xl flex-col gap-3 rounded-2xl border border-black/10 bg-white p-3 shadow-sm focus-within:border-indigo-400 dark:border-white/15 dark:bg-zinc-900"
+      className="group flex w-full max-w-3xl flex-col gap-3 rounded-2xl border border-black/10 bg-white p-3 shadow-sm focus-within:border-indigo-400 dark:border-white/15 dark:bg-zinc-900"
     >
       {Object.entries(hidden).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
-      <label htmlFor="prompt" className="sr-only">
+      {modes && (
+        <fieldset className="flex gap-1 self-start rounded-lg bg-black/[0.04] p-1 text-sm font-medium dark:bg-white/[0.06]">
+          <legend className="sr-only">What to make</legend>
+          {(["video", "image"] as const).map((mode) => (
+            <label
+              key={mode}
+              className="cursor-pointer rounded-md px-3 py-1 text-zinc-600 capitalize transition has-[:checked]:bg-white has-[:checked]:text-foreground has-[:checked]:shadow-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-400 dark:text-zinc-400 dark:has-[:checked]:bg-zinc-700"
+            >
+              <input type="radio" name="mode" value={mode} defaultChecked={mode === "video"} className="sr-only" />
+              {mode}
+            </label>
+          ))}
+        </fieldset>
+      )}
+      <label htmlFor={id} className="sr-only">
         Describe your video
       </label>
       <textarea
-        id="prompt"
+        id={id}
         name="prompt"
         rows={3}
         maxLength={2000}
@@ -202,7 +214,8 @@ export function PromptBox({ hidden = {}, placeholder }: { hidden?: Record<string
           type="submit"
           className="flex h-10 shrink-0 cursor-pointer items-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
         >
-          Generate video
+          <span className="group-has-[input[value=image]:checked]:hidden">Generate video</span>
+          <span className="hidden group-has-[input[value=image]:checked]:inline">Generate image</span>
         </button>
       </div>
     </form>
