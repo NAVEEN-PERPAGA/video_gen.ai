@@ -53,8 +53,19 @@ function MediaLimits({ model }: { model: RunwareModel }) {
   );
 }
 
-/** Lists the models of the current model's type; the composer's mode switch changes type. */
-export function ModelPicker({ model, onChange }: { model: RunwareModel; onChange: (id: string) => void }) {
+/**
+ * Lists the models of the current model's type; the composer's mode switch changes type.
+ * The list opens above the button (`placement="up"`, for the docked composer) or below it.
+ */
+export function ModelPicker({
+  model,
+  onChange,
+  placement = "up",
+}: {
+  model: RunwareModel;
+  onChange: (id: string) => void;
+  placement?: "up" | "down";
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   useDismiss(rootRef, open, useCallback(() => setOpen(false), []));
@@ -78,7 +89,7 @@ export function ModelPicker({ model, onChange }: { model: RunwareModel; onChange
         <div
           role="listbox"
           aria-label={model.type === "image" ? "Image model" : "Video model"}
-          className="scroll-inset absolute bottom-full left-0 z-30 mb-2 max-h-[min(28rem,70vh)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-white/10 bg-[#1b1f33]/95 p-1.5 text-slate-100 shadow-2xl backdrop-blur-xl"
+          className={`scroll-inset absolute ${placement === "up" ? "bottom-full mb-2" : "top-full mt-2"} left-0 z-30 max-h-[min(28rem,70vh)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-white/10 bg-[#1b1f33]/95 p-1.5 text-slate-100 shadow-2xl backdrop-blur-xl`}
         >
           {modelsByOrganisation(model.type).map(([organisation, models]) => (
             <div key={organisation} className="py-1">

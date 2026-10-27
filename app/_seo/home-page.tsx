@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PlainHeader } from "@/app/_seo/article";
+import { HomeComposer } from "@/app/_seo/home-composer";
 import { JsonLd } from "@/app/_seo/json-ld";
 import { modelPageBySlug } from "@/app/_seo/model-pages";
 import { usd } from "@/app/_seo/models";
@@ -178,7 +179,7 @@ function Hero() {
         </p>
 
         <div className="flex w-full flex-col items-center gap-3 text-left">
-          <PromptBox modes placeholder={home.preset.placeholder} />
+          <HomeComposer placeholder={home.preset.placeholder} />
           <ul className="flex flex-wrap justify-center gap-2 text-sm" aria-label="Example prompts">
             {EXAMPLES.map((e) => {
               const page = e.model ? modelPageBySlug(e.model) : undefined;

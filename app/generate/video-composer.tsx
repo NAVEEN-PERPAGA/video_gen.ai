@@ -259,10 +259,44 @@ function presetValues(model: RunwareModel, preset?: ComposerPreset): ComposerVal
   };
 }
 
+/** Where a signed-out visitor's setup waits while they sign in. */
+const HANDOFF_KEY = "composer:handoff";
+
+/**
+ * Keeps the model and values (without attachments: local files can't survive the
+ * redirect) for the composer that opens after sign-in.
+ */
+function saveHandoff(model: RunwareModel, values: ComposerValues) {
+  try {
+    sessionStorage.setItem(HANDOFF_KEY, JSON.stringify({ modelId: model.value, values: { ...values, assets: {} } }));
+  } catch {
+    // Storage blocked or full: sign-in still works, the setup is just lost.
+  }
+}
+
+/** Takes (and clears) a setup saved before sign-in, if its model still exists. */
+function takeHandoff(): { model: RunwareModel; values: ComposerValues } | undefined {
+  try {
+    const raw = sessionStorage.getItem(HANDOFF_KEY);
+    if (!raw) return undefined;
+    sessionStorage.removeItem(HANDOFF_KEY);
+    const saved = JSON.parse(raw) as { modelId?: string; values?: Partial<ComposerValues> };
+    const model = saved.modelId ? getModel(saved.modelId) : undefined;
+    if (!model) return undefined;
+    const values = { ...initialValues(model), ...saved.values, assets: {} };
+    return { model, values: autoAdjust(model, values) };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * `workspaceId` is where generations are created; null when the user has none yet.
- * Signed-out visitors can try every control; generating sends them to sign in.
+ * Signed-out visitors can try every control; generating saves their setup and sends
+ * them to sign in, back to `next` (default: this page), where the composer restores it.
  * `onGeneration` hears about each generation this starts, and each status it polls.
+ * `variant`: "docked" pins it to the bottom of the studio; "inline" sits in the page
+ * (the home page). `agent: false` hides the Agent toggle.
  */
 export function VideoComposer({
   workspaceId,
@@ -270,12 +304,18 @@ export function VideoComposer({
   onGeneration,
   preset,
   ref,
+  variant = "docked",
+  agent: agentAllowed = true,
+  next,
 }: {
   workspaceId: number | null;
   signedIn: boolean;
   onGeneration?: (generation: Generation) => void;
   preset?: ComposerPreset;
   ref?: RefObject<ComposerHandle | null>;
+  variant?: "docked" | "inline";
+  agent?: boolean;
+  next?: string;
 }) {
   const [modelId, setModelId] = useState(() =>
     preset?.modelId && getModel(preset.modelId) ? preset.modelId : defaultModelIds.video,
@@ -293,6 +333,15 @@ export function VideoComposer({
   /** Off: the prompt generates with the chosen model. On: it goes to the agent, which picks models itself. */
   const [agentMode, setAgentMode] = useState(false);
   const agent = useAgentSession(workspaceId, onGeneration);
+
+  // A setup saved before sign-in wins over the preset. Read after mount: the server can't see it.
+  useEffect(() => {
+    const saved = takeHandoff();
+    if (!saved) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore from sessionStorage after hydration
+    setModelId(saved.model.value);
+    setValues(saved.values);
+  }, []);
 
   const modelErrors = useMemo(() => checkValues(model, values), [model, values]);
   const errors = agentMode ? (values.prompt.trim() ? [] : ["Enter a message."]) : modelErrors;
@@ -501,9 +550,10 @@ export function VideoComposer({
   function submit() {
     if (pending || blockedReason) return;
     if (!signedIn) {
-      // Come back to this tool page after signing in.
+      // Come back to this page (or `next`) after signing in, with this setup.
+      saveHandoff(model, values);
       const form = new FormData();
-      form.set("next", window.location.pathname);
+      form.set("next", next ?? window.location.pathname);
       startTransition(() => signInWithGoogle(form));
       return;
     }
@@ -531,10 +581,12 @@ export function VideoComposer({
   );
   const numericSettings = settingFields.filter(([, f]) => f.type === "number" || f.type === "integer");
 
+  const docked = variant === "docked";
+
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10">
-      <div className="h-10 bg-gradient-to-t from-background to-transparent" aria-hidden="true" />
-      <div className="bg-background px-3 pb-4 sm:px-4">
+    <div className={docked ? "pointer-events-none fixed inset-x-0 bottom-0 z-10" : "w-full"}>
+      {docked && <div className="h-10 bg-gradient-to-t from-background to-transparent" aria-hidden="true" />}
+      <div className={docked ? "bg-background px-3 pb-4 sm:px-4" : undefined}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -640,23 +692,25 @@ export function VideoComposer({
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
                 {!agentMode && (
                   <>
-                    <ModelPicker model={model} onChange={selectModel} />
+                    <ModelPicker model={model} onChange={selectModel} placement={docked ? "up" : "down"} />
                     <ModeSwitch
                       type={model.type}
                       onChange={(type) => type !== model.type && selectModel(lastModelIds.current[type])}
                     />
                   </>
                 )}
-                <TogglePill
-                  icon={SparklesIcon}
-                  label="Agent"
-                  title="Let an AI agent plan and generate images from your brief"
-                  checked={agentMode}
-                  onChange={(on) => {
-                    setAgentMode(on);
-                    setNotice([]);
-                  }}
-                />
+                {agentAllowed && (
+                  <TogglePill
+                    icon={SparklesIcon}
+                    label="Agent"
+                    title="Let an AI agent plan and generate images from your brief"
+                    checked={agentMode}
+                    onChange={(on) => {
+                      setAgentMode(on);
+                      setNotice([]);
+                    }}
+                  />
+                )}
                 {!agentMode && (
                   <>
                     {canExtend(model) && !values.assets.video?.length && (
