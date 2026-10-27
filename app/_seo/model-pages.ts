@@ -11,13 +11,12 @@ import { perSecond, usd, videoModel } from "@/app/_seo/models";
  * Keep every claim true to the model file (inputs, lengths, sizes, settings).
  */
 
-/** When the model pages last changed; the sitemap's lastModified. Bump it with every edit here. */
-export const MODELS_UPDATED = "2026-10-08";
-
 export interface ModelPage {
   /** The model's AIR id in data/video/models. */
   id: string;
   slug: string;
+  /** When this page's copy last changed; its sitemap lastModified. Bump it only when you edit this entry. */
+  updated: string;
   /** How the copy names it (the model files say "Wan3.0"). */
   name: string;
   maker: string;
@@ -56,6 +55,7 @@ const FLUX = "bfl:flux@3-video";
 const HAPPYHORSE = "alibaba:happyhorse@1.1";
 const GROK = "xai:grok-imagine@video-1.5";
 const GROK_LITE = "xai:grok-imagine@video-1.5-lite";
+const KLING = "klingai:kling-video@4.0";
 
 /** "$0.10" for a model's rate at a tier, per second. */
 const rate = (id: string, tier: string) => usd(perSecond(id, tier));
@@ -69,11 +69,13 @@ const h3Images = pricing(H3).perInputImage!;
 const h3VideoInput = usd(pricing(H3).inputVideoPerSecond!);
 const grokImage = usd(pricing(GROK).perInputImage!.price);
 const grokLiteImage = usd(pricing(GROK_LITE).perInputImage!.price);
+const klingVideoInput = usd(pricing(KLING).videoInput!["1080p"]);
 
 export const modelPages: ModelPage[] = [
   {
     id: SEEDANCE,
     slug: "seedance-2-5",
+    updated: "2026-10-08",
     name: "Seedance 2.5",
     maker: "ByteDance",
     title: "Seedance 2.5 AI Video Generator – Try It Online",
@@ -132,6 +134,7 @@ export const modelPages: ModelPage[] = [
   {
     id: WAN,
     slug: "wan-3-0",
+    updated: "2026-10-08",
     name: "Wan 3.0",
     maker: "Alibaba",
     title: "Wan 3.0 AI Video Generator – Specs, Prices & Tips",
@@ -190,6 +193,7 @@ export const modelPages: ModelPage[] = [
   {
     id: WAN_PRIME,
     slug: "wan-3-0-prime",
+    updated: "2026-10-08",
     name: "Wan 3.0 Prime",
     maker: "Alibaba",
     title: "Wan 3.0 Prime – Faster Wan 3.0 AI Video Online",
@@ -242,6 +246,7 @@ export const modelPages: ModelPage[] = [
   {
     id: GEMINI,
     slug: "gemini-omni-flash-1-1",
+    updated: "2026-10-08",
     name: "Gemini Omni Flash 1.1",
     maker: "Google",
     title: "Gemini Omni Flash 1.1 AI Video – 360p to 4K Online",
@@ -301,6 +306,7 @@ export const modelPages: ModelPage[] = [
   {
     id: LTX_25,
     slug: "ltx-2-5-fast",
+    updated: "2026-10-08",
     name: "LTX-2.5 Fast",
     maker: "Lightricks",
     title: "LTX-2.5 Fast AI Video Generator – Fast Drafts to 4K",
@@ -354,6 +360,7 @@ export const modelPages: ModelPage[] = [
   {
     id: LTX_23,
     slug: "ltx-2-3-fast",
+    updated: "2026-10-08",
     name: "LTX-2.3 Fast",
     maker: "Lightricks",
     title: "LTX-2.3 Fast – Low-Cost, Audio-Driven AI Video",
@@ -407,6 +414,7 @@ export const modelPages: ModelPage[] = [
   {
     id: H3,
     slug: "minimax-h3",
+    updated: "2026-10-08",
     name: "MiniMax H3",
     maker: "MiniMax",
     title: "MiniMax H3 AI Video Generator – Cinematic, Up to 1440p",
@@ -460,6 +468,7 @@ export const modelPages: ModelPage[] = [
   {
     id: H3_MAX,
     slug: "minimax-h3-max",
+    updated: "2026-10-08",
     name: "MiniMax H3 Max",
     maker: "MiniMax",
     title: "MiniMax H3 Max – Expressive Image to Video AI",
@@ -512,6 +521,7 @@ export const modelPages: ModelPage[] = [
   {
     id: H3_TURBO,
     slug: "minimax-h3-max-turbo",
+    updated: "2026-10-08",
     name: "MiniMax H3 Max Turbo",
     maker: "MiniMax",
     title: "MiniMax H3 Max Turbo – Low-Cost AI Video Online",
@@ -563,6 +573,7 @@ export const modelPages: ModelPage[] = [
   {
     id: H3_FAST,
     slug: "minimax-h3-fast",
+    updated: "2026-10-08",
     name: "MiniMax H3 Fast",
     maker: "MiniMax",
     title: "MiniMax H3 Fast – Quick 480p AI Video With References",
@@ -613,6 +624,7 @@ export const modelPages: ModelPage[] = [
   {
     id: FLUX,
     slug: "flux-3-video",
+    updated: "2026-10-08",
     name: "FLUX 3 Video",
     maker: "Black Forest Labs",
     title: "FLUX 3 Video AI Generator – Text, Titles & Drafts",
@@ -667,6 +679,7 @@ export const modelPages: ModelPage[] = [
   {
     id: HAPPYHORSE,
     slug: "happyhorse-1-1",
+    updated: "2026-10-08",
     name: "HappyHorse 1.1",
     maker: "Alibaba",
     title: "HappyHorse 1.1 AI Video Generator – Specs & Prices",
@@ -719,6 +732,7 @@ export const modelPages: ModelPage[] = [
   {
     id: GROK,
     slug: "grok-imagine-video-1-5",
+    updated: "2026-10-08",
     name: "Grok Imagine Video 1.5",
     maker: "xAI",
     title: "Grok Imagine Video 1.5 – Image to Video AI With Voices",
@@ -772,6 +786,7 @@ export const modelPages: ModelPage[] = [
   {
     id: GROK_LITE,
     slug: "grok-imagine-video-1-5-lite",
+    updated: "2026-10-08",
     name: "Grok Imagine Video 1.5 Lite",
     maker: "xAI",
     title: "Grok Imagine Video 1.5 Lite – Low-Cost AI Video",
@@ -821,7 +836,74 @@ export const modelPages: ModelPage[] = [
     ],
     tools: ["/text-to-video", "/image-to-video"],
   },
+  {
+    id: KLING,
+    slug: "kling-video-4-0",
+    updated: "2026-10-27",
+    name: "Kling VIDEO 4.0",
+    maker: "Kling AI",
+    title: "Kling VIDEO 4.0 AI Video Generator – 30s Clips Online",
+    description:
+      "Use Kling VIDEO 4.0 online: 3 to 30 second 1080p clips, up to 10 keyframes, reference images and videos, and prompt-based video editing.",
+    h1: "Kling VIDEO 4.0: Long Shots With Keyframe Control",
+    summary: "Clips up to 30 seconds, up to 10 keyframes, and references or an input video in one request.",
+    intro:
+      "Kling VIDEO 4.0 is Kling AI's all-in-one video model. It makes 720p or 1080p clips anywhere from 3 to 30 seconds long, and it lets you steer them closely: pin the opening, the ending and up to eight moments in between with frame images, hold a look with reference images and videos, or hand it an existing clip and describe what to change.",
+    audio: true,
+    strengths: [
+      "Any length from 3 to 30 seconds in a single generation.",
+      "Up to 10 frame images per clip, so you can plan a shot like a storyboard.",
+      "Up to 10 reference images and 5 reference videos to keep subjects, style and motion consistent.",
+      "Frame images, references and an input video can be combined in one request.",
+      "Prompt-based editing of a video you already have.",
+      "720p or 1080p in 16:9, 9:16, 1:1 and a wide ~21:9.",
+    ],
+    bestFor: [
+      { title: "Storyboarded shots", body: "Lay out the key moments as stills and let the model fill in the motion between them." },
+      { title: "Long single takes", body: "Walkthroughs, reveals and narrative scenes that need more than a few seconds." },
+      { title: "Editing footage", body: "Attach a clip as the input video and describe what should change." },
+      { title: "Consistent characters and products", body: "Reference images keep them on-model. See the [AI UGC video generator](/ai-ugc-video-generator)." },
+    ],
+    limits: [
+      `It's a premium model: ${rate(KLING, "1080p")} a second at 1080p, so a 30-second 1080p clip is about ${clip(KLING, "1080p", 30)}. Draft at 720p (${rate(KLING, "720p")} a second).`,
+      `An input video or reference videos raise the rate, to ${klingVideoInput} a second at 1080p.`,
+      "It tops out at 1080p. For 4K, use [Gemini Omni Flash 1.1](/models/gemini-omni-flash-1-1) or [LTX-2.5 Fast](/models/ltx-2-5-fast).",
+      "With reference images, reference videos or an input video, a prompt is required. Only a first frame can run without one.",
+      "Without any frame images or reference media, pick an exact size.",
+    ],
+    prompt: {
+      text: "A lighthouse keeper climbs the spiral stairs with a lantern, the camera following close behind. At the top she steps out onto the gallery as a storm rolls in over the sea, waves crashing on the rocks below, wind and thunder.",
+      note: "Add frame images for the stairwell and the gallery to lock in both ends of the move. Refer to attached media in the prompt as <<<image_1>>> or <<<video_1>>>, numbered in the order you add them.",
+    },
+    faqs: [
+      {
+        q: "How long can a Kling VIDEO 4.0 video be?",
+        a: "Anywhere from 3 to 30 seconds per generation. The default is 10 seconds.",
+      },
+      {
+        q: "How much does Kling VIDEO 4.0 cost?",
+        a: `${rate(KLING, "720p")} a second at 720p and ${rate(KLING, "1080p")} at 1080p, so a 10-second 1080p clip is about ${clip(KLING, "1080p", 10)}. With an input video or reference videos it's ${usd(pricing(KLING).videoInput!["720p"])} a second at 720p and ${klingVideoInput} at 1080p.`,
+      },
+      {
+        q: "Can Kling VIDEO 4.0 use more than a first and last frame?",
+        a: "Yes. Add up to 10 frame images and the model spreads them through the clip as keyframes, which is how you plan a shot that moves through several moments.",
+      },
+      {
+        q: "Can Kling VIDEO 4.0 edit an existing video?",
+        a: "Yes. Attach the clip as the input video and describe the change, such as “turn the daylight into a rainy night, keep the people the same”.",
+      },
+    ],
+    alternatives: [
+      { slug: "seedance-2-5", why: "Another 30-second model, with bigger reference sets and extend mode." },
+      { slug: "wan-3-0", why: "Reference-driven work for less per second." },
+      { slug: "flux-3-video", why: "Up to 10 frame images too, plus a cheap draft mode." },
+    ],
+    tools: ["/text-to-video", "/image-to-video", "/ai-ugc-video-generator"],
+  },
 ];
+
+/** The /models index changes whenever any model page does. ISO dates sort as strings. */
+export const MODELS_UPDATED = modelPages.map((m) => m.updated).sort().at(-1)!;
 
 export function modelPageBySlug(slug: string) {
   return modelPages.find((m) => m.slug === slug);

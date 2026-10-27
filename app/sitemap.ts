@@ -16,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: absoluteUrl("/models"), lastModified: MODELS_UPDATED },
     ...modelPages.map((m) => ({
       url: absoluteUrl(`/models/${m.slug}`),
-      lastModified: MODELS_UPDATED,
+      lastModified: m.updated,
     })),
     { url: absoluteUrl("/blog"), lastModified: BLOG_UPDATED },
     ...articles.map((a) => ({
