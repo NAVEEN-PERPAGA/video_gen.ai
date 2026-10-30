@@ -34,6 +34,7 @@ export function PlainHeader() {
         <SiteLogo className="text-sm font-semibold tracking-tight" />
         <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">
           {[
+            { href: "/explore", label: "Explore" },
             { href: "/models", label: "Models" },
             { href: "/pricing", label: "Pricing" },
             { href: "/blog", label: "Guides" },

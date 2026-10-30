@@ -27,7 +27,7 @@ export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Open account menu"
-        className="block rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+        className="block rounded-full transition hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- remote avatar host, no need for next/image optimization

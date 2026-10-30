@@ -81,3 +81,22 @@ optgroup {
 .scroll-inset::-webkit-scrollbar-track {
   margin-block: 12px;
 }
+
+/*
+ * Tailwind 4 dropped the pointer cursor on buttons; bring it back for every
+ * clickable control, and show "not allowed" when one is disabled. In the base
+ * layer so utilities such as `disabled:cursor-wait` still win.
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}

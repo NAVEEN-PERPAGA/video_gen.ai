@@ -44,7 +44,7 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-foreground px-4 py-2 font-medium text-background disabled:opacity-60"
+        className="rounded-md bg-foreground px-4 py-2 font-medium text-background transition hover:opacity-85 disabled:opacity-60"
       >
         {pending ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
       </button>
@@ -60,7 +60,7 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
         type="submit"
         formAction={signInWithGoogle}
         formNoValidate
-        className="rounded-md border border-black/15 px-4 py-2 font-medium dark:border-white/20"
+        className="rounded-md border border-black/15 px-4 py-2 font-medium transition hover:bg-black/[0.04] dark:border-white/20 dark:hover:bg-white/[0.06]"
       >
         Continue with Google
       </button>
@@ -68,7 +68,7 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
       <button
         type="button"
         onClick={() => setMode(isLogin ? "signup" : "login")}
-        className="text-sm text-zinc-600 underline dark:text-zinc-400"
+        className="text-sm text-zinc-600 underline transition hover:text-foreground dark:text-zinc-400"
       >
         {isLogin ? "No account? Sign up" : "Have an account? Sign in"}
       </button>

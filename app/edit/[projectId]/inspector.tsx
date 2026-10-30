@@ -367,7 +367,7 @@ function Segmented<T extends string>({
           role="radio"
           aria-checked={value === v}
           onClick={() => onChange(v)}
-          className="flex-1 cursor-pointer rounded px-2 py-1 text-xs text-zinc-300 transition aria-checked:bg-indigo-500 aria-checked:text-white"
+          className="flex-1 cursor-pointer rounded px-2 py-1 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white aria-checked:bg-indigo-500 aria-checked:text-white"
         >
           {label}
         </button>

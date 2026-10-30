@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 const SITE_NAV = [
   { href: "/text-to-video", label: "Text to Video" },
   { href: "/image-to-video", label: "Image to Video" },
+  { href: "/explore", label: "Explore" },
   { href: "/models", label: "Models" },
   { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Guides" },
@@ -68,6 +69,8 @@ export async function WorkspaceShell({
       apiError = err instanceof Error ? err.message : String(err);
     }
   }
+  // Newest first, so a just-created workspace sits right next to the + button.
+  workspaces.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.id - a.id);
 
   // Videos are generated in the workspace picked in the header (?workspace=<id>), else the first one.
   const { workspace } = await searchParams;
@@ -81,6 +84,7 @@ export async function WorkspaceShell({
           <SiteLogo className="text-sm font-semibold tracking-tight" />
           {/* min-w-0 lets the workspace strip shrink and scroll instead of pushing the avatar off-screen. */}
           <nav aria-label="Workspaces" className="flex min-w-0 flex-1 items-center gap-2">
+            {signedIn && <NewWorkspaceButton />}
             <ul className="flex min-w-0 items-center gap-2 overflow-x-auto">
               {workspaces.map((ws) => (
                 <li key={ws.id} className="shrink-0">
@@ -113,7 +117,6 @@ export async function WorkspaceShell({
             {active?.role === "owner" && (
               <DeleteWorkspaceButton key={`delete-${active.id}`} workspaceId={active.id} name={active.name} />
             )}
-            {signedIn && <NewWorkspaceButton />}
           </nav>
 
           {/* Signed out, the header links the main pages instead of workspaces. */}

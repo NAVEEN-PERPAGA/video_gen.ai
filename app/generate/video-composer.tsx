@@ -558,9 +558,13 @@ export function VideoComposer({
       return;
     }
     if (workspaceId === null) return;
+    // Clear the prompt as soon as it's sent; put it back if sending fails and nothing new was typed.
+    const sent = values.prompt;
+    update({ prompt: "" });
+    const restorePrompt = () => setValues((v) => (v.prompt ? v : { ...v, prompt: sent }));
     if (agentMode) {
       startTransition(async () => {
-        if (await agent.send(values.prompt.trim())) update({ prompt: "" });
+        if (!(await agent.send(sent.trim()))) restorePrompt();
       });
       return;
     }
@@ -571,6 +575,7 @@ export function VideoComposer({
       const state = await generate(workspaceId, model.value, values);
       setResult(state);
       if (state?.generation) onGeneration?.(state.generation);
+      else restorePrompt();
     });
   }
 
@@ -1022,7 +1027,7 @@ function PromptInput({
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => pick(option)}
                       onMouseEnter={() => setActive(i)}
-                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-1.5 text-left text-sm transition ${i === active ? "bg-white/[0.08]" : ""}`}
+                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-1.5 text-left text-sm transition hover:bg-white/[0.05] ${i === active ? "bg-white/[0.08]" : ""}`}
                     >
                       <TagThumb option={option} />
                       <span className="min-w-0 flex-1">

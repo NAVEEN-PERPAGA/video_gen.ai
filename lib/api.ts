@@ -10,6 +10,11 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   return body.data;
 }
 
+/** Like apiFetch, for endpoints that answer `{ data, meta }`, e.g. an upload and where to PUT its file. */
+export async function apiFetchWithMeta<T, M>(path: string, init: RequestInit = {}): Promise<{ data: T; meta: M }> {
+  return apiRequest<{ data: T; meta: M }>(path, init);
+}
+
 /** Sends a request whose success response has no body (204), e.g. a DELETE. */
 export async function apiSend(path: string, init: RequestInit): Promise<void> {
   await apiRequest<void>(path, init);
@@ -28,6 +33,26 @@ export async function apiFetchPage<T>(
   const params = new URLSearchParams({ limit: String(limit) });
   if (cursor !== null) params.set("cursor", String(cursor));
   const page = await apiRequest<{ data: T[]; meta: { nextCursor: Cursor } }>(`${path}?${params}`);
+  return { items: page.data, nextCursor: page.meta.nextCursor };
+}
+
+/**
+ * Fetches one page of a PUBLIC list endpoint (no token sent), for pages
+ * signed-out visitors see. Cached by Next for `revalidate` seconds, so
+ * visitors don't each cost an API call; mutations clear it with revalidatePath.
+ */
+export async function publicApiFetchPage<T>(
+  path: string,
+  { limit, revalidate }: { limit: number; revalidate: number },
+): Promise<{ items: T[]; nextCursor: Cursor }> {
+  const res = await fetch(`${process.env.API_URL}/api/v1${path}?${new URLSearchParams({ limit: String(limit) })}`, {
+    next: { revalidate },
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null;
+    throw new ApiError(res.status, body?.error?.message ?? `Request failed with status ${res.status}`, body?.error?.code);
+  }
+  const page = (await res.json()) as { data: T[]; meta: { nextCursor: Cursor } };
   return { items: page.data, nextCursor: page.meta.nextCursor };
 }
 

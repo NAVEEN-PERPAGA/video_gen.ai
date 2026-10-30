@@ -64,14 +64,14 @@ export function RenameWorkspaceButton({ workspaceId, name }: { workspaceId: numb
             <button
               type="button"
               onClick={() => dialogRef.current?.close()}
-              className="rounded-md border border-black/15 px-3 py-1.5 text-sm dark:border-white/20"
+              className="rounded-md border border-black/15 px-3 py-1.5 text-sm transition hover:bg-black/[0.04] dark:border-white/20 dark:hover:bg-white/[0.06]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background disabled:opacity-60"
+              className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition hover:opacity-85 disabled:opacity-60"
             >
               {pending ? "Saving…" : "Save"}
             </button>

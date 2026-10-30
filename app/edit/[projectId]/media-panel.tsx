@@ -175,7 +175,7 @@ export function MediaPanel({
         {error && (
           <p className="mb-2 flex items-start justify-between gap-2 rounded-md bg-red-500/10 p-2 text-xs text-red-300">
             {error}
-            <button type="button" onClick={() => setError(null)} className="cursor-pointer text-red-200 underline">
+            <button type="button" onClick={() => setError(null)} className="cursor-pointer text-red-200 underline hover:text-white">
               Dismiss
             </button>
           </p>

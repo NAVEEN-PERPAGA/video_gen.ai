@@ -457,7 +457,7 @@ export function Editor({ project, initialSources }: { project: Project; initialS
                 type="button"
                 onClick={() => setPanel((current) => (current === p ? null : p))}
                 aria-pressed={panel === p}
-                className="cursor-pointer rounded-md bg-white/10 px-3 py-1 text-xs font-medium capitalize aria-pressed:bg-indigo-500"
+                className="cursor-pointer rounded-md bg-white/10 px-3 py-1 text-xs font-medium capitalize transition hover:bg-white/20 aria-pressed:bg-indigo-500 aria-pressed:hover:bg-indigo-400"
               >
                 {p === "media" ? "Media" : "Edit"}
               </button>

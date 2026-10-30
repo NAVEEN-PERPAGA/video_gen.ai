@@ -59,7 +59,7 @@ export function DeleteWorkspaceButton({ workspaceId, name }: { workspaceId: numb
               type="button"
               autoFocus
               onClick={() => dialogRef.current?.close()}
-              className="rounded-md border border-black/15 px-3 py-1.5 text-sm dark:border-white/20"
+              className="rounded-md border border-black/15 px-3 py-1.5 text-sm transition hover:bg-black/[0.04] dark:border-white/20 dark:hover:bg-white/[0.06]"
             >
               Cancel
             </button>

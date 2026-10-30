@@ -13,6 +13,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: absoluteUrl(l.href),
       lastModified: l.updated,
     })),
+    // Changes whenever an admin uploads a video, so no fixed lastModified.
+    { url: absoluteUrl("/explore") },
     { url: absoluteUrl("/models"), lastModified: MODELS_UPDATED },
     ...modelPages.map((m) => ({
       url: absoluteUrl(`/models/${m.slug}`),
