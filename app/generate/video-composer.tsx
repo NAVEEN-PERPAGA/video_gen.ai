@@ -9,6 +9,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -290,8 +291,64 @@ function takeHandoff(): { model: RunwareModel; values: ComposerValues } | undefi
   }
 }
 
+/** Where a workspace's composer setup is remembered, in this browser. */
+function setupKey(workspaceId: number) {
+  return `composer:workspace:${workspaceId}`;
+}
+
+/**
+ * A workspace's setup as stored: its mode, models and settings. Never the prompt
+ * or attachments, and an attached clip's operation goes with the clip.
+ */
+function serializeSetup(
+  model: RunwareModel,
+  values: ComposerValues,
+  agentMode: boolean,
+  lastModelIds: Record<MediaType, string>,
+) {
+  return JSON.stringify({
+    modelId: model.value,
+    agentMode,
+    lastModelIds,
+    values: fitOperation(model, values, { ...values, prompt: "", assets: {} }),
+  });
+}
+
+/** Reads a workspace's stored setup, if its model still exists. */
+function loadSetup(workspaceId: number) {
+  try {
+    const raw = localStorage.getItem(setupKey(workspaceId));
+    if (!raw) return undefined;
+    const saved = JSON.parse(raw) as {
+      modelId?: string;
+      agentMode?: boolean;
+      lastModelIds?: Partial<Record<MediaType, string>>;
+      values?: Partial<ComposerValues>;
+    };
+    const model = saved.modelId ? getModel(saved.modelId) : undefined;
+    if (!model) return undefined;
+    /** The model to return to in a mode, unless it's gone. */
+    const lastModel = (type: MediaType) => {
+      const id = saved.lastModelIds?.[type];
+      return id && getModel(id)?.type === type ? id : defaultModelIds[type];
+    };
+    return {
+      model,
+      agentMode: saved.agentMode === true,
+      lastModelIds: { video: lastModel("video"), image: lastModel("image") },
+      // Model files change: autoAdjust re-fits whatever the model no longer accepts.
+      values: autoAdjust(model, { ...initialValues(model), ...saved.values, prompt: "", assets: {} }),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * `workspaceId` is where generations are created; null when the user has none yet.
+ * Each workspace remembers its setup in this browser: the Agent toggle, the models and
+ * their settings. A non-empty `preset` (a link opening the composer a certain way) wins
+ * over it, and only replaces it once the user changes something.
  * Signed-out visitors can try every control; generating saves their setup and sends
  * them to sign in, back to `next` (default: this page), where the composer restores it.
  * `onGeneration` hears about each generation this starts, and each status it polls.
@@ -334,14 +391,45 @@ export function VideoComposer({
   const [agentMode, setAgentMode] = useState(false);
   const agent = useAgentSession(workspaceId, onGeneration);
 
-  // A setup saved before sign-in wins over the preset. Read after mount: the server can't see it.
+  // A setup saved before sign-in wins over the preset, and the preset over the workspace's
+  // own setup. Read after mount: the server can't see them. Before paint, so switching
+  // workspaces doesn't flash the defaults. Once only: taking the handoff clears it, and
+  // Strict Mode runs effects twice.
+  const restored = useRef(false);
+  useLayoutEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    const handoff = takeHandoff();
+    if (handoff) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore from sessionStorage after hydration
+      setModelId(handoff.model.value);
+      setValues(handoff.values);
+      return;
+    }
+    if (workspaceId === null || Object.keys(preset ?? {}).length > 0) return;
+    const setup = loadSetup(workspaceId);
+    if (!setup) return;
+    lastModelIds.current = setup.lastModelIds;
+    setModelId(setup.model.value);
+    setValues(setup.values);
+    setAgentMode(setup.agentMode);
+  }, [workspaceId, preset]);
+
+  // Remember the setup whenever it changes. What the composer opened with is the
+  // baseline, so just visiting a preset link doesn't replace the workspace's setup.
+  const savedSetup = useRef<string | null>(null);
   useEffect(() => {
-    const saved = takeHandoff();
-    if (!saved) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore from sessionStorage after hydration
-    setModelId(saved.model.value);
-    setValues(saved.values);
-  }, []);
+    if (workspaceId === null) return;
+    const setup = serializeSetup(model, values, agentMode, lastModelIds.current);
+    if (savedSetup.current === null) savedSetup.current = setup;
+    if (savedSetup.current === setup) return;
+    savedSetup.current = setup;
+    try {
+      localStorage.setItem(setupKey(workspaceId), setup);
+    } catch {
+      // Storage blocked or full: the composer works, the setup just isn't remembered.
+    }
+  }, [workspaceId, model, values, agentMode]);
 
   const modelErrors = useMemo(() => checkValues(model, values), [model, values]);
   const errors = agentMode ? (values.prompt.trim() ? [] : ["Enter a message."]) : modelErrors;

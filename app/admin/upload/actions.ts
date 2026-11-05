@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { apiFetch, apiFetchWithMeta, apiSend, errorMessages } from "@/lib/api";
+import { apiFetch, apiFetchPage, apiFetchWithMeta, apiSend, errorMessages } from "@/lib/api";
 import type { ExploreVideo } from "@/lib/explore";
 import type { UploadTarget } from "@/lib/uploads";
 
@@ -110,5 +110,19 @@ export async function deleteExploreVideo(videoId: number): Promise<ActionResult<
     return { ok: true, value: null };
   } catch (err) {
     return { ok: false, error: errorMessages(err, "Could not delete the video.").join(" ") };
+  }
+}
+
+/**
+ * Whether the signed-in user is a site admin, for showing admin controls on
+ * public pages. The API has no direct check, so this asks for the admin list
+ * (403 for everyone else). Signed out or any error counts as "no".
+ */
+export async function isSiteAdmin(): Promise<boolean> {
+  try {
+    await apiFetchPage<ExploreVideo>("/admin/explore-videos", { limit: 1 });
+    return true;
+  } catch {
+    return false;
   }
 }

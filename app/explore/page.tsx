@@ -7,6 +7,7 @@ import { publicApiFetchPage } from "@/lib/api";
 import type { ExploreVideo } from "@/lib/explore";
 import { getModel } from "@/lib/runware/models";
 import { SITE_NAME } from "@/lib/site";
+import { AdminDeleteVideo, ExploreAdminProvider } from "./admin-controls";
 
 export const metadata = companyMetadata(
   "/explore",
@@ -62,11 +63,13 @@ export default async function ExplorePage() {
         ) : videos.length === 0 ? (
           <p className="text-zinc-600 dark:text-zinc-400">No videos yet. Check back soon.</p>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {videos.map((v) => (
-              <VideoCard key={v.id} video={v} />
-            ))}
-          </ul>
+          <ExploreAdminProvider>
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {videos.map((v) => (
+                <VideoCard key={v.id} video={v} />
+              ))}
+            </ul>
+          </ExploreAdminProvider>
         )}
       </main>
       <SiteFooter className="pb-12" />
@@ -77,7 +80,19 @@ export default async function ExplorePage() {
 function VideoCard({ video }: { video: ExploreVideo }) {
   const model = video.model ? modelLabel(video.model) : null;
   return (
-    <li className="flex flex-col overflow-hidden rounded-xl border border-black/10 dark:border-white/15">
+    <li className="relative flex flex-col overflow-hidden rounded-xl border border-black/10 dark:border-white/15">
+      {/* The model as a badge over the video's top-right corner, clear of the player controls at the bottom. */}
+      {model && (
+        <p className="absolute top-2 right-2 z-10 max-w-[70%] truncate rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+          {model.href ? (
+            <Link href={model.href} className="transition hover:text-indigo-300">
+              {model.name}
+            </Link>
+          ) : (
+            model.name
+          )}
+        </p>
+      )}
       {video.url && (
         <video
           // #t=0.1 makes Safari show the first frame instead of a blank box.
@@ -90,26 +105,12 @@ function VideoCard({ video }: { video: ExploreVideo }) {
       )}
       <div className="flex flex-col gap-1.5 p-4 text-sm">
         <h2 className="font-medium">{video.title}</h2>
-        {video.description && (
-          <p className="leading-6 whitespace-pre-line text-zinc-700 dark:text-zinc-300">{video.description}</p>
-        )}
-        {model && (
-          <p className="text-zinc-500">
-            Made with{" "}
-            {model.href ? (
-              <Link href={model.href} className="text-indigo-600 hover:underline dark:text-indigo-400">
-                {model.name}
-              </Link>
-            ) : (
-              model.name
-            )}
-          </p>
-        )}
         {video.prompt && (
           <p className="line-clamp-4 leading-6 text-zinc-500">
             <span className="font-medium">Prompt:</span> {video.prompt}
           </p>
         )}
+        <AdminDeleteVideo videoId={video.id} title={video.title} />
       </div>
     </li>
   );

@@ -35,8 +35,9 @@ interface Workspace {
 /**
  * The studio (/generate): header with the workspace strip, the selected
  * workspace's generations with the composer, and the footer. `path` is the
- * page's own URL and `query` the parameters to keep (e.g. the tool preset),
- * so switching workspaces stays on it.
+ * page's own URL and `query` the parameters to come back to after signing in
+ * (e.g. the tool preset). Switching workspaces drops them, so the composer
+ * opens with that workspace's own setup.
  */
 export async function WorkspaceShell({
   path,
@@ -89,7 +90,7 @@ export async function WorkspaceShell({
               {workspaces.map((ws) => (
                 <li key={ws.id} className="shrink-0">
                   <Link
-                    href={{ pathname: path, query: { ...query, workspace: ws.id } }}
+                    href={{ pathname: path, query: { workspace: ws.id } }}
                     aria-current={ws.id === active?.id ? "page" : undefined}
                     className={`flex h-9 max-w-48 items-center gap-2 rounded-md px-3 text-sm transition ${
                       ws.id === active?.id
