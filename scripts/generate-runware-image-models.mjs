@@ -54,6 +54,16 @@ const PRICING = {
     approximate: true,
     note: "Billed per token ($30 per 1M image output tokens); varies with size and quality.",
   },
+  "openai-gpt-image-2-6-flare": {
+    perImage: { "*": 0.167 },
+    approximate: true,
+    note: "Billed per token ($30 per 1M image output tokens); varies with size and quality.",
+  },
+  "openai-gpt-image-2-6-sunburst": {
+    perImage: { "*": 0.0431 },
+    approximate: true,
+    note: "Billed per token ($30 per 1M image output tokens); varies with size and quality.",
+  },
   "xai-grok-imagine-image-2-0": {
     perImage: { "1K": 0.04, "2K": 0.06 },
     perInputImage: { price: 0.01, free: 0, kinds: ["referenceImages"] },
@@ -69,6 +79,21 @@ const GPT_IMAGE = [
   PAIR,
   "A transparent background needs PNG or WEBP output.",
   "A mask image needs a reference image.",
+];
+// GPT Image 2.6 adds GIF/SVG output and markup images (marks drawn over a reference).
+const GPT_IMAGE_2_6 = [
+  PAIR,
+  "Use either a mask image or a markup image, not both.",
+  "GIF output can't use reference images.",
+  "GIF output is at most 960 pixels wide and tall.",
+  "A transparent background needs PNG or WEBP output.",
+  "A mask image needs a reference image.",
+  "A markup image needs a reference image.",
+  "GIF settings need GIF output.",
+  "SVG settings need SVG output.",
+  "This SVG model takes thinking level none, low, medium, high or xhigh.",
+  "This SVG model takes thinking level none, low, medium, high, xhigh or max.",
+  "This SVG model takes thinking level low, medium, high, xhigh or max.",
 ];
 
 const RULES = {
@@ -86,6 +111,8 @@ const RULES = {
   "meta-muse-image": [PAIR, RES_XOR, PRESET_NEEDS_REFERENCE, PRESET],
   "openai-gpt-image-2-5-flare": GPT_IMAGE,
   "openai-gpt-image-2-5-sunburst": GPT_IMAGE,
+  "openai-gpt-image-2-6-flare": GPT_IMAGE_2_6,
+  "openai-gpt-image-2-6-sunburst": GPT_IMAGE_2_6,
   "xai-grok-imagine-image-2-0": [PAIR, SIZE_WITHOUT_REFERENCE, RES_XOR, PRESET, PRESET_NEEDS_REFERENCE],
 };
 
@@ -96,4 +123,18 @@ const FIELD_ORDER = [
   "seed", "numberResults", "steps", "CFGScale", "scheduler", "lora", "settings", "inputs", "safety",
 ];
 
-generate({ src: SRC, out: OUT, type: "image", pricing: PRICING, checked: CHECKED, rules: RULES, fieldOrder: FIELD_ORDER });
+/**
+ * GPT Image 2.6 can author SVG, but the API would store the result as an
+ * opaque file (node_scalable has no SVG type, since SVG can carry scripts) and
+ * SVG authoring bills extra LLM tokens we don't estimate, so it isn't offered.
+ */
+function withoutSvg(task) {
+  const format = task.properties.outputFormat;
+  format.enum = format.enum.filter((f) => f !== "SVG");
+  delete task.properties.settings.properties.svg;
+}
+
+generate({
+  src: SRC, out: OUT, type: "image", pricing: PRICING, checked: CHECKED, rules: RULES, fieldOrder: FIELD_ORDER,
+  adjust: { "openai-gpt-image-2-6-flare": withoutSvg, "openai-gpt-image-2-6-sunburst": withoutSvg },
+});

@@ -1,0 +1,706 @@
+{
+  "name": "GPT-Image-2.6 Flare",
+  "organisation": "OpenAI",
+  "provider": "runware",
+  "value": "openai:gpt-image@2.6-flare",
+  "air_id": "openai:gpt-image@2.6-flare",
+  "href": "/models/image/openai/openai-gpt-image-2-6-flare",
+  "paid": true,
+  "type": "image",
+  "capabilities": [
+    "text-to-image",
+    "image-to-image",
+    "edit",
+    "vectorize",
+    "transparency"
+  ],
+  "description": "GPT-Image-2.6 Flare is OpenAI's fast image model for generation and editing in interactive workflows. Besides raster images, it generates SVG graphics and animated GIFs from text, and it edits images from marks drawn over them, like a circle around the object to change. A thinking level sets how much it plans before rendering, separate from rendering quality.",
+  "schema": "https://runware.ai/docs/models/openai-gpt-image-2-6-flare",
+  "pricing": {
+    "perImage": {
+      "*": 0.167
+    },
+    "approximate": true,
+    "note": "Billed per token ($30 per 1M image output tokens); varies with size and quality.",
+    "source": "https://runware.ai/docs/models/openai-gpt-image-2-6-flare",
+    "checked": "2026-09-30"
+  },
+  "required": [
+    "positivePrompt",
+    "taskType",
+    "taskUUID",
+    "model"
+  ],
+  "rules": [
+    "Width and height must be sent together.",
+    "Use either a mask image or a markup image, not both.",
+    "GIF output can't use reference images.",
+    "GIF output is at most 960 pixels wide and tall.",
+    "A transparent background needs PNG or WEBP output.",
+    "A mask image needs a reference image.",
+    "A markup image needs a reference image.",
+    "GIF settings need GIF output.",
+    "SVG settings need SVG output.",
+    "This SVG model takes thinking level none, low, medium, high or xhigh.",
+    "This SVG model takes thinking level none, low, medium, high, xhigh or max.",
+    "This SVG model takes thinking level low, medium, high, xhigh or max."
+  ],
+  "conditions": [
+    {
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      }
+    },
+    {
+      "not": {
+        "allOf": [
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "maskImage"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          },
+          {
+            "properties": {
+              "inputs": {
+                "required": [
+                  "markupImage"
+                ]
+              }
+            },
+            "required": [
+              "inputs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outputFormat": {
+            "enum": [
+              "SVG",
+              "GIF"
+            ]
+          }
+        },
+        "required": [
+          "outputFormat"
+        ]
+      },
+      "then": {
+        "not": {
+          "properties": {
+            "inputs": {
+              "required": [
+                "referenceImages"
+              ]
+            }
+          },
+          "required": [
+            "inputs"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outputFormat": {
+            "const": "GIF"
+          }
+        },
+        "required": [
+          "outputFormat"
+        ]
+      },
+      "then": {
+        "properties": {
+          "width": {
+            "maximum": 960
+          },
+          "height": {
+            "maximum": 960
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "background": {
+                "const": "transparent"
+              }
+            },
+            "required": [
+              "background"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outputFormat": {
+            "enum": [
+              "PNG",
+              "WEBP"
+            ]
+          }
+        },
+        "required": [
+          "outputFormat"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "maskImage"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "markupImage"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "referenceImages"
+            ]
+          }
+        },
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "settings": {
+            "required": [
+              "gif"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outputFormat": {
+            "const": "GIF"
+          }
+        },
+        "required": [
+          "outputFormat"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "settings": {
+            "required": [
+              "svg"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outputFormat": {
+            "const": "SVG"
+          }
+        },
+        "required": [
+          "outputFormat"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "svg": {
+                "properties": {
+                  "model": {
+                    "enum": [
+                      "openai:gpt@5.4-mini",
+                      "openai:gpt@5.4",
+                      "openai:gpt@5.5"
+                    ]
+                  }
+                }
+              }
+            },
+            "required": [
+              "svg"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "svg": {
+                "properties": {
+                  "thinkingLevel": {
+                    "enum": [
+                      "none",
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "svg": {
+                "properties": {
+                  "model": {
+                    "enum": [
+                      "openai:gpt@5.6-terra",
+                      "openai:gpt@6-luna"
+                    ]
+                  }
+                },
+                "required": [
+                  "model"
+                ]
+              }
+            },
+            "required": [
+              "svg"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "svg": {
+                "properties": {
+                  "thinkingLevel": {
+                    "enum": [
+                      "none",
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh",
+                      "max"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "svg": {
+                "properties": {
+                  "model": {
+                    "const": "openai:gpt@6-astra"
+                  }
+                },
+                "required": [
+                  "model"
+                ]
+              }
+            },
+            "required": [
+              "svg"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "properties": {
+              "svg": {
+                "properties": {
+                  "thinkingLevel": {
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh",
+                      "max"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "input": {
+    "model": {
+      "type": "string",
+      "const": "openai:gpt-image@2.6-flare",
+      "description": "Send `auto` instead of an AIR identifier to have the model router choose the model for this task. The rest of the request is unchanged, every value you send is kept, and only the parameters you leave out are filled in. See [Model Router](https://runware.ai/docs/models-api/model-router)."
+    },
+    "taskType": {
+      "type": "string",
+      "const": "imageInference",
+      "description": "Identifier for the type of task being performed."
+    },
+    "taskUUID": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task."
+    },
+    "positivePrompt": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 32000,
+      "description": "Text prompt describing elements to include in the generated output."
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 16,
+      "maximum": 3840,
+      "multipleOf": 16,
+      "description": "Width of the generated media in pixels."
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 16,
+      "maximum": 3840,
+      "multipleOf": 16,
+      "description": "Height of the generated media in pixels."
+    },
+    "numberResults": {
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Global inference settings.",
+      "properties": {
+        "background": {
+          "type": "string",
+          "default": "auto",
+          "oneOf": [
+            {
+              "const": "auto",
+              "description": "Automatically determines the most appropriate background based on content."
+            },
+            {
+              "const": "opaque",
+              "description": "Solid background, no transparency."
+            },
+            {
+              "const": "transparent",
+              "description": "Transparent background areas where applicable."
+            }
+          ],
+          "description": "Background handling in generated images."
+        },
+        "gif": {
+          "type": "object",
+          "description": "Animated GIF output options.",
+          "properties": {
+            "frameCount": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 16,
+              "description": "Number of frames in the animated GIF."
+            },
+            "frameDuration": {
+              "type": "number",
+              "minimum": 0.02,
+              "maximum": 655.35,
+              "multipleOf": 0.01,
+              "description": "Display time of each GIF frame, in seconds."
+            }
+          }
+        },
+        "moderation": {
+          "type": "string",
+          "default": "auto",
+          "oneOf": [
+            {
+              "const": "auto",
+              "description": "Standard filtering that limits creating certain categories of potentially age-inappropriate content."
+            },
+            {
+              "const": "low",
+              "description": "Less restrictive filtering."
+            }
+          ],
+          "description": "Content moderation level."
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "max",
+            "xhigh",
+            "high",
+            "medium",
+            "low"
+          ],
+          "default": "auto",
+          "description": "Image quality level."
+        },
+        "thinkingLevel": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "default": "high",
+          "description": "Controls the depth of internal reasoning the model performs before generating a response."
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input assets for the task.",
+      "properties": {
+        "maskImage": {
+          "type": "string",
+          "description": "Image used to specify which areas of the input image should be edited (UUID, URL, Data URI, or Base64). Must have the same width and height as the first reference image. White marks the area to edit, black is preserved. The model treats the mask as guidance rather than a hard boundary, so edits can extend past its shape. With several reference images the mask applies to the first."
+        },
+        "referenceImages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+          "items": {
+            "type": "string",
+            "description": "Image input (UUID, URL, Data URI, or Base64)."
+          }
+        },
+        "markupImage": {
+          "type": "string",
+          "description": "Image with marks drawn over the first reference image to show where to edit (UUID, URL, Data URI, or Base64). Must have the same width and height as the first reference image and contain transparent pixels. With a markup image, the first reference image can have at most 16,777,216 pixels."
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Content safety checking configuration for image generation.",
+      "properties": {
+        "checkContent": {
+          "type": "boolean",
+          "description": "Enable or disable content safety checking. Increases total generation time."
+        }
+      }
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": [
+        "JPG",
+        "PNG",
+        "WEBP",
+        "GIF"
+      ],
+      "default": "JPG",
+      "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities."
+    },
+    "webhookURL": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available."
+    },
+    "includeCost": {
+      "type": "boolean",
+      "description": "Include task cost in the response."
+    },
+    "uploadEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials."
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 60,
+      "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`."
+    },
+    "outputType": {
+      "type": "string",
+      "enum": [
+        "URL",
+        "base64Data",
+        "dataURI"
+      ],
+      "default": "URL",
+      "description": "Image output type."
+    },
+    "outputQuality": {
+      "type": "integer",
+      "default": 95,
+      "minimum": 20,
+      "maximum": 99,
+      "description": "Compression quality of the output. Higher values preserve quality but increase file size."
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "default": "sync",
+      "oneOf": [
+        {
+          "const": "sync",
+          "description": "Returns results directly in the API response. Over HTTP, a task still running after 120 seconds continues as an async task and comes back with status 'processing'. Poll for its results using getResponse."
+        },
+        {
+          "const": "async",
+          "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse."
+        }
+      ],
+      "description": "Determines how the API delivers task results."
+    },
+    "advancedFeatures": {
+      "type": "object",
+      "description": "Model-specific advanced configuration options.",
+      "properties": {
+        "watermark": {
+          "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "text"
+              ]
+            },
+            {
+              "required": [
+                "image"
+              ]
+            }
+          ],
+          "description": "Configuration object for adding watermarks to generated videos. Watermarks can be applied using either text or image content with customizable positioning and appearance. You must provide either `text` or `image` content for the watermark, but not both.",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 32,
+              "description": "Watermark text."
+            },
+            "image": {
+              "type": "string",
+              "description": "Watermark image (UUID, URL, Data URI, or Base64)."
+            },
+            "displayPosition": {
+              "type": "string",
+              "enum": [
+                "top-left",
+                "top-center",
+                "top-right",
+                "center-left",
+                "center-center",
+                "center-right",
+                "bottom-left",
+                "bottom-center",
+                "bottom-right",
+                "tiled"
+              ],
+              "description": "Watermark position."
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1,
+              "multipleOf": 0.01,
+              "description": "Watermark opacity."
+            },
+            "fontColor": {
+              "type": "string",
+              "description": "Text color in hex format."
+            },
+            "bgColor": {
+              "type": "string",
+              "description": "Background color in hex format."
+            }
+          }
+        }
+      }
+    }
+  }
+}

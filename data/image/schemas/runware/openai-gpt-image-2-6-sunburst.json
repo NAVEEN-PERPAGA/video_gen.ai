@@ -1,0 +1,1436 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Runware API - GPT-Image-2.6 Sunburst",
+        "summary": "Image generation and editing for detailed compositions and precise edits",
+        "description": "GPT-Image-2.6 Sunburst is OpenAI's image model for detailed compositions and editing work that needs precise control. Besides raster images, it generates SVG graphics and animated GIFs from text, and it edits images from marks drawn over them, like a circle around the object to change. A thinking level sets how much it plans before rendering, separate from rendering quality.",
+        "version": "1.0.0",
+        "x-model-id": "openai-gpt-image-2-6-sunburst",
+        "x-air-id": "openai:gpt-image@2.6-sunburst",
+        "x-status": "live",
+        "x-creator": {
+            "id": "openai",
+            "name": "OpenAI",
+            "logo": "https://assets.runware.ai/45bf4bd1-b10a-4da4-9f8b-c08c5d7aed2d.png"
+        },
+        "x-capabilities": [
+            "text-to-image",
+            "image-to-image",
+            "edit",
+            "vectorize",
+            "checkpoint",
+            "transparency"
+        ],
+        "x-modes": [
+            {
+                "id": "text",
+                "inputs": []
+            },
+            {
+                "id": "reference-images",
+                "inputs": [
+                    "referenceImages"
+                ]
+            },
+            {
+                "id": "mask-image+reference-images",
+                "inputs": [
+                    "maskImage",
+                    "referenceImages"
+                ]
+            },
+            {
+                "id": "reference-images+markup-image",
+                "inputs": [
+                    "referenceImages",
+                    "markupImage"
+                ]
+            }
+        ],
+        "x-released-at": "2026-11-05T00:00:00Z",
+        "x-cover-image": "https://assets.runware.ai/covers/openai-gpt-image-2-6-sunburst.jpg",
+        "x-examples": "https://runware.ai/docs/models/openai-gpt-image-2-6-sunburst/examples.json",
+        "x-pricing": {
+            "currency": "USD",
+            "docs": "https://runware.ai/docs/models-api/pricing",
+            "basis": "token",
+            "rates": [
+                {
+                    "amount": 0.000005,
+                    "unit": "inputToken",
+                    "label": "Text input",
+                    "display": "$5.00 per 1M input tokens"
+                },
+                {
+                    "amount": 0.000008,
+                    "unit": "inputToken",
+                    "label": "Image input",
+                    "display": "$8.00 per 1M input tokens"
+                },
+                {
+                    "amount": 0.00003,
+                    "unit": "outputToken",
+                    "label": "Image output",
+                    "display": "$30.00 per 1M output tokens"
+                },
+                {
+                    "amount": 7.5e-7,
+                    "unit": "inputToken",
+                    "label": "SVG authoring · GPT-5.4 Mini · Input",
+                    "display": "$0.75 per 1M input tokens"
+                },
+                {
+                    "amount": 0.0000045,
+                    "unit": "outputToken",
+                    "label": "SVG authoring · GPT-5.4 Mini · Output",
+                    "display": "$4.50 per 1M output tokens"
+                },
+                {
+                    "amount": 0.0000025,
+                    "unit": "inputToken",
+                    "label": "SVG authoring · GPT-5.4 · Input",
+                    "display": "$2.50 per 1M input tokens"
+                },
+                {
+                    "amount": 0.000015,
+                    "unit": "outputToken",
+                    "label": "SVG authoring · GPT-5.4 · Output",
+                    "display": "$15.00 per 1M output tokens"
+                },
+                {
+                    "amount": 0.000005,
+                    "unit": "inputToken",
+                    "label": "SVG authoring · GPT-5.5 · Input",
+                    "display": "$5.00 per 1M input tokens"
+                },
+                {
+                    "amount": 0.00003,
+                    "unit": "outputToken",
+                    "label": "SVG authoring · GPT-5.5 · Output",
+                    "display": "$30.00 per 1M output tokens"
+                },
+                {
+                    "amount": 0.000002,
+                    "unit": "inputToken",
+                    "label": "SVG authoring · GPT-5.6 Terra · Input",
+                    "display": "$2.00 per 1M input tokens"
+                },
+                {
+                    "amount": 0.000012,
+                    "unit": "outputToken",
+                    "label": "SVG authoring · GPT-5.6 Terra · Output",
+                    "display": "$12.00 per 1M output tokens"
+                },
+                {
+                    "amount": 1e-7,
+                    "unit": "inputToken",
+                    "label": "SVG authoring · GPT-6 Luna · Input",
+                    "display": "$0.10 per 1M input tokens"
+                },
+                {
+                    "amount": 5e-7,
+                    "unit": "outputToken",
+                    "label": "SVG authoring · GPT-6 Luna · Output",
+                    "display": "$0.50 per 1M output tokens"
+                },
+                {
+                    "amount": 0.00001,
+                    "unit": "inputToken",
+                    "label": "SVG authoring · GPT-6 Astra · Input",
+                    "display": "$10.00 per 1M input tokens"
+                },
+                {
+                    "amount": 0.00005,
+                    "unit": "outputToken",
+                    "label": "SVG authoring · GPT-6 Astra · Output",
+                    "display": "$50.00 per 1M output tokens"
+                }
+            ],
+            "examples": [
+                {
+                    "id": "geothermal-plant-director-looping-portrait",
+                    "configuration": "text-to-gif",
+                    "price": 0.0374,
+                    "latencyMs": 31112
+                },
+                {
+                    "id": "subsea-cable-landing-wall-art",
+                    "configuration": "text-to-image",
+                    "price": 0.0431,
+                    "latencyMs": 61404
+                },
+                {
+                    "id": "nocturnal-moth-survey-festival-poster",
+                    "configuration": "text-to-vector",
+                    "price": 0.0634,
+                    "latencyMs": 59669
+                },
+                {
+                    "id": "cave-rescue-equipment-sticker-pack",
+                    "configuration": "inpaint",
+                    "price": 0.0771,
+                    "latencyMs": 57407
+                },
+                {
+                    "id": "oyster-farm-childrens-comic-panel",
+                    "configuration": "transparent-background",
+                    "price": 0.0788,
+                    "latencyMs": 32340
+                },
+                {
+                    "id": "adaptive-rainwear-fashion-lookbook",
+                    "configuration": "reference-to-image",
+                    "price": 0.192,
+                    "latencyMs": 111116
+                }
+            ]
+        }
+    },
+    "externalDocs": {
+        "description": "GPT-Image-2.6 Sunburst on Runware",
+        "url": "https://runware.ai/docs/models/openai-gpt-image-2-6-sunburst"
+    },
+    "servers": [
+        {
+            "url": "https://api.runware.ai/v1",
+            "description": "Runware REST API"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "apiKeyAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "description": "Runware API Key (e.g., Bearer <your-key>)"
+            }
+        },
+        "schemas": {
+            "AuthenticationTask": {
+                "title": "Authentication",
+                "description": "Authenticates a connection using an API key. Can be sent as the first element of the request array as an alternative to using the Authorization header.",
+                "type": "object",
+                "x-response-schema": "https://schemas.runware.ai/responses/utilities/authentication.json",
+                "properties": {
+                    "taskType": {
+                        "title": "Task Type",
+                        "description": "Identifier for the type of task being performed.",
+                        "type": "string",
+                        "const": "authentication"
+                    },
+                    "apiKey": {
+                        "title": "API Key",
+                        "description": "Your Runware API key.",
+                        "type": "string"
+                    },
+                    "connectionSessionUUID": {
+                        "title": "Connection Session UUID",
+                        "description": "Optional session UUID to resume a previous connection and receive any buffered results.",
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "taskType",
+                    "apiKey"
+                ],
+                "additionalProperties": false
+            },
+            "RequestBody": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "x-constraints": [
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "width",
+                                "height"
+                            ],
+                            "when": {
+                                "notIn": {
+                                    "outputFormat": [
+                                        "GIF"
+                                    ]
+                                }
+                            },
+                            "minimum": 655360,
+                            "maximum": 8294400
+                        },
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "width",
+                                "height"
+                            ],
+                            "when": {
+                                "in": {
+                                    "outputFormat": [
+                                        "GIF"
+                                    ],
+                                    "settings.gif.frameCount": [
+                                        2,
+                                        3,
+                                        4,
+                                        5,
+                                        6,
+                                        7,
+                                        8
+                                    ]
+                                }
+                            },
+                            "minimum": 81920,
+                            "maximum": 1036800
+                        },
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "width",
+                                "height"
+                            ],
+                            "when": {
+                                "absent": [
+                                    "settings.gif.frameCount"
+                                ],
+                                "in": {
+                                    "outputFormat": [
+                                        "GIF"
+                                    ]
+                                }
+                            },
+                            "minimum": 72818,
+                            "maximum": 921600
+                        },
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "width",
+                                "height"
+                            ],
+                            "when": {
+                                "in": {
+                                    "outputFormat": [
+                                        "GIF"
+                                    ],
+                                    "settings.gif.frameCount": [
+                                        9
+                                    ]
+                                }
+                            },
+                            "minimum": 72818,
+                            "maximum": 921600
+                        },
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "width",
+                                "height"
+                            ],
+                            "when": {
+                                "in": {
+                                    "outputFormat": [
+                                        "GIF"
+                                    ],
+                                    "settings.gif.frameCount": [
+                                        10,
+                                        11,
+                                        12
+                                    ]
+                                }
+                            },
+                            "minimum": 40960,
+                            "maximum": 691200
+                        },
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "width",
+                                "height"
+                            ],
+                            "when": {
+                                "in": {
+                                    "outputFormat": [
+                                        "GIF"
+                                    ],
+                                    "settings.gif.frameCount": [
+                                        13,
+                                        14,
+                                        15,
+                                        16
+                                    ]
+                                }
+                            },
+                            "minimum": 40960,
+                            "maximum": 518400
+                        },
+                        {
+                            "operation": "ratio",
+                            "parameters": [
+                                "width",
+                                "height"
+                            ],
+                            "minimum": 0.3333333333333333,
+                            "maximum": 3
+                        },
+                        {
+                            "operation": "fileFormat",
+                            "parameters": [
+                                "inputs.maskImage",
+                                "inputs.markupImage"
+                            ],
+                            "allowed": [
+                                "png"
+                            ],
+                            "scope": "each"
+                        },
+                        {
+                            "operation": "area",
+                            "parameters": [
+                                "inputs.markupImage"
+                            ],
+                            "maximum": 16777216,
+                            "scope": "each"
+                        },
+                        {
+                            "operation": "fileSize",
+                            "parameters": [
+                                "inputs.referenceImages",
+                                "inputs.maskImage",
+                                "inputs.markupImage"
+                            ],
+                            "maximum": 52428800,
+                            "scope": "each"
+                        }
+                    ],
+                    "properties": {
+                        "model": {
+                            "title": "Model",
+                            "description": "Send `auto` instead of an AIR identifier to have the model router choose the model for this task. The rest of the request is unchanged, every value you send is kept, and only the parameters you leave out are filled in. See [Model Router](https://runware.ai/docs/models-api/model-router).\n\n[Read full documentation](https://runware.ai/docs/models/openai-gpt-image-2-6-sunburst#model)",
+                            "type": "string",
+                            "const": "openai:gpt-image@2.6-sunburst"
+                        },
+                        "outputFormat": {
+                            "title": "Output Format",
+                            "description": "Specifies the file format of the generated output. The available values depend on the task type and the specific model's capabilities.\n\n- \\`JPG\\`: Best for photorealistic images with smaller file sizes (no transparency).\n- \\`PNG\\`: Lossless compression, supports high quality and transparency (alpha channel).\n- \\`WEBP\\`: Modern format providing superior compression and transparency support.\n- \\`MP4\\`: Widely supported video container (H.264), recommended for general use.\n- \\`WEBM\\`: Optimized for web delivery.\n- \\`MOV\\`: QuickTime format, common in professional workflows (Apple ecosystem).\n- \\`GIF\\`: Animated image format (no audio), suitable for short loops or previews.\n- \\`MP3\\`: Compressed audio, smaller file size.\n- \\`WAV\\`: Uncompressed, high-quality audio.\n- \\`FLAC\\`: Lossless compression.\n- \\`OGG\\`: Open-source compressed audio format (Vorbis codec).\n- \\`SVG\\`: Scalable Vector Graphics.\n- \\`TIFF\\`: High-quality output supporting layers.\n- \\`GLB\\`: Binary glTF format for 3D models, including geometry, textures, and PBR materials.\n\n> [!NOTE]\n> \\*\\*Transparency\\*\\*: If you are using features like background removal or LayerDiffuse that require transparency, you must select a format that supports an alpha channel (e.g., \\`PNG\\`, \\`WEBP\\`, \\`TIFF\\`). \\`JPG\\` does not support transparency.\n\n[Read full documentation](https://runware.ai/docs/models/openai-gpt-image-2-6-sunburst#outputFormat)",
+                            "type": "string",
+                            "enum": [
+                                "JPG",
+                                "PNG",
+                                "WEBP",
+                                "SVG",
+                                "GIF"
+                            ],
+                            "default": "JPG"
+                        },
+                        "inputs": {
+                            "title": "Inputs",
+                            "description": "Input assets for the task.",
+                            "type": "object",
+                            "properties": {
+                                "maskImage": {
+                                    "title": "Mask Image",
+                                    "description": "Image used to specify which areas of the input image should be edited (UUID, URL, Data URI, or Base64). Must have the same width and height as the first reference image. White marks the area to edit, black is preserved. The model treats the mask as guidance rather than a hard boundary, so edits can extend past its shape. With several reference images the mask applies to the first.",
+                                    "type": "string",
+                                    "anyOf": [
+                                        {
+                                            "format": "uuid"
+                                        },
+                                        {
+                                            "format": "uri"
+                                        },
+                                        {
+                                            "pattern": "^data:image\\/[a-zA-Z]+;base64,[a-zA-Z0-9+/=]+$"
+                                        },
+                                        {
+                                            "pattern": "^[a-zA-Z0-9+/=]+$"
+                                        }
+                                    ]
+                                },
+                                "referenceImages": {
+                                    "title": "Reference Images",
+                                    "description": "List of reference images (UUID, URL, Data URI, or Base64).",
+                                    "type": "array",
+                                    "minItems": 1,
+                                    "items": {
+                                        "title": "Image",
+                                        "description": "Image input (UUID, URL, Data URI, or Base64).",
+                                        "type": "string",
+                                        "anyOf": [
+                                            {
+                                                "format": "uuid"
+                                            },
+                                            {
+                                                "format": "uri"
+                                            },
+                                            {
+                                                "pattern": "^data:image\\/[a-zA-Z]+;base64,[a-zA-Z0-9+/=]+$"
+                                            },
+                                            {
+                                                "pattern": "^[a-zA-Z0-9+/=]+$"
+                                            }
+                                        ]
+                                    },
+                                    "maxItems": 16
+                                },
+                                "markupImage": {
+                                    "title": "Markup Image",
+                                    "description": "Image with marks drawn over the first reference image to show where to edit (UUID, URL, Data URI, or Base64). Must have the same width and height as the first reference image and contain transparent pixels. With a markup image, the first reference image can have at most 16,777,216 pixels.",
+                                    "type": "string",
+                                    "anyOf": [
+                                        {
+                                            "format": "uuid"
+                                        },
+                                        {
+                                            "format": "uri"
+                                        },
+                                        {
+                                            "pattern": "^data:image\\/[a-zA-Z]+;base64,[a-zA-Z0-9+/=]+$"
+                                        },
+                                        {
+                                            "pattern": "^[a-zA-Z0-9+/=]+$"
+                                        }
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "positivePrompt": {
+                            "title": "Positive Prompt",
+                            "description": "Text prompt describing elements to include in the generated output.",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 32000
+                        },
+                        "width": {
+                            "title": "Width",
+                            "description": "Width of the generated media in pixels.",
+                            "type": "integer",
+                            "minimum": 16,
+                            "maximum": 3840,
+                            "multipleOf": 16
+                        },
+                        "height": {
+                            "title": "Height",
+                            "description": "Height of the generated media in pixels.",
+                            "type": "integer",
+                            "minimum": 16,
+                            "maximum": 3840,
+                            "multipleOf": 16
+                        },
+                        "settings": {
+                            "title": "Settings",
+                            "description": "Global inference settings.",
+                            "type": "object",
+                            "properties": {
+                                "background": {
+                                    "title": "Background",
+                                    "description": "Background handling in generated images.",
+                                    "type": "string",
+                                    "oneOf": [
+                                        {
+                                            "const": "auto",
+                                            "description": "Automatically determines the most appropriate background based on content."
+                                        },
+                                        {
+                                            "const": "opaque",
+                                            "description": "Solid background, no transparency."
+                                        },
+                                        {
+                                            "const": "transparent",
+                                            "description": "Transparent background areas where applicable."
+                                        }
+                                    ],
+                                    "default": "auto"
+                                },
+                                "gif": {
+                                    "title": "GIF",
+                                    "description": "Animated GIF output options.",
+                                    "type": "object",
+                                    "properties": {
+                                        "frameCount": {
+                                            "title": "Frame Count",
+                                            "description": "Number of frames in the animated GIF.",
+                                            "type": "integer",
+                                            "minimum": 2,
+                                            "maximum": 16
+                                        },
+                                        "frameDuration": {
+                                            "title": "Frame Duration",
+                                            "description": "Display time of each GIF frame, in seconds.",
+                                            "type": "number",
+                                            "minimum": 0.02,
+                                            "maximum": 655.35,
+                                            "multipleOf": 0.01
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "moderation": {
+                                    "title": "Moderation",
+                                    "description": "Content moderation level.",
+                                    "type": "string",
+                                    "oneOf": [
+                                        {
+                                            "const": "auto",
+                                            "description": "Standard filtering that limits creating certain categories of potentially age-inappropriate content."
+                                        },
+                                        {
+                                            "const": "low",
+                                            "description": "Less restrictive filtering."
+                                        }
+                                    ],
+                                    "default": "auto"
+                                },
+                                "quality": {
+                                    "title": "Quality",
+                                    "description": "Image quality level.",
+                                    "type": "string",
+                                    "enum": [
+                                        "auto",
+                                        "max",
+                                        "xhigh",
+                                        "high",
+                                        "medium",
+                                        "low"
+                                    ],
+                                    "default": "auto"
+                                },
+                                "svg": {
+                                    "title": "SVG",
+                                    "description": "SVG output options.",
+                                    "type": "object",
+                                    "properties": {
+                                        "model": {
+                                            "title": "Model",
+                                            "description": "Language model that writes the SVG.",
+                                            "type": "string",
+                                            "default": "openai:gpt@5.4-mini",
+                                            "enum": [
+                                                "openai:gpt@5.4-mini",
+                                                "openai:gpt@5.4",
+                                                "openai:gpt@5.5",
+                                                "openai:gpt@5.6-terra",
+                                                "openai:gpt@6-luna",
+                                                "openai:gpt@6-astra"
+                                            ]
+                                        },
+                                        "thinkingLevel": {
+                                            "title": "Thinking Level",
+                                            "description": "Controls the depth of internal reasoning the model performs before generating a response.",
+                                            "type": "string",
+                                            "enum": [
+                                                "none",
+                                                "low",
+                                                "medium",
+                                                "high",
+                                                "xhigh",
+                                                "max"
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "thinkingLevel": {
+                                    "title": "Thinking Level",
+                                    "description": "Controls the depth of internal reasoning the model performs before generating a response.",
+                                    "type": "string",
+                                    "enum": [
+                                        "low",
+                                        "medium",
+                                        "high"
+                                    ],
+                                    "default": "high"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "taskType": {
+                            "title": "Task Type",
+                            "description": "Identifier for the type of task being performed.",
+                            "type": "string",
+                            "const": "imageInference"
+                        },
+                        "taskUUID": {
+                            "title": "Task UUID",
+                            "description": "UUID v4 identifier for tracking tasks and matching async responses. Must be unique per task.",
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "webhookURL": {
+                            "title": "Webhook URL",
+                            "description": "Webhook URL that receives JSON responses via HTTP POST when generation tasks complete. For batch requests with multiple results, each completed item triggers a separate webhook call as it becomes available.",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "includeCost": {
+                            "title": "Include Cost",
+                            "description": "Include task cost in the response.",
+                            "type": "boolean"
+                        },
+                        "numberResults": {
+                            "title": "Number of Results",
+                            "description": "Number of results to generate. Each result uses a different seed, producing variations of the same parameters.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "maximum": 20
+                        },
+                        "uploadEndpoint": {
+                            "title": "Upload Endpoint",
+                            "description": "Specifies a URL where the generated content will be automatically uploaded using the HTTP PUT method. The raw binary data of the media file is sent directly as the request body. For secure uploads to cloud storage, use presigned URLs that include temporary authentication credentials.\n\n**Common use cases:**\n\n- **Cloud storage**: Upload directly to S3 buckets, Google Cloud Storage, or Azure Blob Storage using presigned URLs.\n- **CDN integration**: Upload to content delivery networks for immediate distribution.\n\n```text\n// S3 presigned URL for secure upload\nhttps://your-bucket.s3.amazonaws.com/generated/content.mp4?X-Amz-Signature=abc123&X-Amz-Expires=3600\n\n// Google Cloud Storage presigned URL\nhttps://storage.googleapis.com/your-bucket/content.jpg?X-Goog-Signature=xyz789\n\n// Custom storage endpoint\nhttps://storage.example.com/uploads/generated-image.jpg\n```\n\nThe content data will be sent as the request body to the specified URL when generation is complete.\n\n[Read full documentation](https://runware.ai/docs/models/openai-gpt-image-2-6-sunburst#uploadEndpoint)",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "ttl": {
+                            "title": "TTL",
+                            "description": "Time-to-live (TTL) in seconds for generated content. Only applies when `outputType` is `URL`.",
+                            "type": "integer",
+                            "minimum": 60
+                        },
+                        "outputType": {
+                            "title": "Output Type",
+                            "description": "Image output type.",
+                            "type": "string",
+                            "enum": [
+                                "URL",
+                                "base64Data",
+                                "dataURI"
+                            ],
+                            "default": "URL"
+                        },
+                        "outputQuality": {
+                            "title": "Output Quality",
+                            "description": "Compression quality of the output. Higher values preserve quality but increase file size.",
+                            "type": "integer",
+                            "minimum": 20,
+                            "maximum": 99,
+                            "default": 95
+                        },
+                        "deliveryMethod": {
+                            "title": "Delivery Method",
+                            "description": "Determines how the API delivers task results.",
+                            "type": "string",
+                            "oneOf": [
+                                {
+                                    "const": "sync",
+                                    "description": "Returns results directly in the API response. Over HTTP, a task still running after 120 seconds continues as an async task and comes back with status 'processing'. Poll for its results using getResponse."
+                                },
+                                {
+                                    "const": "async",
+                                    "description": "Returns an immediate acknowledgment with the task UUID. Poll for results using getResponse."
+                                }
+                            ],
+                            "default": "sync"
+                        },
+                        "safety": {
+                            "type": "object",
+                            "title": "Safety Settings",
+                            "description": "Content safety checking configuration for image generation.",
+                            "properties": {
+                                "checkContent": {
+                                    "title": "Check Content",
+                                    "description": "Enable or disable content safety checking. Increases total generation time.",
+                                    "type": "boolean"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "advancedFeatures": {
+                            "title": "Advanced Features",
+                            "description": "Model-specific advanced configuration options.",
+                            "type": "object",
+                            "properties": {
+                                "watermark": {
+                                    "title": "Watermark",
+                                    "description": "Configuration object for adding watermarks to generated videos. Watermarks can be applied using either text or image content with customizable positioning and appearance. You must provide either `text` or `image` content for the watermark, but not both.\n\n**Text watermark**:\n\n```json\n\"advancedFeatures\": {\n  \"watermark\": {\n    \"text\": \"© 2025 Company\",\n    \"displayPosition\": \"bottom-right\",\n    \"opacity\": 0.6,\n    \"fontColor\": \"#ffffff\",\n    \"bgColor\": \"#000000\"\n  }\n}\n```\n\n**Image watermark**:\n\n```json\n\"advancedFeatures\": {\n  \"watermark\": {\n    \"image\": \"c64351d5-4c59-42f7-95e1-eace013eddab\",\n    \"displayPosition\": \"top-left\",\n    \"opacity\": 0.6\n  }\n}\n```\n\n**Tiled watermark**:\n\n```json\n\"advancedFeatures\": {\n  \"watermark\": {\n    \"text\": \"PREVIEW\",\n    \"tiled\": true,\n    \"opacity\": 0.4,\n    \"fontColor\": \"#cccccc\"\n  }\n}\n```\n\n[Read full documentation](https://runware.ai/docs/models/openai-gpt-image-2-6-sunburst#watermark)",
+                                    "type": "object",
+                                    "properties": {
+                                        "text": {
+                                            "title": "Watermark Text",
+                                            "description": "Watermark text.",
+                                            "type": "string",
+                                            "minLength": 2,
+                                            "maxLength": 32
+                                        },
+                                        "image": {
+                                            "title": "Watermark Image",
+                                            "description": "Watermark image (UUID, URL, Data URI, or Base64).",
+                                            "type": "string",
+                                            "anyOf": [
+                                                {
+                                                    "format": "uuid"
+                                                },
+                                                {
+                                                    "format": "uri"
+                                                },
+                                                {
+                                                    "pattern": "^data:image\\/[a-zA-Z]+;base64,[a-zA-Z0-9+/=]+$"
+                                                },
+                                                {
+                                                    "pattern": "^[a-zA-Z0-9+/=]+$"
+                                                }
+                                            ]
+                                        },
+                                        "displayPosition": {
+                                            "title": "Display Position",
+                                            "description": "Watermark position.",
+                                            "type": "string",
+                                            "enum": [
+                                                "top-left",
+                                                "top-center",
+                                                "top-right",
+                                                "center-left",
+                                                "center-center",
+                                                "center-right",
+                                                "bottom-left",
+                                                "bottom-center",
+                                                "bottom-right",
+                                                "tiled"
+                                            ]
+                                        },
+                                        "opacity": {
+                                            "title": "Watermark Opacity",
+                                            "description": "Watermark opacity.",
+                                            "type": "number",
+                                            "multipleOf": 0.01,
+                                            "minimum": 0.1,
+                                            "maximum": 1
+                                        },
+                                        "fontColor": {
+                                            "title": "Font Color",
+                                            "description": "Text color in hex format.",
+                                            "type": "string",
+                                            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                        },
+                                        "bgColor": {
+                                            "title": "Background Color",
+                                            "description": "Background color in hex format.",
+                                            "type": "string",
+                                            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                        }
+                                    },
+                                    "oneOf": [
+                                        {
+                                            "required": [
+                                                "text"
+                                            ]
+                                        },
+                                        {
+                                            "required": [
+                                                "image"
+                                            ]
+                                        }
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "required": [
+                        "positivePrompt",
+                        "taskType",
+                        "taskUUID",
+                        "model"
+                    ],
+                    "allOf": [
+                        {
+                            "dependentRequired": {
+                                "width": [
+                                    "height"
+                                ],
+                                "height": [
+                                    "width"
+                                ]
+                            }
+                        },
+                        {
+                            "not": {
+                                "allOf": [
+                                    {
+                                        "properties": {
+                                            "inputs": {
+                                                "required": [
+                                                    "maskImage"
+                                                ]
+                                            }
+                                        },
+                                        "required": [
+                                            "inputs"
+                                        ]
+                                    },
+                                    {
+                                        "properties": {
+                                            "inputs": {
+                                                "required": [
+                                                    "markupImage"
+                                                ]
+                                            }
+                                        },
+                                        "required": [
+                                            "inputs"
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "outputFormat": {
+                                        "enum": [
+                                            "SVG",
+                                            "GIF"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "outputFormat"
+                                ]
+                            },
+                            "then": {
+                                "not": {
+                                    "properties": {
+                                        "inputs": {
+                                            "required": [
+                                                "referenceImages"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "inputs"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "outputFormat": {
+                                        "const": "GIF"
+                                    }
+                                },
+                                "required": [
+                                    "outputFormat"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "width": {
+                                        "maximum": 960
+                                    },
+                                    "height": {
+                                        "maximum": 960
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "background": {
+                                                "const": "transparent"
+                                            }
+                                        },
+                                        "required": [
+                                            "background"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "settings"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "outputFormat": {
+                                        "enum": [
+                                            "PNG",
+                                            "WEBP"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "outputFormat"
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "inputs": {
+                                        "required": [
+                                            "maskImage"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "inputs"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "inputs": {
+                                        "required": [
+                                            "referenceImages"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "inputs"
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "inputs": {
+                                        "required": [
+                                            "markupImage"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "inputs"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "inputs": {
+                                        "required": [
+                                            "referenceImages"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "inputs"
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "settings": {
+                                        "required": [
+                                            "gif"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "settings"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "outputFormat": {
+                                        "const": "GIF"
+                                    }
+                                },
+                                "required": [
+                                    "outputFormat"
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "settings": {
+                                        "required": [
+                                            "svg"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "settings"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "outputFormat": {
+                                        "const": "SVG"
+                                    }
+                                },
+                                "required": [
+                                    "outputFormat"
+                                ]
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "svg": {
+                                                "properties": {
+                                                    "model": {
+                                                        "enum": [
+                                                            "openai:gpt@5.4-mini",
+                                                            "openai:gpt@5.4",
+                                                            "openai:gpt@5.5"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "required": [
+                                            "svg"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "settings"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "svg": {
+                                                "properties": {
+                                                    "thinkingLevel": {
+                                                        "enum": [
+                                                            "none",
+                                                            "low",
+                                                            "medium",
+                                                            "high",
+                                                            "xhigh"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "svg": {
+                                                "properties": {
+                                                    "model": {
+                                                        "enum": [
+                                                            "openai:gpt@5.6-terra",
+                                                            "openai:gpt@6-luna"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "model"
+                                                ]
+                                            }
+                                        },
+                                        "required": [
+                                            "svg"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "settings"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "svg": {
+                                                "properties": {
+                                                    "thinkingLevel": {
+                                                        "enum": [
+                                                            "none",
+                                                            "low",
+                                                            "medium",
+                                                            "high",
+                                                            "xhigh",
+                                                            "max"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "svg": {
+                                                "properties": {
+                                                    "model": {
+                                                        "const": "openai:gpt@6-astra"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "model"
+                                                ]
+                                            }
+                                        },
+                                        "required": [
+                                            "svg"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "settings"
+                                ]
+                            },
+                            "then": {
+                                "properties": {
+                                    "settings": {
+                                        "properties": {
+                                            "svg": {
+                                                "properties": {
+                                                    "thinkingLevel": {
+                                                        "enum": [
+                                                            "low",
+                                                            "medium",
+                                                            "high",
+                                                            "xhigh",
+                                                            "max"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "additionalProperties": false
+                },
+                "description": "You must always POST an array of task objects."
+            },
+            "ResponseBody": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "title": "Image Response",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "taskType": {
+                                    "title": "Task Type",
+                                    "description": "Identifier for the type of task this response belongs to.",
+                                    "type": "string",
+                                    "const": "imageInference"
+                                },
+                                "taskUUID": {
+                                    "title": "Task UUID",
+                                    "description": "UUID v4 identifier echoed from the original request, used to match async responses to their tasks.",
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "cost": {
+                                    "title": "Cost",
+                                    "description": "Task cost in USD. Present when `includeCost` is set to `true` in the request.",
+                                    "type": "number"
+                                },
+                                "imageUUID": {
+                                    "title": "Image UUID",
+                                    "description": "UUID of the output image.",
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "imageURL": {
+                                    "title": "Image URL",
+                                    "description": "URL of the output image.",
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "imageBase64Data": {
+                                    "title": "Image Base64 Data",
+                                    "description": "Base64-encoded image data.",
+                                    "type": "string"
+                                },
+                                "imageDataURI": {
+                                    "title": "Image Data URI",
+                                    "description": "Data URI of the output image.",
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "seed": {
+                                    "title": "Seed",
+                                    "description": "The seed used for generation. If none was provided, shows the randomly generated seed.",
+                                    "type": "integer"
+                                },
+                                "NSFWContent": {
+                                    "title": "NSFW Content",
+                                    "description": "Flag indicating if NSFW content was detected.",
+                                    "type": "boolean"
+                                }
+                            },
+                            "required": [
+                                "taskType",
+                                "taskUUID",
+                                "imageUUID"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "title": "Error Response",
+                "description": "Standard error response returned by the Runware API.",
+                "type": "object",
+                "properties": {
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "code",
+                                "message"
+                            ],
+                            "additionalProperties": true,
+                            "properties": {
+                                "code": {
+                                    "type": "string",
+                                    "description": "A short identifier for the error (e.g., invalidApiKey, timeoutProvider)."
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "description": "A human-readable explanation of what went wrong."
+                                },
+                                "parameter": {
+                                    "type": "string",
+                                    "description": "The request parameter related to the error, if applicable."
+                                },
+                                "taskType": {
+                                    "type": "string",
+                                    "description": "The task type of the request that failed."
+                                },
+                                "taskUUID": {
+                                    "type": "string",
+                                    "description": "The unique identifier of the failed request."
+                                },
+                                "documentation": {
+                                    "type": "string",
+                                    "description": "A link to relevant documentation."
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "errors"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "paths": {
+        "/": {
+            "post": {
+                "summary": "Run GPT-Image-2.6 Sunburst",
+                "description": "GPT-Image-2.6 Sunburst is OpenAI's image model for detailed compositions and editing work that needs precise control. Besides raster images, it generates SVG graphics and animated GIFs from text, and it edits images from marks drawn over them, like a circle around the object to change. A thinking level sets how much it plans before rendering, separate from rendering quality.",
+                "operationId": "run_openai_gpt_image_2_6_sunburst",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequestBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — Missing or invalid parameters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — No valid API key provided.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required — Insufficient account balance.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — The API key lacks permissions for this request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests — Rate limit exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error — Something went wrong on Runware's end.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable — Temporarily unavailable (maintenance or capacity).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKeyAuth": []
+        }
+    ]
+}

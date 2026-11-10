@@ -6,6 +6,8 @@ import googleNanoBanana2 from "./google-nano-banana-2.json";
 import metaMuseImage from "./meta-muse-image.json";
 import openaiGptImage25Flare from "./openai-gpt-image-2-5-flare.json";
 import openaiGptImage25Sunburst from "./openai-gpt-image-2-5-sunburst.json";
+import openaiGptImage26Flare from "./openai-gpt-image-2-6-flare.json";
+import openaiGptImage26Sunburst from "./openai-gpt-image-2-6-sunburst.json";
 import xaiGrokImagineImage20 from "./xai-grok-imagine-image-2-0.json";
 
 export const runwareImageModels = [
@@ -17,6 +19,8 @@ export const runwareImageModels = [
   metaMuseImage,
   openaiGptImage25Flare,
   openaiGptImage25Sunburst,
+  openaiGptImage26Flare,
+  openaiGptImage26Sunburst,
   xaiGrokImagineImage20,
 ];
 
@@ -29,6 +33,8 @@ export {
   metaMuseImage,
   openaiGptImage25Flare,
   openaiGptImage25Sunburst,
+  openaiGptImage26Flare,
+  openaiGptImage26Sunburst,
   xaiGrokImagineImage20,
 };
 

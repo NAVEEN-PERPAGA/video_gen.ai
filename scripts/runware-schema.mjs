@@ -172,8 +172,13 @@ function extractResolutions(allOf = []) {
  * Converts every OpenAPI file in `src` (except `skip`) into `out/<id>.json`.
  * `type` is "video" or "image"; `fieldOrder` lists the fields to put first.
  * `omitInputs` maps a model id to `inputs` keys the composer can't build yet.
+ * `adjust` maps a model id to a function that edits its request schema (the
+ * OpenAPI `RequestBody` item) in place before conversion, for options we don't
+ * offer; `allOf` conditions should stay as they are, so RULES still line up.
  */
-export function generate({ src, out, type, skip = new Set(), pricing, checked, rules: allRules, fieldOrder, omitInputs = {} }) {
+export function generate({
+  src, out, type, skip = new Set(), pricing, checked, rules: allRules, fieldOrder, omitInputs = {}, adjust = {},
+}) {
   function convert(file) {
     const doc = JSON.parse(readFileSync(join(src, file), "utf8"));
     const info = doc.info;
@@ -181,6 +186,7 @@ export function generate({ src, out, type, skip = new Set(), pricing, checked, r
     const task = body.items ?? body;
     const id = info["x-model-id"];
     for (const key of omitInputs[id] ?? []) delete task.properties.inputs.properties[key];
+    adjust[id]?.(task);
 
     const props = Object.entries(task.properties);
     props.sort(([a], [b]) => {
