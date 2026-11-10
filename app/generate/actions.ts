@@ -129,6 +129,28 @@ export async function listGenerations(workspaceId: number, cursor: number | null
   }
 }
 
+/**
+ * The composer as the signed-in user left it in a workspace: the Agent toggle,
+ * the models and their settings. Never the prompt or attachments.
+ */
+export interface ComposerSetup {
+  modelId: string;
+  agentMode: boolean;
+  /** The model last used in each mode, so switching back returns to it. */
+  lastModelIds: Record<MediaType, string>;
+  values: Partial<ComposerValues>;
+}
+
+/** Null when none is saved yet, or it can't be read: the composer then just opens with its defaults. */
+export async function getComposerSetup(workspaceId: number): Promise<ComposerSetup | null> {
+  try {
+    return await apiFetch<ComposerSetup | null>(`/workspaces/${workspaceId}/composer-setup`);
+  } catch (err) {
+    console.error("Could not load the composer setup:", err);
+    return null;
+  }
+}
+
 /** Polls a generation; the API checks Runware for the task's status as it answers. */
 export async function getGeneration(workspaceId: number, generationId: number): Promise<GenerateState> {
   try {

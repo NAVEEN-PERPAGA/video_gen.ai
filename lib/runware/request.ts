@@ -227,6 +227,7 @@ function defaultPreset(model: RunwareModel) {
 /** Cheaper starting points than the API's own defaults, per model. */
 const COMPOSER_DEFAULTS: Record<string, Pick<ComposerValues, "size" | "duration">> = {
   "google:gemini@omni-flash-1.1": { size: "preset:640x360", duration: 3 },
+  "google:gemini@omni-flash-1.2": { size: "preset:640x360", duration: 3 },
 };
 
 export function initialValues(model: RunwareModel): ComposerValues {

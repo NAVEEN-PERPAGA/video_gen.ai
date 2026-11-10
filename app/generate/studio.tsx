@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { createProject } from "@/app/edit/actions";
 import {
+  type ComposerSetup,
   deleteGeneration,
   type Generation,
   type GenerationsPage,
@@ -30,7 +31,7 @@ import { notifyCreditsChanged } from "@/lib/credits-events";
 import { imageClip, videoClip } from "@/lib/editor/edit";
 import { aspectFor, probeMedia } from "@/lib/editor/media";
 import { emptyTimeline } from "@/lib/editor/timeline";
-import { GEMINI_EXTEND } from "@/lib/runware/extend";
+import { isGeminiExtend } from "@/lib/runware/extend";
 import { getModel } from "@/lib/runware/models";
 
 /**
@@ -43,12 +44,15 @@ export function Studio({
   initial,
   signedIn,
   preset,
+  setup,
 }: {
   workspaceId: number | null;
   initial: GenerationsPage | null;
   signedIn: boolean;
   /** The composer's starting model and settings on a tool page. */
   preset?: ComposerPreset;
+  /** The composer as the user left it in this workspace. */
+  setup?: ComposerSetup | null;
 }) {
   const firstPage = initial && initial.error === undefined ? initial : null;
   const [generations, setGenerations] = useState<Generation[]>(firstPage?.generations ?? []);
@@ -265,6 +269,7 @@ export function Studio({
         signedIn={signedIn}
         onGeneration={upsert}
         preset={preset}
+        setup={setup}
       />
     </>
   );
@@ -438,7 +443,7 @@ function GenerationViewer({
   // Seedance says so; Gemini extends (rather than edits) when given a duration.
   const extended =
     request?.settings?.operation === "extend" ||
-    (g.model === GEMINI_EXTEND && request?.duration !== undefined);
+    (isGeminiExtend(g.model) && request?.duration !== undefined);
 
   useEffect(() => {
     dialogRef.current?.showModal();

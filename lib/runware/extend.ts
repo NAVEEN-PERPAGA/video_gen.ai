@@ -6,14 +6,20 @@ import { type AssetItem, autoAdjust, type ComposerValues, initialValues } from "
  * separate extend task; these models extend through `inputs.video`:
  *  - Seedance 2.5 with `settings.operation: "extend"` (without it, the prompt
  *    decides between editing and extending).
- *  - Gemini Omni Flash 1.1 with a `duration` (3–10 s of new footage, up to
- *    30 s in all); without one, the same request edits the clip instead.
+ *  - Gemini Omni Flash 1.1 and 1.2 with a `duration` (3–10 s of new footage;
+ *    1.1 goes up to 30 s in all, 1.2 takes source clips of 1–27 s); without
+ *    one, the same request edits the clip instead.
  * The composer always says which one it wants, so an attached clip is
  * either edited or extended, never left to the model to guess.
  */
 export const SEEDANCE_EXTEND = "bytedance:seedance@2.5";
-export const GEMINI_EXTEND = "google:gemini@omni-flash-1.1";
-export const EXTEND_MODEL_IDS = [SEEDANCE_EXTEND, GEMINI_EXTEND];
+export const GEMINI_EXTEND_IDS = ["google:gemini@omni-flash-1.1", "google:gemini@omni-flash-1.2"];
+export const EXTEND_MODEL_IDS = [SEEDANCE_EXTEND, ...GEMINI_EXTEND_IDS];
+
+/** Whether `modelId` is a Gemini model that extends when given a duration. */
+export function isGeminiExtend(modelId: string | null | undefined) {
+  return modelId != null && GEMINI_EXTEND_IDS.includes(modelId);
+}
 
 export type VideoOperation = "edit" | "extend";
 
@@ -29,7 +35,7 @@ function hasVideo(v: ComposerValues) {
 export function isExtending(model: RunwareModel, v: ComposerValues) {
   if (!hasVideo(v)) return false;
   if (model.value === SEEDANCE_EXTEND) return v.settings.operation === "extend";
-  if (model.value === GEMINI_EXTEND) return v.duration !== undefined;
+  if (isGeminiExtend(model.value)) return v.duration !== undefined;
   return false;
 }
 
@@ -49,7 +55,7 @@ function extendValues(model: RunwareModel, v: ComposerValues): ComposerValues {
 function editValues(model: RunwareModel, v: ComposerValues): ComposerValues {
   // Seedance edits keep the clip's length; Gemini edits when no duration is sent.
   if (model.value === SEEDANCE_EXTEND) return { ...v, duration: "auto", settings: { ...v.settings, operation: "edit" } };
-  if (model.value === GEMINI_EXTEND) return { ...v, duration: undefined };
+  if (isGeminiExtend(model.value)) return { ...v, duration: undefined };
   return v;
 }
 

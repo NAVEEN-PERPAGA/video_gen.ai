@@ -56,6 +56,8 @@ const PRICING = {
     approximate: true,
     note: "Billed per token ($17.50 per 1M video tokens); input tokens add a little on top.",
   },
+  // Published flat per-second rates; the extend example (720p, 10s, $0.70) shows no video-input surcharge.
+  "google-gemini-omni-flash-1-2": { perSecond: { "360p": 0.02, "720p": 0.07, "1080p": 0.1, "4K": 0.21 } },
   "klingai-video-4-0": {
     perSecond: { "720p": 0.157, "1080p": 0.235 },
     // Reference videos are billed at the video-input rate too (see the reference-to-video example).
@@ -148,6 +150,16 @@ const RULES = {
     "With an input video, don't pick an exact size.",
     PRESET,
   ],
+  "google-gemini-omni-flash-1-2": [
+    PAIR,
+    "Frame images can't be combined with reference images, reference videos or an input video.",
+    "An input video can't be combined with reference videos.",
+    RES_XOR,
+    "With an input video, don't pick an exact size.",
+    "When extending a video (input video plus a duration), reference images can't be used.",
+    "With 2 frame images, reference media or an input video, duration is at most 10s.",
+    PRESET,
+  ],
   "klingai-video-4-0": [
     PAIR,
     "Without frame images, reference images, reference videos, elements or an input video, pick an exact size.",
@@ -224,7 +236,12 @@ const FIELD_ORDER = [
 
 // Kling elements are objects (frontal image + angles, or a video, plus a voice)
 // that the composer's flat asset lists can't express yet.
-const OMIT_INPUTS = { "klingai-video-4-0": ["elements"] };
+// Gemini Omni Flash 1.2's videoId edits an earlier Runware output by its
+// outputs.videoId, which we don't store; edits go through inputs.video instead.
+const OMIT_INPUTS = {
+  "klingai-video-4-0": ["elements"],
+  "google-gemini-omni-flash-1-2": ["videoId"],
+};
 
 generate({
   src: SRC, out: OUT, type: "video", skip: SKIP, pricing: PRICING, checked: CHECKED, rules: RULES,

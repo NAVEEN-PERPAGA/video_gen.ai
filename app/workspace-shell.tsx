@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAvailableCredits } from "@/app/billing/actions";
 import { CreditsBadge } from "@/app/credits-badge";
-import { listGenerations } from "@/app/generate/actions";
+import { getComposerSetup, listGenerations } from "@/app/generate/actions";
 import { Studio } from "@/app/generate/studio";
 import type { ComposerPreset } from "@/app/generate/video-composer";
 import { GoogleSignInButton } from "@/app/google-sign-in-button";
@@ -76,7 +76,9 @@ export async function WorkspaceShell({
   // Videos are generated in the workspace picked in the header (?workspace=<id>), else the first one.
   const { workspace } = await searchParams;
   const active = workspaces.find((ws) => String(ws.id) === workspace) ?? workspaces[0];
-  const generations = active ? await listGenerations(active.id) : null;
+  const [generations, composerSetup] = active
+    ? await Promise.all([listGenerations(active.id), getComposerSetup(active.id)])
+    : [null, null];
 
   return (
     <>
@@ -175,6 +177,7 @@ export async function WorkspaceShell({
           initial={generations}
           signedIn={signedIn}
           preset={preset}
+          setup={composerSetup}
         />
       </main>
 

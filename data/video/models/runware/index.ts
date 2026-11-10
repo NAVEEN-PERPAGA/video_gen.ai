@@ -4,6 +4,7 @@ import alibabaWan30 from "./alibaba-wan3-0.json";
 import bflFlux3Video from "./bfl-flux-3-video.json";
 import bytedanceSeedance25 from "./bytedance-seedance-2-5.json";
 import googleGeminiOmniFlash11 from "./google-gemini-omni-flash-1-1.json";
+import googleGeminiOmniFlash12 from "./google-gemini-omni-flash-1-2.json";
 import klingaiVideo40 from "./klingai-video-4-0.json";
 import lightricksLtx23Fast from "./lightricks-ltx-2-3-fast.json";
 import lightricksLtx25Fast from "./lightricks-ltx-2-5-fast.json";
@@ -21,6 +22,7 @@ export const runwareModels = [
   bflFlux3Video,
   bytedanceSeedance25,
   googleGeminiOmniFlash11,
+  googleGeminiOmniFlash12,
   klingaiVideo40,
   lightricksLtx23Fast,
   lightricksLtx25Fast,
@@ -39,6 +41,7 @@ export {
   bflFlux3Video,
   bytedanceSeedance25,
   googleGeminiOmniFlash11,
+  googleGeminiOmniFlash12,
   klingaiVideo40,
   lightricksLtx23Fast,
   lightricksLtx25Fast,
